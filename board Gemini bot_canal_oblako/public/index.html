@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Дошка Одеса</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <header class="fixed-top glass">
+        <div class="header-line">
+            <span class="logo">⚓ Робота Одеса</span>
+            <button class="help-btn" onclick="showRules()">?</button>
+        </div>
+        <div class="filter-line">
+            <select id="categorySelect" onchange="filterAds()">
+                <option value="">Усі категорії 🔍</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="scroll-area">
+        <section class="promo-slider" id="promoSlider"></section>
+        
+        <div class="section-label">💎 VIP ПРОПОЗИЦІЇ</div>
+        <section class="vip-row" id="vipContainer"></section>
+
+        <div class="section-label">🆕 ОСТАННІ ОБ'ЯВИ</div>
+        <main id="adsContainer" class="ads-list"></main>
+    </div>
+
+    <footer class="fixed-bottom glass">
+        <div class="footer-info">
+            <span>Підтримка: @admin_odessa</span>
+        </div>
+        <button class="main-add-btn" onclick="location.href='create.html'">➕ Дати оголошення</button>
+    </footer>
+
+    <div id="modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
