@@ -1,53 +1,64 @@
-const API_BASE = ''; // Оставляем пустым, браузер сам поймет, что нужно обращаться к своему же серверу
-
-//const API_BASE = 'https://board-odessa.onrender.com';
-
 const tg = window.Telegram.WebApp;
+tg.ready();
 
 async function initApp() {
     try {
         tg.expand();
-        tg.ready(); // Сообщаем Telegram, что приложение готово
-        const res = await fetch(`${API_BASE}/api/init`);
+        const res = await fetch('/api/init');
         const data = await res.json();
-        if (data.cats) renderCategories(data.cats);
-        if (data.promos) renderPromos(data.promos);
+        
+        const select = document.getElementById('categorySelect');
+        if (data.cats && select) {
+            select.innerHTML = '<option value="">Усі категорії 🔍</option>';
+            data.cats.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.innerText = cat.name;
+                select.appendChild(opt);
+            });
+        }
         loadAds();
-    } catch (err) {
-        console.error("Ошибка инициализации:", err);
-    }
+    } catch (e) { console.error("Init error:", e); }
 }
 
 async function loadAds(cat = '') {
     try {
-        const res = await fetch(`${API_BASE}/api/ads${cat ? '?category='+cat : ''}`);
+        const res = await fetch(`/api/ads${cat ? '?category='+cat : ''}`);
         const ads = await res.json();
         const main = document.getElementById('adsContainer');
         const vip = document.getElementById('vipContainer');
         
-        if (!main || !vip) return;
-        main.innerHTML = ''; vip.innerHTML = '';
+        if(main) main.innerHTML = ''; 
+        if(vip) vip.innerHTML = '';
 
         ads.forEach(ad => {
-            if (ad.isVip && vip) {
-                vip.appendChild(createVipCard(ad));
-            } else {
-                main.appendChild(createCard(ad));
-            }
+            if (ad.isVip && vip) vip.appendChild(createVipCard(ad));
+            else if(main) main.appendChild(createCard(ad));
         });
-    } catch (err) {
-        console.error("Ошибка загрузки объявлений:", err);
-    }
+    } catch (e) { console.error("Load error:", e); }
+}
+
+function createCard(ad) {
+    const div = document.createElement('div');
+    div.className = 'ad-card';
+    div.innerHTML = `<div><h3>${ad.title}</h3><span>📍 Одеса</span></div><p>${ad.salary} ₴</p>`;
+    div.onclick = () => showFullAd(ad);
+    return div;
+}
+
+function createVipCard(ad) {
+    const div = document.createElement('div');
+    div.className = 'vip-item';
+    div.innerHTML = `<h3>${ad.title}</h3><p>${ad.salary} ₴</p><span>⚓ VIP</span>`;
+    div.onclick = () => showFullAd(ad);
+    return div;
 }
 
 function showFullAd(ad) {
     const modal = document.getElementById('modal');
     const body = document.getElementById('modalBody');
-    // Исправили путь к обязанностям (просто ad.duties вместо ad.content.duties)
-    const duties = ad.duties || (ad.content ? ad.content.duties : 'Опис відсутній');
-    const phone = ad.phone || (ad.content ? ad.content.phone : '********');
-    
-    const shareUrl = `https://t.me/${tg.initDataUnsafe?.bot_inline_placeholder || 'bot'}/app?startapp=${ad.id}`;
+    const duties = ad.duties || "Опис відсутній";
+    const phone = ad.phone || "********";
     
     body.innerHTML = `
         <h2>${ad.title}</h2>
@@ -60,15 +71,9 @@ function showFullAd(ad) {
     modal.style.display = 'block';
 }
 
-
-
-function closeModal() { document.getElementById('modal').style.display = 'none'; }
-function renderCategories(cats) { /* ... заполнение селекта ... */ }
-window.onload = initApp;
-
 function showHelp() {
-    alert ("HELLO HELP!!!!!!");
-    tg.showAlert("Smart Job Odessa — сервіс пошуку роботи. Оберіть категорію або додайте своє оголошення через кнопку '+'.");
-    
+    tg.showAlert("⚓ Smart Job Odessa\nТут ви можете знайти роботу або подати вакансію. Оголошення публікується в каналі після модерації.");
 }
 
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+window.onload = initApp;

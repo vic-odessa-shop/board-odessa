@@ -1,124 +1,83 @@
 const express = require('express');
 const { Telegraf, Markup } = require('telegraf');
 const mongoose = require('mongoose');
-const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+const bot = new Telegraf(process.env.BOT_TOKEN);
+
 app.use(express.json());
 
-// Раздача статических файлов из папки public
-//app.use(express.static('public'));
+// База данных (Ad - ваша модель объявления)
+const adSchema = new mongoose.Schema({
+    id: String,
+    title: String,
+    salary: String,
+    city: String,
+    duties: String,
+    phone: String,
+    status: { type: String, default: 'pending' },
+    isVip: Boolean,
+    userId: String
+});
+const Ad = mongoose.model('Ad', adSchema);
 
-const path = require('path');
+// API: Инициализация
+app.get('/api/init', (req, res) => {
+    res.json({
+        cats: [
+            {id: 'driver', name: 'Водій 🚗'},
+            {id: 'cook', name: 'Кухар 🍳'},
+            {id: 'seller', name: 'Продавець 🛍️'}
+        ],
+        prices: { d30: 400, vip: 150 }
+    });
+});
 
-// Это гарантирует, что папка public найдется, даже если мы запускаем код из подпапки
+// API: Создание объявления
+app.post('/api/ads/create', async (req, res) => {
+    try {
+        const adId = 'v' + Math.floor(Math.random() * 10000);
+        const newAd = new Ad({...req.body, id: adId});
+        await newAd.save();
 
-// Папка public находится на один уровень выше, если server.js в папке server
+        // Ротатор кошельков (пример)
+        const wallets = [
+            {label: 'ПриватБанк', number: '4441 1111 2222 3333'},
+            {label: 'MonoBank', number: '5375 4141 0000 1111'}
+        ];
+        const wallet = wallets[Math.floor(Math.random() * wallets.length)];
+
+        res.json({ id: adId, wallet: wallet });
+        
+        // Уведомление админу в бот
+        bot.telegram.sendMessage(process.env.ADMIN_ID, `🆕 Нове замовлення: ${adId}\nСума: ${req.body.totalSum} грн`, 
+            Markup.inlineKeyboard([
+                [Markup.button.callback('✅ Активувати', `paid_${adId}`)],
+                [Markup.button.callback('🗑 Видалити', `del_${adId}`)]
+            ])
+        );
+    } catch (e) {
+        res.status(500).json({error: e.message});
+    }
+});
+
+// Раздача файлов (с выходом из папки server в корень)
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
-
-
-
-// Чтобы при заходе на корень сайта открывался index.html
-//const path = require('path');
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-
-mongoose.connect(process.env.MONGO_URI);
-
-// --- СХЕМЫ ДАННЫХ ---
-const AdSchema = new mongoose.Schema({
-    id: String, userId: String, title: String, salary: String, city: String,
-    content: Object, status: { type: String, default: 'pending' },
-    isVip: { type: Boolean, default: false }, 
-    createdAt: { type: Date, default: Date.now },
-    expireAt: Date
-});
-const Ad = mongoose.model('Ad', AdSchema);
-
-const WalletSchema = new mongoose.Schema({
-    type: String, number: String, label: String, active: { type: Boolean, default: true },
-    useCount: { type: Number, default: 0 }
-});
-const Wallet = mongoose.model('Wallet', WalletSchema);
-
-const PromoSchema = new mongoose.Schema({ imageUrl: String, link: String, active: { type: Boolean, default: true } });
-const Promo = mongoose.model('Promo', PromoSchema);
-
-const bot = new Telegraf(process.env.BOT_TOKEN);
-
-// Логирование входящих сообщений
-bot.use((ctx, next) => {
-    if (ctx.from) {
-        console.log(`📩 Сообщение от: ${ctx.from.username || ctx.from.id}`);
-    }
-    return next();
-});
-
-// Команда СТАРТ с кнопкой открытия доски
-bot.start((ctx) => {
-    ctx.reply(
-        'Вітаємо у Smart Job Odessa! ⚓\nТут ви знайдете актуальну роботу або зможете розмістити свою вакансію.',
-        Markup.inlineKeyboard([
-            [Markup.button.webApp('🚀 Відкрити Дошку Оголошень', 'https://board-odessa.onrender.com')]
-        ])
-    );
-});
-
-// Команда для проверки статуса админа
-bot.command('admin', (ctx) => {
-    const isAdmin = ctx.from.id.toString() === process.env.ADMIN_ID;
-    if (isAdmin) {
-        ctx.reply('✅ Вітаю, шеф! Ви в панелі керування. Тут будуть з’являтися нові оголошення.');
-    } else {
-        ctx.reply('❌ Доступ обмежено. Ваш ID: ' + ctx.from.id);
-    }
-});
-
-// Обработка кнопок модерации (активация)
-bot.action(/^paid_(.+)$/, async (ctx) => {
-    try {
-        const adId = ctx.match[1];
-        const ad = await Ad.findOneAndUpdate({ id: adId }, { status: 'active' });
-        
-        if (ad) {
-            const text = `🔥 **${ad.title.toUpperCase()}**\n💰 ЗП: ${ad.salary} грн\n📍 Місто: ${ad.city}\n\n👉 [Відкрити в боті](https://t.me/${ctx.botInfo.username}/app?startapp=${ad.id})`;
-            await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { parse_mode: 'Markdown' });
-            await ctx.editMessageText(`✅ Оголошення ${adId} активовано!`);
-        }
-    } catch (e) {
-        console.error(e);
-        ctx.reply('Помилка при активації.');
-    }
-});
-
-// Обработка кнопок модерации (удаление)
-bot.action(/^del_(.+)$/, async (ctx) => {
-    const adId = ctx.match[1];
-    await Ad.findOneAndDelete({ id: adId });
-    ctx.editMessageText(`🗑 Оголошення ${adId} видалено.`);
-});
-
-// Запуск сервера и бота
+// Запуск
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Сервер работает на порту ${PORT}`);
+app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+
+bot.start((ctx) => {
+    ctx.reply('⚓ Вітаємо у Smart Job!', Markup.inlineKeyboard([
+        [Markup.button.webApp('🚀 Відкрити Дошку', 'https://board-odessa.onrender.com')]
+    ]));
 });
 
-bot.launch().then(() => {
-    console.log("🚀 Бот запущен!");
-}).catch((err) => {
-    if (err.response && err.response.error_code === 409) {
-        console.log("⚠️ Ждем освобождения токена...");
-    } else {
-        console.error("❌ Ошибка запуска:", err);
-    }
-});
+bot.launch().catch(err => console.error("Bot error:", err));
