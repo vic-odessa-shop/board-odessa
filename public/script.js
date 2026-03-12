@@ -1,4 +1,4 @@
-const API_BASE = 'https://ВАШ_URL.onrender.com';
+const API_BASE = 'https://board-odessa.onrender.com';
 const tg = window.Telegram.WebApp;
 
 async function initApp() {
