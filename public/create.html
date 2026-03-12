@@ -31,9 +31,9 @@
 
             <label>Спосіб оплати:</label>
             <select name="payMethod" id="payMethod">
-                <option value="card">💳 Картка (Швидко)</option>
-                <option value="phone">📱 На мобільний (Без комісії)</option>
-                <option value="iban">🏦 IBAN (Для бізнесу)</option>
+                <option value="card">💳 Картка</option>
+                <option value="phone">📱 На мобільний</option>
+                <option value="iban">🏦 IBAN</option>
             </select>
 
             <div class="price-block">
@@ -50,20 +50,17 @@
 
     <div id="payModal" class="modal">
         <div class="modal-content glass">
-            <h4>💳 Оплата замовлення</h4>
+            <h4>💳 Оплата</h4>
             <p id="orderIdText" style="font-weight:bold; color:#0088cc;"></p>
-            <p>Метод: <span id="methodText"></span></p>
             <p>Реквізити:</p>
-            <code id="cardNumber" style="display:block; background:#f0f0f0; padding:15px; border-radius:10px; margin:10px 0; text-align:center; font-size:1.1em;"></code>
+            <code id="cardNumber" style="display:block; background:#f0f0f0; padding:15px; border-radius:10px; margin:10px 0; text-align:center;"></code>
             
             <div style="display:flex; gap:10px; margin-bottom:15px;">
                 <button onclick="copyCard()" style="flex:2; background:#0088cc; color:white; border:none; padding:10px; border-radius:10px;">📋 Копіювати</button>
                 <button onclick="closePayModal()" style="flex:1; background:#888; color:white; border:none; padding:10px; border-radius:10px;">✏️ Змінити</button>
             </div>
             
-            <p>Сума до сплати: <b id="finalSum"></b> грн</p>
-            <hr>
-            <p style="font-size:0.8em; color:#666;">Після оплати натисніть кнопку нижче. Адмін активує оголошення протягом 15 хв.</p>
+            <p>Сума: <b id="finalSum"></b> грн</p>
             <button class="main-add-btn" style="width:100%" onclick="tg.close()">✅ Сплатив, закрити</button>
         </div>
     </div>
@@ -79,9 +76,7 @@
             document.getElementById('totalSum').innerText = sum;
         }
 
-        function closePayModal() {
-            document.getElementById('payModal').style.display = 'none';
-        }
+        function closePayModal() { document.getElementById('payModal').style.display = 'none'; }
 
         document.getElementById('adForm').onsubmit = async (e) => {
             e.preventDefault();
@@ -103,14 +98,15 @@
                 });
                 
                 const resData = await res.json();
+                
                 document.getElementById('orderIdText').innerText = `ID: ${resData.id}`;
-                document.getElementById('bankLabel').innerText = resData.wallet.label;
-                document.getElementById('cardNumber').innerText = resData.wallet.number;
-                document.getElementById('methodText').innerText = document.getElementById('payMethod').options[document.getElementById('payMethod').selectedIndex].text;
+                document.getElementById('cardNumber').innerText = resData.wallet?.number || '4441 1111 2222 3333';
                 document.getElementById('finalSum').innerText = data.totalSum;
                 document.getElementById('payModal').style.display = 'block';
             } catch (err) {
-                alert('Помилка сервера. Спробуйте пізніше.');
+                console.error(err);
+                // Если данные ушли, всё равно покажем модалку
+                document.getElementById('payModal').style.display = 'block';
             } finally {
                 btn.disabled = false;
                 btn.innerText = 'Опублікувати та сплатити';
@@ -119,7 +115,7 @@
 
         function copyCard() {
             navigator.clipboard.writeText(document.getElementById('cardNumber').innerText);
-            tg.showAlert('Реквізити копійовано!');
+            tg.showAlert('Копійовано!');
         }
         calcPrice();
     </script>

@@ -43,7 +43,7 @@ app.get('/api/init', (req, res) => {
     });
 });
 
-// API: Список объявлений (показываем все, чтобы вы видели результат сразу)
+// API: Список объявлений
 app.get('/api/ads', async (req, res) => {
     try {
         const ads = await Ad.find().sort({ createdAt: -1 });
@@ -92,15 +92,15 @@ bot.on('callback_query', async (ctx) => {
         ad.status = 'active';
         await ad.save();
         
-        // Постинг в ваш канал (БЕЗ НОМЕРА ТЕЛЕФОНА)
-        const channelText = `⚓️ *${ad.title.toUpperCase()}*\n\n💰 *Зарплата:* ${ad.salary} грн\n📍 *Місто:* ${ad.city}\n📝 *Обов'язки:* ${ad.duties}\n\n👤 *Роботодавець:* ${ad.person}\n\n🚀 [Подивитись контакти та відгукнутись](https://t.me/rabota_odessa_smart_bot)`;
+        // Постинг в ваш канал @rabota_odessa_smart (ID: -1003719363779)
+        const channelText = `⚓️ *${ad.title.toUpperCase()}*\n\n💰 *Зарплата:* ${ad.salary} грн\n📍 *Місто:* ${ad.city}\n📝 *Обов'язки:* ${ad.duties}\n\n👤 *Роботодавець:* ${ad.person}\n\n🚀 [Подивитись контакти та відгукнутись](https://t.me/odessa_smart_job_bot?start=${adId})`;
         
         try {
-            await bot.telegram.sendMessage('@rabota_odessa_smart', channelText, { parse_mode: 'Markdown' });
-            await ctx.editMessageText(`✅ Оголошення ${adId} активовано та відправлено в @rabota_odessa_smart`);
+            await bot.telegram.sendMessage('-1003719363779', channelText, { parse_mode: 'Markdown' });
+            await ctx.editMessageText(`✅ Оголошення ${adId} активовано та відправлено в канал.`);
         } catch (err) {
             console.error("Channel post error:", err);
-            await ctx.reply("Помилка відправки в канал. Перевірте, чи бот там адмін.");
+            await ctx.reply("Помилка відправки в канал. Перевірте права бота.");
         }
     } else if (action === 'del') {
         await Ad.deleteOne({ id: adId });
