@@ -14,15 +14,19 @@ app.use(express.json());
 const path = require('path');
 
 // Это гарантирует, что папка public найдется, даже если мы запускаем код из подпапки
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Папка public находится на один уровень выше, если server.js в папке server
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 
+
+
 // Чтобы при заходе на корень сайта открывался index.html
-const path = require('path');
+//const path = require('path');
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
