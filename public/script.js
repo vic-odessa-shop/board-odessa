@@ -67,6 +67,8 @@ function renderCategories(cats) { /* ... заполнение селекта ...
 window.onload = initApp;
 
 function showHelp() {
+    alert ("HELLO HELP!!!!!!");
     tg.showAlert("Smart Job Odessa — сервіс пошуку роботи. Оберіть категорію або додайте своє оголошення через кнопку '+'.");
+    
 }
 
