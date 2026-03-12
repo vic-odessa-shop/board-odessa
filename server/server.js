@@ -97,5 +97,15 @@ bot.action(/^paid_(.+)$/, async (ctx) => {
     ctx.editMessageText(`✅ Оголошення ${adId} активовано!`);
 });
 
+bot.start((ctx) => {
+  console.log("Старт нажал:", ctx.from.id);
+  ctx.reply('Привіт! Бот працює. Натисніть на кнопку меню, щоб відкрити дошку.');
+});
+
+bot.on('text', (ctx) => {
+  ctx.reply('Я отримав ваше повідомлення!');
+});
+
+
 bot.launch();
 app.listen(process.env.PORT || 3000);
