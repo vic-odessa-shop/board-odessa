@@ -10,7 +10,7 @@
 <body class="form-page">
     <div class="container glass">
         <div class="form-header">
-            <button class="back-btn" onclick="history.back()">←</button>
+            <button class="back-btn" onclick="history.back()">← Назад</button>
             <h3>Подати оголошення</h3>
         </div>
 
@@ -29,27 +29,42 @@
             <input type="tel" name="phone" placeholder="Ваш телефон" required>
             <input type="text" name="person" placeholder="Ім'я" required>
 
+            <label>Спосіб оплати:</label>
+            <select name="payMethod" id="payMethod">
+                <option value="card">💳 Картка (Швидко)</option>
+                <option value="phone">📱 На мобільний (Без комісії)</option>
+                <option value="iban">🏦 IBAN (Для бізнесу)</option>
+            </select>
+
             <div class="price-block">
                 <div class="vip-check">
                     <input type="checkbox" id="isVip" onchange="calcPrice()">
-                    <label for="isVip">💎 VIP (+150 грн)</label>
+                    <label for="isVip">💎 VIP статус (+150 грн)</label>
                 </div>
                 <div class="total-price">До сплати: <span id="totalSum">400</span> грн</div>
             </div>
 
-            <button type="submit" class="submit-btn">Опублікувати</button>
+            <button type="submit" class="submit-btn">Опублікувати та сплатити</button>
         </form>
     </div>
 
     <div id="payModal" class="modal">
         <div class="modal-content glass">
-            <h4>💳 Оплата</h4>
-            <p id="orderIdText"></p>
-            <p>Банк: <b id="bankLabel"></b></p>
-            <code id="cardNumber" style="display:block; background:#eee; padding:10px; margin:10px 0;"></code>
-            <button onclick="copyCard()">📋 Копіювати картку</button>
-            <p>Сума: <b id="finalSum"></b> грн</p>
-            <button class="main-add-btn" onclick="tg.close()">Зрозумів</button>
+            <h4>💳 Оплата замовлення</h4>
+            <p id="orderIdText" style="font-weight:bold; color:#0088cc;"></p>
+            <p>Метод: <span id="methodText"></span></p>
+            <p>Реквізити:</p>
+            <code id="cardNumber" style="display:block; background:#f0f0f0; padding:15px; border-radius:10px; margin:10px 0; text-align:center; font-size:1.1em;"></code>
+            
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button onclick="copyCard()" style="flex:2; background:#0088cc; color:white; border:none; padding:10px; border-radius:10px;">📋 Копіювати</button>
+                <button onclick="closePayModal()" style="flex:1; background:#888; color:white; border:none; padding:10px; border-radius:10px;">✏️ Змінити</button>
+            </div>
+            
+            <p>Сума до сплати: <b id="finalSum"></b> грн</p>
+            <hr>
+            <p style="font-size:0.8em; color:#666;">Після оплати натисніть кнопку нижче. Адмін активує оголошення протягом 15 хв.</p>
+            <button class="main-add-btn" style="width:100%" onclick="tg.close()">✅ Сплатив, закрити</button>
         </div>
     </div>
 
@@ -58,27 +73,21 @@
         tg.ready();
         let prices = { d30: 400, vip: 150 };
 
-        async function init() {
-            tg.expand();
-            try {
-                const res = await fetch('/api/init');
-                const data = await res.json();
-                if(data.prices) prices = data.prices;
-            } catch(e) {}
-            calcPrice();
-        }
-
         function calcPrice() {
             let sum = prices.d30;
             if (document.getElementById('isVip').checked) sum += prices.vip;
             document.getElementById('totalSum').innerText = sum;
         }
 
+        function closePayModal() {
+            document.getElementById('payModal').style.display = 'none';
+        }
+
         document.getElementById('adForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('.submit-btn');
             btn.disabled = true;
-            btn.innerText = 'Збереження...';
+            btn.innerText = 'Надсилаю...';
 
             try {
                 const formData = new FormData(e.target);
@@ -94,24 +103,25 @@
                 });
                 
                 const resData = await res.json();
-                document.getElementById('orderIdText').innerText = `Замовлення: ${resData.id}`;
+                document.getElementById('orderIdText').innerText = `ID: ${resData.id}`;
                 document.getElementById('bankLabel').innerText = resData.wallet.label;
                 document.getElementById('cardNumber').innerText = resData.wallet.number;
+                document.getElementById('methodText').innerText = document.getElementById('payMethod').options[document.getElementById('payMethod').selectedIndex].text;
                 document.getElementById('finalSum').innerText = data.totalSum;
                 document.getElementById('payModal').style.display = 'block';
             } catch (err) {
-                alert('Помилка сервера. Спробуйте ще раз.');
+                alert('Помилка сервера. Спробуйте пізніше.');
             } finally {
                 btn.disabled = false;
-                btn.innerText = 'Опублікувати';
+                btn.innerText = 'Опублікувати та сплатити';
             }
         };
 
         function copyCard() {
             navigator.clipboard.writeText(document.getElementById('cardNumber').innerText);
-            tg.showAlert('Копійовано!');
+            tg.showAlert('Реквізити копійовано!');
         }
-        init();
+        calcPrice();
     </script>
 </body>
 </html>

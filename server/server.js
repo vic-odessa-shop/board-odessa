@@ -9,12 +9,10 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 app.use(express.json());
 
-// Подключение к MongoDB (убедитесь, что MONGO_URI есть в переменных Render)
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB error:', err));
 
-// Упрощенная схема (без строгих правил, чтобы точно сохранилось)
 const adSchema = new mongoose.Schema({
     id: String,
     title: String,
@@ -45,68 +43,74 @@ app.get('/api/init', (req, res) => {
     });
 });
 
-// API: Получение объявлений
+// API: Список объявлений (показываем все, чтобы вы видели результат сразу)
 app.get('/api/ads', async (req, res) => {
     try {
-        const ads = await Ad.find({ status: 'active' }).sort({ createdAt: -1 });
+        const ads = await Ad.find().sort({ createdAt: -1 });
         res.json(ads);
-    } catch (e) {
-        res.status(500).json([]);
-    }
+    } catch (e) { res.status(500).json([]); }
 });
 
-// API: Создание объявления
+// API: Создание
 app.post('/api/ads/create', async (req, res) => {
-    console.log("📥 Получены данные:", req.body); // Видно в логах Render
     try {
         const adId = 'v' + Math.floor(1000 + Math.random() * 9000);
-        
-        // Создаем объект объявления
-        const newAd = new Ad({
-            ...req.body,
-            id: adId
-        });
-
+        const newAd = new Ad({ ...req.body, id: adId });
         await newAd.save();
-        console.log("✅ Объявление сохранено:", adId);
 
-        // Ротатор кошельков
         const wallets = [
             {label: 'ПриватБанк', number: '4441 1111 2222 3333'},
             {label: 'MonoBank', number: '5375 4141 0000 1111'}
         ];
         const wallet = wallets[Math.floor(Math.random() * wallets.length)];
-
         res.json({ id: adId, wallet: wallet });
         
-        // Отправка админу (вам)
         if (process.env.ADMIN_ID) {
             bot.telegram.sendMessage(process.env.ADMIN_ID, 
-                `🆕 *НОВЕ ЗАМОВЛЕННЯ: ${adId}*\n\nПосада: ${req.body.title}\nЗП: ${req.body.salary}\nЮзер: ${req.body.userId}`, 
+                `🆕 *НОВЕ ЗАМОВЛЕННЯ: ${adId}*\n\nПосада: ${req.body.title}\nЗП: ${req.body.salary}\nКонтакт: ${req.body.phone}`, 
                 {
                     parse_mode: 'Markdown',
                     ...Markup.inlineKeyboard([
-                        [Markup.button.callback('✅ Активувати', `paid_${adId}`)],
+                        [Markup.button.callback('✅ Опублікувати', `paid_${adId}`)],
                         [Markup.button.callback('🗑 Видалити', `del_${adId}`)]
                     ])
                 }
-            ).catch(e => console.error("Ошибка отправки админу:", e.message));
+            );
         }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
-    } catch (e) {
-        console.error("❌ Ошибка сохранения:", e.message);
-        res.status(500).json({ error: "Ошибка базы данных", details: e.message });
+// ОБРАБОТКА КНОПОК АДМИНА
+bot.on('callback_query', async (ctx) => {
+    const data = ctx.callbackQuery.data;
+    const [action, adId] = data.split('_');
+    const ad = await Ad.findOne({ id: adId });
+
+    if (!ad) return ctx.answerCbQuery('Не знайдено!');
+
+    if (action === 'paid') {
+        ad.status = 'active';
+        await ad.save();
+        
+        // Постинг в ваш канал (БЕЗ НОМЕРА ТЕЛЕФОНА)
+        const channelText = `⚓️ *${ad.title.toUpperCase()}*\n\n💰 *Зарплата:* ${ad.salary} грн\n📍 *Місто:* ${ad.city}\n📝 *Обов'язки:* ${ad.duties}\n\n👤 *Роботодавець:* ${ad.person}\n\n🚀 [Подивитись контакти та відгукнутись](https://t.me/rabota_odessa_smart_bot)`;
+        
+        try {
+            await bot.telegram.sendMessage('@rabota_odessa_smart', channelText, { parse_mode: 'Markdown' });
+            await ctx.editMessageText(`✅ Оголошення ${adId} активовано та відправлено в @rabota_odessa_smart`);
+        } catch (err) {
+            console.error("Channel post error:", err);
+            await ctx.reply("Помилка відправки в канал. Перевірте, чи бот там адмін.");
+        }
+    } else if (action === 'del') {
+        await Ad.deleteOne({ id: adId });
+        await ctx.editMessageText(`🗑 Оголошення ${adId} видалено.`);
     }
 });
 
-// Раздача файлов
 app.use(express.static(path.join(__dirname, '..', 'public')));
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
 
-// Запуск
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
-
-bot.launch().catch(err => console.error("Bot error:", err));
+bot.launch();
