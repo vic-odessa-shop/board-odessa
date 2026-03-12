@@ -8,6 +8,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Раздача статических файлов из папки public
+app.use(express.static('public'));
+
+// Чтобы при заходе на корень сайта открывался index.html
+const path = require('path');
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
 mongoose.connect(process.env.MONGO_URI);
 
 // --- СХЕМЫ ДАННЫХ ---
