@@ -31,6 +31,12 @@ const Promo = mongoose.model('Promo', PromoSchema);
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+bot.use((ctx, next) => {
+  console.log("Получено сообщение от:", ctx.from.username);
+  return next();
+});
+
+
 // --- ЛОГИКА РОТАТОРА ---
 async function getNextWallet() {
     const wallet = await Wallet.findOne({ active: true }).sort({ useCount: 1 });
