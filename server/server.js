@@ -31,88 +31,70 @@ const Promo = mongoose.model('Promo', PromoSchema);
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+// Логирование входящих сообщений
 bot.use((ctx, next) => {
-  console.log("Получено сообщение от:", ctx.from.username);
-  return next();
-});
-
-
-// --- ЛОГИКА РОТАТОРА ---
-async function getNextWallet() {
-    const wallet = await Wallet.findOne({ active: true }).sort({ useCount: 1 });
-    if (wallet) {
-        wallet.useCount += 1;
-        await wallet.save();
-        return wallet;
+    if (ctx.from) {
+        console.log(`📩 Сообщение от: ${ctx.from.username || ctx.from.id}`);
     }
-    return { number: "UA0000...", label: "Зверніться до адміна" };
-}
-
-// --- API ЭНДПОИНТЫ ---
-app.get('/api/init', async (req, res) => {
-    const promos = await Promo.find({ active: true });
-    const cats = await Ad.aggregate([{ $match: { status: 'active' } }, { $group: { _id: "$title", count: { $sum: 1 } } }]);
-    res.json({ promos, cats });
+    return next();
 });
 
-app.get('/api/ads', async (req, res) => {
-    const { category } = req.query;
-    let query = { status: 'active' };
-    if (category) query.title = category;
-    const ads = await Ad.find(query).sort({ isVip: -1, createdAt: -1 });
-    res.json(ads);
-});
-
-app.post('/api/ads/create', async (req, res) => {
-    const data = req.body;
-    const adCode = `ID-${Math.floor(1000 + Math.random() * 9000)}`;
-    const wallet = await getNextWallet();
-
-    const newAd = new Ad({
-        id: adCode, userId: data.userId, title: data.title, salary: data.salary,
-        city: data.city, isVip: data.isVip, content: data,
-        expireAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-    });
-    await newAd.save();
-
-    bot.telegram.sendMessage(process.env.ADMIN_ID, 
-        `🆕 ЗАМОВЛЕННЯ: ${adCode}\n💰 ${data.salary}грн | ${data.payMethod}\n👤 ${data.person} ${data.phone}`,
+// Команда СТАРТ с кнопкой открытия доски
+bot.start((ctx) => {
+    ctx.reply(
+        'Вітаємо у Smart Job Odessa! ⚓\nТут ви знайдете актуальну роботу або зможете розмістити свою вакансію.',
         Markup.inlineKeyboard([
-            [Markup.button.callback('✅ АКТИВУВАТИ', `paid_${adCode}`)],
-            [Markup.button.callback('🗑 ВИДАЛИТИ', `del_${adCode}`)]
+            [Markup.button.webApp('🚀 Відкрити Дошку Оголошень', 'https://board-odessa.onrender.com')]
         ])
     );
-    res.json({ success: true, id: adCode, wallet });
 });
 
-// --- ОБРАБОТКА КНОПОК АДМИНА ---
-bot.action(/^paid_(.+)$/, async (ctx) => {
-    const adId = ctx.match[1];
-    const ad = await Ad.findOneAndUpdate({ id: adId }, { status: 'active' });
-    
-    // Автопостинг в канал
-    const text = `🔥 **${ad.title.toUpperCase()}**\n💰 ЗП: ${ad.salary} грн\n📍 Місто: ${ad.city}\n\n👉 [Відкрити в боті](https://t.me/${ctx.botInfo.username}/app?startapp=${ad.id})`;
-    bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { parse_mode: 'Markdown' });
-
-    ctx.editMessageText(`✅ Оголошення ${adId} активовано!`);
-});
-
-bot.start((ctx) => {
-  console.log("Старт нажал:", ctx.from.id);
-  ctx.reply('Привіт! Бот працює. Натисніть на кнопку меню, щоб відкрити дошку.');
-});
-
-bot.on('text', (ctx) => {
-  ctx.reply('Я отримав ваше повідомлення!');
-});
-
-bot.launch().catch((err) => {
-    if (err.response && err.response.error_code === 409) {
-        console.log("Конфликт токена, жду завершения старого процесса...");
+// Команда для проверки статуса админа
+bot.command('admin', (ctx) => {
+    const isAdmin = ctx.from.id.toString() === process.env.ADMIN_ID;
+    if (isAdmin) {
+        ctx.reply('✅ Вітаю, шеф! Ви в панелі керування. Тут будуть з’являтися нові оголошення.');
     } else {
-        console.error("Ошибка запуска бота:", err);
+        ctx.reply('❌ Доступ обмежено. Ваш ID: ' + ctx.from.id);
     }
 });
 
+// Обработка кнопок модерации (активация)
+bot.action(/^paid_(.+)$/, async (ctx) => {
+    try {
+        const adId = ctx.match[1];
+        const ad = await Ad.findOneAndUpdate({ id: adId }, { status: 'active' });
+        
+        if (ad) {
+            const text = `🔥 **${ad.title.toUpperCase()}**\n💰 ЗП: ${ad.salary} грн\n📍 Місто: ${ad.city}\n\n👉 [Відкрити в боті](https://t.me/${ctx.botInfo.username}/app?startapp=${ad.id})`;
+            await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { parse_mode: 'Markdown' });
+            await ctx.editMessageText(`✅ Оголошення ${adId} активовано!`);
+        }
+    } catch (e) {
+        console.error(e);
+        ctx.reply('Помилка при активації.');
+    }
+});
 
-app.listen(process.env.PORT || 3000);
+// Обработка кнопок модерации (удаление)
+bot.action(/^del_(.+)$/, async (ctx) => {
+    const adId = ctx.match[1];
+    await Ad.findOneAndDelete({ id: adId });
+    ctx.editMessageText(`🗑 Оголошення ${adId} видалено.`);
+});
+
+// Запуск сервера и бота
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Сервер работает на порту ${PORT}`);
+});
+
+bot.launch().then(() => {
+    console.log("🚀 Бот запущен!");
+}).catch((err) => {
+    if (err.response && err.response.error_code === 409) {
+        console.log("⚠️ Ждем освобождения токена...");
+    } else {
+        console.error("❌ Ошибка запуска:", err);
+    }
+});
