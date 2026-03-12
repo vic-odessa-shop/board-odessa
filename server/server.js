@@ -106,6 +106,13 @@ bot.on('text', (ctx) => {
   ctx.reply('Я отримав ваше повідомлення!');
 });
 
+bot.launch().catch((err) => {
+    if (err.response && err.response.error_code === 409) {
+        console.log("Конфликт токена, жду завершения старого процесса...");
+    } else {
+        console.error("Ошибка запуска бота:", err);
+    }
+});
 
-bot.launch();
+
 app.listen(process.env.PORT || 3000);
