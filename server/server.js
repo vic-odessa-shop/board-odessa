@@ -2,7 +2,7 @@ const express = require('express');
 const { Telegraf, Markup } = require('telegraf');
 const mongoose = require('mongoose');
 const path = require('path');
-const axios = require('axios');
+const https = require('https'); // Используем встроенный модуль вместо axios
 require('dotenv').config();
 
 const app = express();
@@ -10,7 +10,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 app.use(express.json());
 
-// ТАРИФЫ И КОНФИГУРАЦИЯ
+// ТАРИФЫ
 const TARIFFS = {
     trial: { price: 150, days: 7, reposts: 1, label: 'Пробний' },
     standard: { price: 400, days: 30, reposts: 1, label: 'Стандарт' },
@@ -42,14 +42,12 @@ const adSchema = new mongoose.Schema({
 });
 const Ad = mongoose.model('Ad', adSchema);
 
-// ДЕТЕКТОР НОМЕРОВ (Анти-хитрость)
 function hasHiddenPhone(text) {
     if(!text) return false;
     const phoneRegex = /(039|050|063|066|067|068|073|089|091|092|093|094|095|096|097|098|099|048)\d{7}/g;
     return phoneRegex.test(text.replace(/[\s\-\(\)]/g, ''));
 }
 
-// API: ПОЛУЧЕНИЕ ОБЪЯВЛЕНИЙ (Универсальное)
 app.get('/api/ads', async (req, res) => {
     try {
         const ads = await Ad.find({ status: 'active' }).sort({ isVip: -1, createdAt: -1 });
@@ -57,7 +55,6 @@ app.get('/api/ads', async (req, res) => {
     } catch (e) { res.status(500).send(e.message); }
 });
 
-// API: СОЗДАНИЕ ОБЪЯВЛЕНИЯ
 app.post('/api/ads/create', async (req, res) => {
     try {
         const d = req.body;
@@ -81,7 +78,6 @@ app.post('/api/ads/create', async (req, res) => {
             bot.telegram.sendMessage(process.env.ADMIN_ID, 
                 `🆕 *НОВЕ ОГОЛОШЕННЯ: ${adId}*\n\n` +
                 `Тариф: ${t.label} (${t.price} грн)\n` +
-                `Термін: ${t.days} днів / ${t.reposts} постів\n` +
                 `Категорія: ${d.category}\n` +
                 `Вакансія: ${d.vacancy}\n` +
                 `Контакт: ${d.person} (${d.phone})`, {
@@ -96,16 +92,15 @@ app.post('/api/ads/create', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ОБРАБОТКА КНОПОК БОТА
 bot.on('callback_query', async (ctx) => {
     const [action, adId] = ctx.callbackQuery.data.split('_');
     const ad = await Ad.findOne({ id: adId });
-    if (!ad) return ctx.answerCbQuery('Оголошення не знайдено');
+    if (!ad) return ctx.answerCbQuery('Не знайдено');
 
     if (action === 'paid') {
         ad.status = 'active';
         ad.lastRepostDate = new Date();
-        ad.repostsRemaining = Math.max(0, ad.repostsRemaining - 1);
+        ad.repostsRemaining = Math.max(0, (ad.repostsRemaining || 1) - 1);
         await ad.save();
         await sendToChannel(ad);
         bot.telegram.sendMessage(ad.userId, `🎉 Ваше оголошення "${ad.vacancy}" активовано!`).catch(()=>{});
@@ -123,12 +118,11 @@ async function sendToChannel(ad) {
         `💰 *Зарплата:* ${ad.salary} грн\n` +
         `🗓 *Графік:* ${ad.schedule}\n` +
         `📍 *Місто:* ${ad.city}\n\n` +
-        `🚀 [Подивитись контакти та деталі](https://t.me/${process.env.BOT_USERNAME}?start=${ad.id})`;
-    // Замените ID канала на ваш актуальный
-    await bot.telegram.sendMessage(process.env.CHANNEL_ID || '-1003719363779', text, { parse_mode: 'Markdown' });
+        `🚀 [Подивитись контакти](https://t.me/${process.env.BOT_USERNAME}?start=${ad.id})`;
+    await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { parse_mode: 'Markdown' });
 }
 
-// АВТО-МЕНЕДЖЕР (Раз в час)
+// АВТО-МЕНЕДЖЕР
 setInterval(async () => {
     await Ad.updateMany({ expireAt: { $lt: new Date() }, status: 'active' }, { status: 'expired' });
     const toRepost = await Ad.find({ 
@@ -144,16 +138,17 @@ setInterval(async () => {
     }
 }, 3600000);
 
-// ANTI-SLEEP (Пинг само себя)
-const APP_URL = "https://board-odessa.onrender.com/"; // ВСТАВЬТЕ СВОЙ URL
+// ANTI-SLEEP (Без axios)
+const APP_URL = "https://board-odessa.onrender.com"; // ЗАМЕНИТЕ НА СВОЙ
 setInterval(() => {
-    axios.get(APP_URL).catch(() => {});
+    https.get(APP_URL, (res) => {
+        console.log('Self-ping status:', res.statusCode);
+    }).on('error', (e) => {
+        console.log('Ping error:', e.message);
+    });
 }, 800000);
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
 
-app.listen(process.env.PORT || 3000, () => {
-    console.log('Server started');
-    bot.launch();
-});
+app.listen(process.env.PORT || 3000, () => bot.launch());
