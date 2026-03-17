@@ -3,42 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Робота Одеса — Дошка</title>
+    <title>Робота Одеса — Смарт-Дошка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #f0f2f5 !important; color: #1c1e21 !important; font-family: -apple-system, sans-serif; margin: 0; padding-bottom: 80px; }
-        header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .logo-text { font-size: 24px; font-weight: 800; font-style: italic; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-        .container { padding: 10px; max-width: 600px; margin: 0 auto; }
+        :root {
+            --tg-blue: #007bff;
+            --tg-bg: #f0f2f5;
+            --tg-text: #1c1e21;
+        }
+
+        body { 
+            background: var(--tg-bg); 
+            color: var(--tg-text); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding-bottom: 90px;
+        }
+
+        header { 
+            background: linear-gradient(135deg, #007bff, #0056b3); 
+            color: white; padding: 25px 15px; text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo-text { font-size: 26px; font-weight: 800; font-style: italic; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .container { padding: 12px; max-width: 600px; margin: 0 auto; }
+
+        /* РЕКЛАМНЫЙ БАННЕР */
+        .promo-banner {
+            background: #fff3cd; border: 2px dashed #ffc107;
+            padding: 15px; border-radius: 12px; margin-bottom: 15px;
+            text-align: center; font-weight: bold; font-size: 14px;
+        }
+
+        /* VIP ГОРИЗОНТАЛЬНАЯ ЛЕНТА */
+        .vip-container { margin-bottom: 20px; }
+        .vip-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #d39e00; display: flex; align-items: center; }
+        .vip-scroll { 
+            display: flex; overflow-x: auto; gap: 12px; padding: 5px 2px 15px 2px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .vip-scroll::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
         
+        .vip-card { 
+            min-width: 200px; max-width: 200px; background: #fffdf0; 
+            border: 2px solid #ffd700; border-radius: 15px; padding: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative;
+        }
+
         /* КАТЕГОРИИ */
-        .cat-filter { display: flex; overflow-x: auto; gap: 8px; padding: 10px 5px; margin-bottom: 10px; scrollbar-width: none; }
-        .cat-btn { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 20px; white-space: nowrap; font-size: 14px; color: #444; }
-        .cat-btn.active { background: #007bff; color: white; border-color: #007bff; font-weight: bold; }
+        .categories { display: flex; overflow-x: auto; gap: 8px; padding: 5px 0 15px 0; margin-bottom: 10px; }
+        .cat-btn { 
+            background: white; border: 1px solid #ddd; padding: 8px 16px; 
+            border-radius: 20px; white-space: nowrap; font-size: 14px; cursor: pointer;
+        }
+        .cat-btn.active { background: var(--tg-blue); color: white; border-color: var(--tg-blue); }
 
-        /* VIP */
-        .vip-section { background: #fffdf0; border: 2px solid #ffd700; border-radius: 15px; padding: 12px; margin-bottom: 15px; position: relative; }
-        .vip-badge { position: absolute; top: -10px; right: 10px; background: #ffd700; color: #856404; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
-
-        /* КАРТОЧКИ */
-        .ad-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        /* ОБЫЧНЫЕ ОБЪЯВЛЕНИЯ */
+        .ad-card { 
+            background: white; border-radius: 15px; padding: 15px; 
+            margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            border: 1px solid #eee;
+        }
         .salary { color: #28a745; font-weight: bold; font-size: 18px; margin: 5px 0; }
-        .pending-status { color: #fd7e14; font-size: 12px; font-weight: bold; background: #fff3cd; padding: 4px 8px; border-radius: 5px; display: inline-block; }
+        .pending-tag { background: #fff3cd; color: #856404; font-size: 11px; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
 
         /* ПОИСК */
         .search-box { display: flex; gap: 8px; margin-bottom: 15px; }
-        .search-box input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; font-size: 16px; outline: none; }
-        .btn-search { background: #007bff; color: white; border: none; padding: 0 20px; border-radius: 25px; font-weight: bold; }
+        .search-box input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; font-size: 16px; outline: none; }
+        .btn-search { background: var(--tg-blue); color: white; border: none; padding: 0 20px; border-radius: 25px; font-weight: bold; }
 
-        /* МЕНЮ */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .nav-link { text-decoration: none; color: #666; font-size: 11px; text-align: center; }
-        .nav-link.main-action { background: #007bff; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; margin-top: -5px; }
+        /* НИЖНЕЕ МЕНЮ */
+        .bottom-nav { 
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            background: white; display: flex; justify-content: space-around; 
+            padding: 12px 0; border-top: 1px solid #eee; z-index: 1000;
+        }
+        .nav-item { text-decoration: none; color: #666; font-size: 11px; text-align: center; }
+        .nav-item.add-btn { background: var(--tg-blue); color: white !important; padding: 8px 18px; border-radius: 20px; font-weight: bold; margin-top: -5px; }
 
         /* МОДАЛКА */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 90%; max-height: 85%; border-radius: 20px; padding: 20px; position: relative; overflow-y: auto; }
-        .pre-wrap { white-space: pre-wrap; background: #f8f9fa; padding: 12px; border-radius: 10px; border: 1px solid #eee; margin: 10px 0; font-size: 14px; }
+        .modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            background: white; width: 92%; max-height: 85%; border-radius: 20px; 
+            padding: 20px; position: relative; overflow-y: auto; box-sizing: border-box;
+        }
+        .pre-wrap { white-space: pre-wrap; background: #f8f9fa; padding: 12px; border-radius: 10px; border: 1px solid #eee; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -48,76 +101,108 @@
 </header>
 
 <div class="container">
+    <div class="promo-banner">
+        📢 Тут може бути ваша реклама!<br>
+        <span style="font-size: 12px; font-weight: normal; color: #666;">Зв'яжіться з адміном для розміщення</span>
+    </div>
+
+    <div class="vip-container" id="vipContainer" style="display: none;">
+        <div class="vip-title">⭐ VIP Вакансії</div>
+        <div class="vip-scroll" id="vipList"></div>
+    </div>
+
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Шукати вакансію...">
+        <input type="text" id="searchInput" placeholder="Пошук вакансії або міста...">
         <button class="btn-search" onclick="searchAds()">Шукати</button>
     </div>
 
-    <div class="cat-filter" id="catFilter">
+    <div class="categories" id="catList">
         <button class="cat-btn active" onclick="filterCat('Усі', this)">Усі</button>
         <button class="cat-btn" onclick="filterCat('Водії', this)">Водії</button>
         <button class="cat-btn" onclick="filterCat('Ремонт', this)">Ремонт</button>
         <button class="cat-btn" onclick="filterCat('IT', this)">IT</button>
+        <button class="cat-btn" onclick="filterCat('Торгівля', this)">Торгівля</button>
         <button class="cat-btn" onclick="filterCat('Інше', this)">Інше</button>
     </div>
 
-    <div id="vipList"></div>
-    <h3 id="resultTitle" style="margin-left: 5px; font-size: 18px;">Останні оголошення</h3>
+    <h3 id="resultTitle" style="font-size: 18px; margin-left: 5px;">Останні оголошення</h3>
     <div id="adsList"></div>
 </div>
 
 <div class="bottom-nav">
-    <a href="javascript:void(0)" class="nav-link" onclick="alert('Допомога: Оберіть вакансію та натисніть Детальніше. Для подачі оголошення натисніть синю кнопку.')"><span>❓❓</span><br>Допомога</a>
-    <a href="/create.html" class="nav-link main-action">➕ Дати оголошення</a>
-    <a href="https://t.me/vic_odessa" class="nav-link"><span>👤</span><br>Адмін</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="alert('Допомога: Оберіть вакансію та натисніть кнопку для перегляду контактів.')"><span>❓❓</span><br>Допомога</a>
+    <a href="/create.html" class="nav-item add-btn">➕ Подати оголошення</a>
+    <a href="https://t.me/vic_odessa" class="nav-item"><span>👤</span><br>Адмін</a>
 </div>
 
 <div id="modalOverlay" class="modal" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <span onclick="closeModal()" style="position:absolute; top:10px; right:20px; font-size:30px; color:#ccc;">&times;</span>
+        <span onclick="closeModal()" style="position:absolute; top:15px; right:20px; font-size:28px; color:#aaa; cursor:pointer;">&times;</span>
         <div id="modalBody"></div>
     </div>
 </div>
 
 <script>
     let allAds = [];
+    const tg = window.Telegram?.WebApp;
+    if(tg) { tg.expand(); tg.ready(); }
+
     async function loadAds() {
         try {
             const res = await fetch('/api/ads');
             allAds = await res.json();
             renderAds(allAds);
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Помилка завантаження:", e); }
     }
 
     function renderAds(ads) {
         const list = document.getElementById('adsList');
-        const vip = document.getElementById('vipList');
-        list.innerHTML = ''; vip.innerHTML = '';
+        const vipList = document.getElementById('vipList');
+        const vipContainer = document.getElementById('vipContainer');
         
-        if (!ads.length) {
-            list.innerHTML = '<p style="text-align:center; opacity:0.5;">Нічого не знайдено</p>';
+        list.innerHTML = '';
+        vipList.innerHTML = '';
+        
+        const vips = ads.filter(a => a.isVip);
+        const regulars = ads.filter(a => !a.isVip);
+
+        // Рендерим VIP ленту
+        if (vips.length > 0) {
+            vipContainer.style.display = 'block';
+            vips.forEach(ad => {
+                vipList.innerHTML += `
+                    <div class="vip-card" onclick="openAd('${ad.id}')">
+                        <div style="font-size:10px; color:#d39e00; font-weight:bold;">${ad.category.toUpperCase()}</div>
+                        <div style="font-weight:bold; font-size:15px; margin:5px 0; height:40px; overflow:hidden;">${ad.vacancy}</div>
+                        <div class="salary">${ad.salary} грн</div>
+                        <div style="font-size:12px; color:#666;">📍 ${ad.city}</div>
+                    </div>`;
+            });
+        } else {
+            vipContainer.style.display = 'none';
+        }
+
+        // Рендерим обычные
+        if (regulars.length === 0 && vips.length === 0) {
+            list.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:20px;">Оголошень поки немає</p>';
             return;
         }
 
-        ads.forEach(ad => {
+        regulars.forEach(ad => {
             const isPending = ad.status === 'pending';
-            const cardHtml = `
+            list.innerHTML += `
                 <div class="ad-card">
-                    <div style="font-size:11px; color:#007bff; font-weight:bold; text-transform:uppercase;">${ad.category}</div>
-                    <h4 style="margin:5px 0;">${ad.vacancy}</h4>
-                    <p class="salary">${ad.salary} грн</p>
-                    <p style="font-size:14px; margin:5px 0;">📍 ${ad.city}</p>
-                    ${isPending ? '<div class="pending-status">⏳ Очікує оплати</div>' : ''}
-                    <button onclick="openAd('${ad.id}')" style="width:100%; margin-top:10px; padding:10px; border-radius:10px; border:none; background:#e7f3ff; color:#007bff; font-weight:bold;">
-                        ${isPending ? 'Переглянути' : 'Контакти та деталі'}
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:11px; color:var(--tg-blue); font-weight:bold;">${ad.category}</span>
+                        ${isPending ? '<span class="pending-tag">Очікує оплати</span>' : ''}
+                    </div>
+                    <h4 style="margin:8px 0;">${ad.vacancy}</h4>
+                    <div class="salary">${ad.salary} грн</div>
+                    <p style="font-size:14px; color:#555; margin:5px 0;">📍 ${ad.city} | 🗓 ${new Date(ad.createdAt).toLocaleDateString()}</p>
+                    <button onclick="openAd('${ad.id}')" style="width:100%; margin-top:10px; padding:12px; border-radius:12px; border:none; background:#f0f7ff; color:var(--tg-blue); font-weight:bold; cursor:pointer;">
+                        ${isPending ? 'Переглянути опис' : 'Контакти та деталі'}
                     </button>
                 </div>`;
-            
-            if(ad.isVip) {
-                vip.innerHTML += `<div class="vip-section"><span class="vip-badge">VIP</span>${cardHtml}</div>`;
-            } else {
-                list.innerHTML += cardHtml;
-            }
         });
     }
 
@@ -130,33 +215,42 @@
 
     function searchAds() {
         const q = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allAds.filter(a => a.vacancy.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
+        const filtered = allAds.filter(a => 
+            a.vacancy.toLowerCase().includes(q) || 
+            a.category.toLowerCase().includes(q) || 
+            a.city.toLowerCase().includes(q)
+        );
         renderAds(filtered);
     }
 
     function openAd(id) {
         const ad = allAds.find(a => a.id === id);
+        if(!ad) return;
         const isPending = ad.status === 'pending';
+        
         document.getElementById('modalBody').innerHTML = `
-            <h2 style="color:#007bff; margin-top:0;">${ad.vacancy}</h2>
+            <h2 style="color:var(--tg-blue); margin:0 0 15px 0; font-size:22px;">${ad.vacancy}</h2>
             <div class="pre-wrap">${ad.duties}</div>
             <p>💰 <b>Зарплата:</b> ${ad.salary} грн</p>
-            <p>🗓 <b>Графік:</b> ${ad.schedule || 'Не вказано'}</p>
-            <hr style="border:0; border-top:1px solid #eee;">
+            <p>🕘 <b>Графік:</b> ${ad.schedule || 'За домовленістю'}</p>
+            <p>📍 <b>Адреса:</b> ${ad.city}, ${ad.address || 'Центр'}</p>
+            <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
             ${isPending ? 
-                `<div style="text-align:center; padding:15px; background:#fff3cd; border-radius:10px; color:#856404;">
-                    <b>⚠️ Контакти приховані</b><br>Будуть доступні після підтвердження оплати.
+                `<div style="background:#fff3cd; padding:15px; border-radius:12px; text-align:center; color:#856404;">
+                    <b>⚠️ Контакти приховані</b><br>З'являться після підтвердження оплати адміном.
                  </div>` : 
-                `<div style="background:#f0f7ff; padding:15px; border-radius:10px; border:1px dashed #007bff;">
-                    <p style="margin:0;">📞 <b>Телефон:</b> <a href="tel:${ad.phone}">${ad.phone}</a></p>
+                `<div style="background:#e7f3ff; padding:15px; border-radius:12px; border:1px dashed var(--tg-blue);">
+                    <p style="margin:0;">📞 <b>Телефон:</b> <a href="tel:${ad.phone}" style="color:var(--tg-blue); text-decoration:none; font-weight:bold;">${ad.phone}</a></p>
                     <p style="margin:10px 0 0 0;">👤 <b>Контакт:</b> ${ad.person}</p>
                  </div>`
             }
-            <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:12px; border-radius:10px; border:none; background:#6c757d; color:white; font-weight:bold;">Закрити</button>
+            <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:15px; border-radius:12px; border:none; background:#6c757d; color:white; font-weight:bold; cursor:pointer;">Закрити</button>
         `;
         document.getElementById('modalOverlay').style.display = 'flex';
     }
+
     function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+
     loadAds();
 </script>
 </body>
