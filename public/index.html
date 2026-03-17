@@ -3,240 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Робота для всіх — Одеса</title>
+    <title>Робота Одеса — Дошка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ПРИНУДИТЕЛЬНО СВЕТЛАЯ ТЕМА ДЛЯ ЧИТАЕМОСТИ */
-        body {
-            background-color: #f0f2f5;
-            color: #1c1e21;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0; padding-bottom: 80px; /* Отступ под меню */
-        }
+        body { background: #f0f2f5 !important; color: #1c1e21 !important; font-family: -apple-system, sans-serif; margin: 0; padding-bottom: 80px; }
+        header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo-text { font-size: 24px; font-weight: 800; font-style: italic; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .container { padding: 10px; max-width: 600px; margin: 0 auto; }
+        
+        /* КАТЕГОРИИ */
+        .cat-filter { display: flex; overflow-x: auto; gap: 8px; padding: 10px 5px; margin-bottom: 10px; scrollbar-width: none; }
+        .cat-btn { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 20px; white-space: nowrap; font-size: 14px; color: #444; }
+        .cat-btn.active { background: #007bff; color: white; border-color: #007bff; font-weight: bold; }
 
-        header {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            padding: 25px 15px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .logo-text { 
-            font-size: 26px; 
-            font-weight: 800; 
-            font-style: italic; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
-        }
-
-        .search-bar input {
-            width: 90%;
-            padding: 12px;
-            border-radius: 25px;
-            border: none;
-            font-size: 16px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
-
-        /* РЕКЛАМНЫЙ БЛОК */
-        .promo-banner {
-            background: #fff3cd;
-            border: 2px dashed #ffc107;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        h3 { border-left: 4px solid #007bff; padding-left: 10px; margin: 20px 0; }
+        /* VIP */
+        .vip-section { background: #fffdf0; border: 2px solid #ffd700; border-radius: 15px; padding: 12px; margin-bottom: 15px; position: relative; }
+        .vip-badge { position: absolute; top: -10px; right: 10px; background: #ffd700; color: #856404; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
 
         /* КАРТОЧКИ */
-        .ad-card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
-        }
-
-        .ad-card.vip { border: 2px solid #ffd700; background: #fffdf5; }
-
-        .ad-card h4 { color: #007bff; margin: 0 0 8px 0; font-size: 18px; }
+        .ad-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; }
         .salary { color: #28a745; font-weight: bold; font-size: 18px; margin: 5px 0; }
-        
-        .card-meta { display: flex; justify-content: space-between; font-size: 12px; color: #777; margin-top: 10px; }
+        .pending-status { color: #fd7e14; font-size: 12px; font-weight: bold; background: #fff3cd; padding: 4px 8px; border-radius: 5px; display: inline-block; }
 
-        .btn-detail {
-            width: 100%;
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-weight: bold;
-        }
+        /* ПОИСК */
+        .search-box { display: flex; gap: 8px; margin-bottom: 15px; }
+        .search-box input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; font-size: 16px; outline: none; }
+        .btn-search { background: #007bff; color: white; border: none; padding: 0 20px; border-radius: 25px; font-weight: bold; }
 
-        /* НИЖНЕЕ МЕНЮ */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0; left: 0; width: 100%;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 999;
-        }
-
-        .nav-item { text-decoration: none; color: #555; text-align: center; font-size: 11px; }
-        .nav-item i { display: block; font-size: 20px; margin-bottom: 2px; }
-        
-        .btn-main {
-            background: #007bff;
-            color: white !important;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
+        /* МЕНЮ */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-link { text-decoration: none; color: #666; font-size: 11px; text-align: center; }
+        .nav-link.main-action { background: #007bff; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; margin-top: -5px; }
 
         /* МОДАЛКА */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.75);
-            z-index: 2000;
-            justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: white; width: 92%; max-height: 85%;
-            overflow-y: auto; padding: 20px; border-radius: 20px;
-            position: relative;
-        }
-        .pre-wrap { white-space: pre-wrap; background: #f8f9fa; padding: 12px; border-radius: 10px; border: 1px solid #eee; }
-        .close-btn { position: absolute; top: 10px; right: 20px; font-size: 30px; color: #999; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-height: 85%; border-radius: 20px; padding: 20px; position: relative; overflow-y: auto; }
+        .pre-wrap { white-space: pre-wrap; background: #f8f9fa; padding: 12px; border-radius: 10px; border: 1px solid #eee; margin: 10px 0; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo-text">Робота для всіх — Одеса</div>
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="🔍 Пошук за назвою або категорією..." oninput="searchAds()">
-        </div>
-    </header>
+<header>
+    <div class="logo-text">Робота для всіх — Одеса</div>
+</header>
 
-    <div class="container">
-        <div class="promo-banner">
-            📢 Тут може бути ваша реклама!<br>
-            <span style="font-size: 12px; font-weight: normal;">Звертайтесь до адміна для розміщення</span>
-        </div>
-
-        <h3 id="resultTitle">Останні оголошення</h3>
-        <div id="adsList"></div>
+<div class="container">
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Шукати вакансію...">
+        <button class="btn-search" onclick="searchAds()">Шукати</button>
     </div>
 
-    <div class="bottom-nav">
-        <a href="#" class="nav-item" onclick="showHelp()">
-            <span>❓❓</span><br>Допомога
-        </a>
-        <a href="/create.html" class="nav-item btn-main">
-            ➕ Подати оголошення
-        </a>
-        <a href="https://t.me/ваш_админ" class="nav-item">
-            <span>👤</span><br>Адмін
-        </a>
+    <div class="cat-filter" id="catFilter">
+        <button class="cat-btn active" onclick="filterCat('Усі', this)">Усі</button>
+        <button class="cat-btn" onclick="filterCat('Водії', this)">Водії</button>
+        <button class="cat-btn" onclick="filterCat('Ремонт', this)">Ремонт</button>
+        <button class="cat-btn" onclick="filterCat('IT', this)">IT</button>
+        <button class="cat-btn" onclick="filterCat('Інше', this)">Інше</button>
     </div>
 
-    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div id="modalBody"></div>
-        </div>
+    <div id="vipList"></div>
+    <h3 id="resultTitle" style="margin-left: 5px; font-size: 18px;">Останні оголошення</h3>
+    <div id="adsList"></div>
+</div>
+
+<div class="bottom-nav">
+    <a href="javascript:void(0)" class="nav-link" onclick="alert('Допомога: Оберіть вакансію та натисніть Детальніше. Для подачі оголошення натисніть синю кнопку.')"><span>❓❓</span><br>Допомога</a>
+    <a href="/create.html" class="nav-link main-action">➕ Дати оголошення</a>
+    <a href="https://t.me/vic_odessa" class="nav-link"><span>👤</span><br>Адмін</a>
+</div>
+
+<div id="modalOverlay" class="modal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span onclick="closeModal()" style="position:absolute; top:10px; right:20px; font-size:30px; color:#ccc;">&times;</span>
+        <div id="modalBody"></div>
     </div>
+</div>
 
-    <script>
-        let allAds = [];
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+<script>
+    let allAds = [];
+    async function loadAds() {
+        try {
+            const res = await fetch('/api/ads');
+            allAds = await res.json();
+            renderAds(allAds);
+        } catch (e) { console.error(e); }
+    }
 
-        async function loadAds() {
-            try {
-                const res = await fetch('/api/ads');
-                allAds = await res.json();
-                renderAds(allAds);
-            } catch (e) { console.error("Ошибка:", e); }
+    function renderAds(ads) {
+        const list = document.getElementById('adsList');
+        const vip = document.getElementById('vipList');
+        list.innerHTML = ''; vip.innerHTML = '';
+        
+        if (!ads.length) {
+            list.innerHTML = '<p style="text-align:center; opacity:0.5;">Нічого не знайдено</p>';
+            return;
         }
 
-        function renderAds(ads) {
-            const list = document.getElementById('adsList');
-            list.innerHTML = ads.length ? '' : '<p style="text-align:center">Нічого не знайдено</p>';
+        ads.forEach(ad => {
+            const isPending = ad.status === 'pending';
+            const cardHtml = `
+                <div class="ad-card">
+                    <div style="font-size:11px; color:#007bff; font-weight:bold; text-transform:uppercase;">${ad.category}</div>
+                    <h4 style="margin:5px 0;">${ad.vacancy}</h4>
+                    <p class="salary">${ad.salary} грн</p>
+                    <p style="font-size:14px; margin:5px 0;">📍 ${ad.city}</p>
+                    ${isPending ? '<div class="pending-status">⏳ Очікує оплати</div>' : ''}
+                    <button onclick="openAd('${ad.id}')" style="width:100%; margin-top:10px; padding:10px; border-radius:10px; border:none; background:#e7f3ff; color:#007bff; font-weight:bold;">
+                        ${isPending ? 'Переглянути' : 'Контакти та деталі'}
+                    </button>
+                </div>`;
             
-            ads.forEach(ad => {
-                const card = document.createElement('div');
-                card.className = `ad-card ${ad.isVip ? 'vip' : ''}`;
-                card.innerHTML = `
-                    <div style="font-size:11px; color:#007bff; font-weight:bold;">${ad.category.toUpperCase()}</div>
-                    <h4>${ad.vacancy}</h4>
-                    <p class="salary">💰 ${ad.salary} грн</p>
-                    <p>📍 ${ad.city}</p>
-                    <div class="card-meta">
-                        <span>№ ${ad.id}</span>
-                        <span>🗓 ${new Date(ad.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <button class="btn-detail" onclick="openAd('${ad.id}')">Детальніше / Контакти</button>
-                `;
-                list.appendChild(card);
-            });
-        }
+            if(ad.isVip) {
+                vip.innerHTML += `<div class="vip-section"><span class="vip-badge">VIP</span>${cardHtml}</div>`;
+            } else {
+                list.innerHTML += cardHtml;
+            }
+        });
+    }
 
-        function openAd(id) {
-            const ad = allAds.find(a => a.id === id);
-            const body = document.getElementById('modalBody');
-            body.innerHTML = `
-                <h2 style="margin-top:0; color:#007bff;">📋 Картка вакансії</h2>
-                <p><b>🏢 Категорія:</b> ${ad.category}</p>
-                <p><b>👤 Вакансія:</b> ${ad.vacancy}</p>
-                <hr>
-                <p><b>📝 Опис та умови:</b></p>
-                <div class="pre-wrap">${ad.duties}</div>
-                <p><b>🕘 Графік:</b> ${ad.schedule}</p>
-                <p><b>💰 Зарплата:</b> ${ad.salary} грн</p>
-                <hr>
-                <div style="background:#eef7ff; padding:15px; border-radius:12px;">
-                    <p><b>📍 Місто:</b> ${ad.city}</p>
-                    <p><b>📞 Телефон:</b> <a href="tel:${ad.phone}">${ad.phone}</a></p>
-                    ${ad.social ? `<p><b>🔗 Месенджери:</b> ${ad.social}</p>` : ''}
-                    <p><b>👤 Контакт:</b> ${ad.person}</p>
-                </div>
-                <button class="btn-detail" style="margin-top:20px; background:#6c757d;" onclick="closeModal()">Закрити</button>
-            `;
-            document.getElementById('modalOverlay').style.display = 'flex';
-        }
+    function filterCat(cat, btn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filtered = cat === 'Усі' ? allAds : allAds.filter(a => a.category === cat);
+        renderAds(filtered);
+    }
 
-        function searchAds() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allAds.filter(ad => 
-                ad.vacancy.toLowerCase().includes(q) || ad.category.toLowerCase().includes(q)
-            );
-            renderAds(filtered);
-            document.getElementById('resultTitle').innerText = q ? `Результат пошуку: ${filtered.length}` : 'Останні оголошення';
-        }
+    function searchAds() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = allAds.filter(a => a.vacancy.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
+        renderAds(filtered);
+    }
 
-        function showHelp() {
-            alert("Одеська Смарт-Доска: ТУТ ВИ МОЖЕТЕ ЗНАЙТИ АБО ЗАПРОПОНУВАТИ РОБОТУ. \n\nДля розміщення натисніть синю кнопку внизу.");
-        }
-
-        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
-
-        loadAds();
-    </script>
+    function openAd(id) {
+        const ad = allAds.find(a => a.id === id);
+        const isPending = ad.status === 'pending';
+        document.getElementById('modalBody').innerHTML = `
+            <h2 style="color:#007bff; margin-top:0;">${ad.vacancy}</h2>
+            <div class="pre-wrap">${ad.duties}</div>
+            <p>💰 <b>Зарплата:</b> ${ad.salary} грн</p>
+            <p>🗓 <b>Графік:</b> ${ad.schedule || 'Не вказано'}</p>
+            <hr style="border:0; border-top:1px solid #eee;">
+            ${isPending ? 
+                `<div style="text-align:center; padding:15px; background:#fff3cd; border-radius:10px; color:#856404;">
+                    <b>⚠️ Контакти приховані</b><br>Будуть доступні після підтвердження оплати.
+                 </div>` : 
+                `<div style="background:#f0f7ff; padding:15px; border-radius:10px; border:1px dashed #007bff;">
+                    <p style="margin:0;">📞 <b>Телефон:</b> <a href="tel:${ad.phone}">${ad.phone}</a></p>
+                    <p style="margin:10px 0 0 0;">👤 <b>Контакт:</b> ${ad.person}</p>
+                 </div>`
+            }
+            <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:12px; border-radius:10px; border:none; background:#6c757d; color:white; font-weight:bold;">Закрити</button>
+        `;
+        document.getElementById('modalOverlay').style.display = 'flex';
+    }
+    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+    loadAds();
+</script>
 </body>
 </html>
