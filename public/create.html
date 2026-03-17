@@ -3,121 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Нове оголошення</title>
+    <title>Подати оголошення</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body class="form-page">
-    <div class="container glass">
-        <div class="form-header">
-            <button class="back-btn" onclick="history.back()">← Назад</button>
-            <h3>Подати оголошення</h3>
-        </div>
+<body>
+    <div class="container">
+        <h2>Робота для всіх - Одеса</h2>
+        <p class="subtitle">Створення оголошення</p>
 
         <form id="adForm">
-            <label>Категорія:</label>
-            <select name="title" id="jobTitle" required>
-                <option value="Водій">Водій</option>
-                <option value="Кухар">Кухар</option>
-                <option value="Продавець">Продавець</option>
-                <option value="Офіс/Менеджер">Офіс / Менеджер</option>
-            </select>
-
-            <input type="text" name="salary" placeholder="Зарплата (грн)" required>
-            <input type="text" name="city" value="Одеса" required>
-            <textarea name="duties" placeholder="Обов’язки та умови..." required></textarea>
-            <input type="tel" name="phone" placeholder="Ваш телефон" required>
-            <input type="text" name="person" placeholder="Ім'я" required>
-
-            <label>Спосіб оплати:</label>
-            <select name="payMethod" id="payMethod">
-                <option value="card">💳 Картка</option>
-                <option value="phone">📱 На мобільний</option>
-                <option value="iban">🏦 IBAN</option>
-            </select>
-
-            <div class="price-block">
-                <div class="vip-check">
-                    <input type="checkbox" id="isVip" onchange="calcPrice()">
-                    <label for="isVip">💎 VIP статус (+150 грн)</label>
-                </div>
-                <div class="total-price">До сплати: <span id="totalSum">400</span> грн</div>
+            <div class="form-group">
+                <select id="category" required>
+                    <option value="" disabled selected>Оберіть категорію</option>
+                    <option>Фінанси, банк</option>
+                    <option>Автобізнес - Сервіс</option>
+                    <option>Ремонт</option>
+                    <option>Клінінг</option>
+                    <option>Медицина, фармацевтика</option>
+                    <option>IT, комп'ютери</option>
+                    <option>Охорона - Безпека</option>
+                    <option>Ресторани - Кафе</option>
+                    <option>Разові роботи</option>
+                    <option>Інше</option>
+                </select>
             </div>
 
-            <button type="submit" class="submit-btn">Опублікувати та сплатити</button>
+            <div class="form-group">
+                <input type="text" id="vacancy" placeholder="Назва вакансії (напр. Водій)" required>
+            </div>
+
+            <hr class="divider">
+
+            <div class="form-group">
+                <textarea id="duties" placeholder="📋 Досвід, обов’язки та умови" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="schedule" placeholder="🗓 🕘 Графік роботи" required>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="salary" placeholder="💰 Зарплата (грн)" required>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="city" placeholder="📍 Місто (за замовчуванням Одеса)" value="Одеса">
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="address" placeholder="Адреса (вулиця, район)">
+            </div>
+
+            <div class="form-group">
+                <input type="tel" id="phone" placeholder="📞 Телефон (067...)" required>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="social" placeholder="🔗 Посилання на соц.мережі / Месенджери">
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="person" placeholder="👤 Контактна особа (Ім'я)" required>
+            </div>
+
+            <hr class="divider">
+
+            <div class="form-group">
+                <select id="tariff" required>
+                    <option value="trial">Пробний (7 днів / 1 пост) - 150 грн</option>
+                    <option value="standard" selected>Стандарт (30 днів / 1 пост) - 400 грн</option>
+                    <option value="turbo">Турбо (30 днів / 7 постів) - 800 грн</option>
+                </select>
+            </div>
+
+            <button type="submit" id="submitBtn">Оплатити та опублікувати</button>
         </form>
-    </div>
-
-    <div id="payModal" class="modal">
-        <div class="modal-content glass">
-            <h4>💳 Оплата</h4>
-            <p id="orderIdText" style="font-weight:bold; color:#0088cc;"></p>
-            <p>Реквізити:</p>
-            <code id="cardNumber" style="display:block; background:#f0f0f0; padding:15px; border-radius:10px; margin:10px 0; text-align:center;"></code>
-            
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button onclick="copyCard()" style="flex:2; background:#0088cc; color:white; border:none; padding:10px; border-radius:10px;">📋 Копіювати</button>
-                <button onclick="closePayModal()" style="flex:1; background:#888; color:white; border:none; padding:10px; border-radius:10px;">✏️ Змінити</button>
-            </div>
-            
-            <p>Сума: <b id="finalSum"></b> грн</p>
-            <button class="main-add-btn" style="width:100%" onclick="tg.close()">✅ Сплатив, закрити</button>
-        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        let prices = { d30: 400, vip: 150 };
-
-        function calcPrice() {
-            let sum = prices.d30;
-            if (document.getElementById('isVip').checked) sum += prices.vip;
-            document.getElementById('totalSum').innerText = sum;
-        }
-
-        function closePayModal() { document.getElementById('payModal').style.display = 'none'; }
+        tg.expand();
 
         document.getElementById('adForm').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('.submit-btn');
+            const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerText = 'Надсилаю...';
+            btn.innerText = "Перевірка...";
+
+            const formData = {
+                category: document.getElementById('category').value,
+                vacancy: document.getElementById('vacancy').value,
+                duties: document.getElementById('duties').value,
+                schedule: document.getElementById('schedule').value,
+                salary: document.getElementById('salary').value,
+                city: document.getElementById('city').value || "Одеса",
+                address: document.getElementById('address').value,
+                phone: document.getElementById('phone').value,
+                social: document.getElementById('social').value,
+                person: document.getElementById('person').value,
+                tariff: document.getElementById('tariff').value,
+                userId: tg.initDataUnsafe?.user?.id || "browser_user"
+            };
 
             try {
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData);
-                data.isVip = document.getElementById('isVip').checked;
-                data.userId = tg.initDataUnsafe?.user?.id || 'web-user';
-                data.totalSum = document.getElementById('totalSum').innerText;
-
                 const res = await fetch('/api/ads/create', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(formData)
                 });
                 
-                const resData = await res.json();
+                const result = await res.json();
                 
-                document.getElementById('orderIdText').innerText = `ID: ${resData.id}`;
-                document.getElementById('cardNumber').innerText = resData.wallet?.number || '4441 1111 2222 3333';
-                document.getElementById('finalSum').innerText = data.totalSum;
-                document.getElementById('payModal').style.display = 'block';
+                if (res.ok) {
+                    if (tg.initData) {
+                        tg.showAlert("Оголошення надіслано на модерацію! Очікуйте активації.");
+                        tg.close();
+                    } else {
+                        alert("Оголошення надіслано! Дякуємо.");
+                        window.location.href = "/";
+                    }
+                } else {
+                    alert(result.error || "Помилка сервера");
+                    btn.disabled = false;
+                    btn.innerText = "Оплатити та опублікувати";
+                }
             } catch (err) {
-                console.error(err);
-                // Если данные ушли, всё равно покажем модалку
-                document.getElementById('payModal').style.display = 'block';
-            } finally {
+                alert("Помилка мережі");
                 btn.disabled = false;
-                btn.innerText = 'Опублікувати та сплатити';
             }
         };
-
-        function copyCard() {
-            navigator.clipboard.writeText(document.getElementById('cardNumber').innerText);
-            tg.showAlert('Копійовано!');
-        }
-        calcPrice();
     </script>
 </body>
 </html>

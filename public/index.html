@@ -3,47 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Дошка Одеса</title>
+    <title>Робота Одеса - Дошка</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <header class="fixed-top glass">
-        <div class="header-line">
-            <span class="logo">⚓ Робота Одеса</span>
-            <button class="help-btn" onclick="showHelp()">??</button>
-        </div>
-        <div class="filter-line">
-            <select id="categorySelect" onchange="filterAds()">
-                <option value="">Усі категорії 🔍</option>
-            </select>
+    <header>
+        <h1 class="logo-text">Робота для всіх — Одеса</h1>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Пошук вакансій..." oninput="searchAds()">
         </div>
     </header>
 
-    <div class="scroll-area">
-        <section class="promo-slider" id="promoSlider"></section>
-        
-        <div class="section-label">💎 VIP ПРОПОЗИЦІЇ</div>
-        <section class="vip-row" id="vipContainer"></section>
+    <main class="container">
+        <h3 id="searchResultText">Останні оголошення</h3>
+        <div id="adsList" class="ads-grid">
+            </div>
+    </main>
 
-        <div class="section-label">🆕 ОСТАННІ ОБ'ЯВИ</div>
-        <main id="adsContainer" class="ads-list"></main>
-    </div>
-
-    <footer class="fixed-bottom glass">
-        <div class="footer-info">
-            <span>Підтримка: @admin_odessa</span>
-        </div>
-        <button class="main-add-btn" onclick="location.href='create.html'">➕ Дати оголошення</button>
-    </footer>
-
-    <div id="modal" class="modal">
-        <div class="modal-content glass">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
+    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
             <div id="modalBody"></div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        let allAds = [];
+        const tg = window.Telegram.WebApp;
+
+        async function loadAds() {
+            const res = await fetch('/api/ads');
+            allAds = await res.json();
+            renderAds(allAds);
+        }
+
+        function renderAds(ads) {
+            const list = document.getElementById('adsList');
+            list.innerHTML = ads.length ? '' : '<p>В даній категорії поки нічого немає</p>';
+            
+            ads.forEach(ad => {
+                const card = document.createElement('div');
+                card.className = `ad-card ${ad.isVip ? 'vip' : ''}`;
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="cat-tag">${ad.category}</span>
+                        <span class="date-tag">${new Date(ad.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <h4>${ad.vacancy}</h4>
+                    <p class="salary">💰 ${ad.salary} грн</p>
+                    <p class="city">📍 ${ad.city}</p>
+                    <button onclick="openAd('${ad.id}')">Детальніше</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function searchAds() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allAds.filter(ad => 
+                ad.vacancy.toLowerCase().includes(query) || 
+                ad.category.toLowerCase().includes(query) ||
+                ad.duties.toLowerCase().includes(query)
+            );
+            renderAds(filtered);
+            document.getElementById('searchResultText').innerText = query ? `Результат пошуку: (${filtered.length})` : 'Останні оголошення';
+        }
+
+        function openAd(id) {
+            const ad = allAds.find(a => a.id === id);
+            const body = document.getElementById('modalBody');
+            body.innerHTML = `
+                <h2>‼️ ПОТРІБЕН / ПРОПОНУЮ ‼️</h2>
+                <p><b>🗂 Категорія:</b> ${ad.category}</p>
+                <p><b>👤 Вакансія:</b> ${ad.vacancy}</p>
+                <hr>
+                <div class="description">
+                    <p><b>📋 Досвід та умови:</b></p>
+                    <div class="pre-wrap">${ad.duties}</div>
+                </div>
+                <p><b>🕘 Графік:</b> ${ad.schedule}</p>
+                <p><b>💰 Зарплата:</b> ${ad.salary} грн</p>
+                <hr>
+                <p><b>📍 Місто:</b> ${ad.city}</p>
+                <p><b>🏠 Адреса:</b> ${ad.address || 'Не вказано'}</p>
+                <div class="contacts-box">
+                    <p><b>📞 Телефон:</b> <a href="tel:${ad.phone}">${ad.phone}</a></p>
+                    ${ad.social ? `<p><b>🔗 Соц.мережі:</b> ${ad.social}</p>` : ''}
+                    <p><b>👤 Контакт:</b> ${ad.person}</p>
+                </div>
+                <p class="footer-info">№ ${ad.id} | ${new Date(ad.createdAt).toLocaleDateString()}</p>
+                <button class="share-btn" onclick="shareAd('${ad.vacancy}')">🔗 Поділитись</button>
+            `;
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function shareAd(title) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Вакансія Одеса',
+                    text: `Подивіться вакансію: ${title}`,
+                    url: window.location.href
+                });
+            } else {
+                alert("Скопіюйте посилання на сайт, щоб поділитися.");
+            }
+        }
+
+        loadAds();
+    </script>
 </body>
 </html>
