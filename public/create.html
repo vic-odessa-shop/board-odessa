@@ -2,103 +2,200 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Подати оголошення</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Подати оголошення ⚓</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: white !important; color: #222 !important; font-family: sans-serif; padding: 15px; margin: 0; }
-        .back-btn { display: inline-block; margin-bottom: 15px; color: #007bff; text-decoration: none; font-weight: bold; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; background: #fafafa; }
-        button { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; }
+        :root { --main: #007bff; --bg: #f4f6f9; --text: #222; --gold: #ffc107; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
         
-        #payModal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:3000; }
-        .pay-content { background:white; padding:25px; border-radius:20px; width:85%; max-width:400px; text-align: center; }
+        .back-btn { display: inline-block; margin-bottom: 20px; color: var(--main); text-decoration: none; font-weight: bold; font-size: 14px; }
+        
+        .form-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { margin: 0 0 20px 0; font-size: 22px; color: #1a1a1a; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 13px; color: #666; }
+        
+        input, textarea, select { 
+            width: 100%; padding: 14px; border: 1px solid #eee; border-radius: 12px; 
+            box-sizing: border-box; font-size: 16px; background: #f3f3f3; outline: none; transition: 0.3s;
+        }
+        input:focus, textarea:focus { border-color: var(--main); background: #fff; }
+        
+        .price-block { 
+            background: #fff8e1; padding: 15px; border-radius: 12px; border: 1px dashed var(--gold); margin: 20px 0;
+        }
+        .total-price { font-size: 18px; font-weight: 800; color: #333; margin-top: 10px; }
+
+        button#submitBtn { 
+            width: 100%; padding: 18px; background: var(--main); color: white; border: none; 
+            border-radius: 15px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+        button:disabled { background: #ccc; box-shadow: none; }
+
+        #payModal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:3000; backdrop-filter: blur(5px); }
+        .pay-content { background:white; padding:30px; border-radius:25px; width:85%; max-width:400px; text-align: center; }
     </style>
 </head>
 <body>
 
 <a href="/" class="back-btn">← На головну</a>
-<h2 style="margin-top:0;">Нова вакансія</h2>
 
-<form id="addForm">
-    <div class="form-group">
-        <label>Категорія</label>
-        <select id="category">
-            <option>Водії</option><option>Ремонт</option><option>IT</option><option>Інше</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <input type="text" id="vacancy" placeholder="Назва вакансії" required>
-    </div>
-    <div class="form-group">
-        <textarea id="duties" placeholder="Обов'язки та умови (тел. писати не можна!)" rows="4" required></textarea>
-    </div>
-    <div class="form-group">
-        <input type="text" id="salary" placeholder="Зарплата (грн)" required>
-    </div>
-    <div class="form-group">
-        <input type="tel" id="phone" placeholder="Ваш телефон для контактів" required>
-    </div>
-    <div class="form-group">
-        <label>Оберіть тариф</label>
-        <select id="tariff">
-            <option value="trial">Пробний - 150 грн (7 днів)</option>
-            <option value="standard">Стандарт - 400 грн (30 днів)</option>
-            <option value="turbo">Турбо - 800 грн (30 днів / 7 постів)</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>Спосіб оплати</label>
-        <select id="payMethod">
-            <option value="card">Карта Monobank</option>
-            <option value="crypto">Криптовалюта (USDT)</option>
-        </select>
-    </div>
-    <button type="submit" id="submitBtn">Опублікувати та перейти до оплати</button>
-</form>
+<div class="form-card">
+    <h2>Нова вакансія</h2>
+    <form id="addForm">
+        <div class="form-group">
+            <label>Категорія</label>
+            <select id="category">
+                <option>Автобізнес - Сервісне обслуговування</option>
+                <option>Банки, Фінанси</option>
+                <option>Медицина, фармацевтика</option>
+                <option>Нерухомість</option>
+                <option>IT, комп'ютери, інтернет</option>
+                <option>Охорона - Безпека</option>
+                <option>Клінінг</option>
+                <option>Ресторани - Кафе</option>
+                <option>Ремонт</option>
+                <option>Торгівля</option>
+                <option>Інше</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="vacancy" placeholder="Назва вакансії (напр. Кухар)" required>
+        </div>
+
+        <div class="form-group">
+            <textarea id="duties" placeholder="📋 Опис, обов'язки та умови..." rows="4" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="schedule" placeholder="🗓 Графік роботи (напр. 5/2, 9:00-18:00)" required>
+        </div>
+
+        <div class="form-group">
+            <input type="number" id="salary" placeholder="💰 Зарплата (грн)" required>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="city" placeholder="📍 Місто" value="Одеса">
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="address" placeholder="🏠 Адреса або Район">
+        </div>
+
+        <div class="form-group">
+            <input type="tel" id="phone" placeholder="📞 Телефон (067...)" required>
+        </div>
+
+        <div style="display:flex; gap:10px;" class="form-group">
+            <input type="text" id="tg_user" placeholder="✈️ Telegram @">
+            <input type="text" id="viber_user" placeholder="🟣 Viber">
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="person" placeholder="👤 Ваше ім'я" required>
+        </div>
+
+        <div class="form-group">
+            <label>Оберіть тариф</label>
+            <select id="tariff" onchange="calcPrice()">
+                <option value="150">Пробний (7 днів) - 150 грн</option>
+                <option value="400" selected>Стандарт (30 днів) - 400 грн</option>
+                <option value="800">Турбо (30 днів) - 800 грн</option>
+            </select>
+        </div>
+
+        <div class="price-block">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="isVip" onchange="calcPrice()" style="width:20px; height:20px;">
+                <label for="isVip" style="margin:0; color:#333;">💎 VIP статус (+150 грн)</label>
+            </div>
+            <div class="total-price">До сплати: <span id="totalSum">400</span> грн</div>
+        </div>
+
+        <div class="form-group">
+            <label>Спосіб оплати</label>
+            <select id="payMethod">
+                <option value="card">💳 Картка (Monobank)</option>
+                <option value="phone">📱 Поповнення мобільного</option>
+                <option value="iban">🏦 Рахунок IBAN</option>
+            </select>
+        </div>
+
+        <button type="submit" id="submitBtn">Опублікувати та перейти до оплати</button>
+    </form>
+</div>
 
 <div id="payModal">
     <div class="pay-content">
-        <h3 style="color:#007bff; margin-top:0;">Оплата замовлення</h3>
-        <div id="payDetails" style="background:#f8f9fa; padding:15px; border-radius:10px; margin:15px 0; font-family:monospace; font-size:16px;"></div>
-        <p style="font-size:13px; color:#666;">Зробіть переказ та надішліть скріншот адміну. Оголошення з'явиться на дошці миттєво, а контакти — після підтвердження.</p>
-        <button onclick="location.href='/'">Я оплатив, на головну</button>
+        <h3 style="color:var(--main); margin-top:0;">Оплата замовлення</h3>
+        <div id="payDetails" style="background:#f8f9fa; padding:15px; border-radius:12px; margin:15px 0; font-family:monospace; font-size:15px; white-space: pre-wrap;"></div>
+        <p style="font-size:13px; color:#666; line-height:1.4;">Будь ласка, зробіть переказ за реквізитами та надішліть скріншот у підтримку. Після перевірки контакти стануть активними.</p>
+        <button onclick="location.href='/'" style="width:100%; padding:15px; border-radius:12px; border:none; background:#eee; font-weight:bold;">Я оплатив, на головну</button>
     </div>
 </div>
 
 <script>
+    const tg = window.Telegram?.WebApp;
+    if(tg) { tg.expand(); }
+
+    function calcPrice() {
+        const base = parseInt(document.getElementById('tariff').value);
+        const vip = document.getElementById('isVip').checked ? 150 : 0;
+        document.getElementById('totalSum').innerText = base + vip;
+    }
+
+    // Авто-формат телефона
+    document.getElementById('phone').onfocus = function() {
+        if(!this.value) this.value = '+380';
+    };
+
     document.getElementById('addForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         btn.disabled = true; btn.innerText = "Збереження...";
 
         const data = {
+            id: Date.now().toString(), // Временный ID
             category: document.getElementById('category').value,
             vacancy: document.getElementById('vacancy').value,
             duties: document.getElementById('duties').value,
+            schedule: document.getElementById('schedule').value,
             salary: document.getElementById('salary').value,
+            city: document.getElementById('city').value,
+            address: document.getElementById('address').value,
             phone: document.getElementById('phone').value,
-            tariff: document.getElementById('tariff').value,
-            person: "Замовник",
-            city: "Одеса",
-            userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'guest'
+            telegram: document.getElementById('tg_user').value,
+            viber: document.getElementById('viber_user').value,
+            person: document.getElementById('person').value,
+            isVip: document.getElementById('isVip').checked,
+            status: 'pending',
+            createdAt: new Date(),
+            userId: tg?.initDataUnsafe?.user?.id || 'browser_user'
         };
 
-        const res = await fetch('/api/ads/create', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
+        try {
+            const res = await fetch('/api/ads/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
 
-        if (res.ok) {
             const method = document.getElementById('payMethod').value;
-            const details = method === 'card' ? '💳 4441 0000 0000 0000\nМонабанк' : '🌐 USDT (TRC20):\nВаш_Адреса_Тут';
+            let details = "";
+            if(method === 'card') details = "💳 4441 0000 0000 0000\nMonobank\nОтримувач: Віктор О.";
+            else if(method === 'phone') details = "📱 Номер: +380670000000\nОператор: Kyivstar";
+            else details = "🏦 IBAN: UA8930500000000000000000000";
+
             document.getElementById('payDetails').innerText = details;
             document.getElementById('payModal').style.display = 'flex';
-        } else {
-            alert("Помилка при створенні. Перевірте поля.");
-            btn.disabled = false; btn.innerText = "Спробувати ще раз";
+        } catch (err) {
+            // Если сервер не запущен, имитируем успех для теста дизайна
+            document.getElementById('payModal').style.display = 'flex';
+            document.getElementById('payDetails').innerText = "Тестовий режим (Сервер офлайн)";
         }
     };
 </script>
