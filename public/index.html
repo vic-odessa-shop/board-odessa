@@ -195,16 +195,18 @@ async function loadAds() {
         initDragScroll();
     }
 
-    function renderAds(ads) {
+        function renderAds(ads) {
         const list = document.getElementById('adsList');
         const vipList = document.getElementById('vipList');
         const vipSection = document.getElementById('vipSection');
-        list.innerHTML = ''; vipList.innerHTML = '';
-
-        const vips = ads.filter(a => a.isVip);
-        const regulars = ads.filter(a => !a.isVip);
-
-        if(vips.length > 0) {
+        list.innerHTML = '';
+        vipList.innerHTML = '';
+        
+        // Исправленный фильтр: VIP — это только true, остальные — обычные
+        const vips = ads.filter(a => a.isVip === true);
+        const regulars = ads.filter(a => a.isVip !== true);
+        
+        if (vips.length > 0) {
             vipSection.style.display = 'block';
             vips.forEach(ad => {
                 vipList.innerHTML += `
@@ -216,7 +218,7 @@ async function loadAds() {
                 </div>`;
             });
         } else { vipSection.style.display = 'none'; }
-
+        
         regulars.forEach(ad => {
             list.innerHTML += `
             <div class="ad-card" onclick="openAd('${ad.id}')">

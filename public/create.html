@@ -148,7 +148,6 @@
         document.getElementById('totalSum').innerText = base + vip;
     }
 
-    // Авто-формат телефона
     document.getElementById('phone').onfocus = function() {
         if(!this.value) this.value = '+380';
     };
@@ -159,7 +158,6 @@
         btn.disabled = true; btn.innerText = "Збереження...";
 
         const data = {
-            id: Date.now().toString(), // Временный ID
             category: document.getElementById('category').value,
             vacancy: document.getElementById('vacancy').value,
             duties: document.getElementById('duties').value,
@@ -171,9 +169,8 @@
             telegram: document.getElementById('tg_user').value,
             viber: document.getElementById('viber_user').value,
             person: document.getElementById('person').value,
+            tariff: document.getElementById('tariff').value, // Теперь это 150, 400 или 800
             isVip: document.getElementById('isVip').checked,
-            status: 'pending',
-            createdAt: new Date(),
             userId: tg?.initDataUnsafe?.user?.id || 'browser_user'
         };
 
@@ -183,21 +180,30 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
+            const result = await res.json();
 
-            const method = document.getElementById('payMethod').value;
-            let details = "";
-            if(method === 'card') details = "💳 4441 0000 0000 0000\nMonobank\nОтримувач: Віктор О.";
-            else if(method === 'phone') details = "📱 Номер: +380670000000\nОператор: Kyivstar";
-            else details = "🏦 IBAN: UA8930500000000000000000000";
+            if (res.ok) {
+                const method = document.getElementById('payMethod').value;
+                let details = `🆔 КОД ЗАМОВЛЕННЯ: ${result.id}\n`;
+                details += "--------------------------\n";
+                if(method === 'card') details += "💳 4441 0000 0000 0000\nMonobank\nОтримувач: Віктор О.";
+                else if(method === 'phone') details += "📱 Номер: +380670000000\nKyivstar";
+                else details += "🏦 IBAN: UA8930500000000000000000000";
+                
+                details += "\n\n⚠️ Вкажіть КОД у призначенні платежу!";
 
-            document.getElementById('payDetails').innerText = details;
-            document.getElementById('payModal').style.display = 'flex';
+                document.getElementById('payDetails').innerText = details;
+                document.getElementById('payModal').style.display = 'flex';
+            } else {
+                alert(result.error || "Помилка збереження");
+                btn.disabled = false; btn.innerText = "Спробувати ще раз";
+            }
         } catch (err) {
-            // Если сервер не запущен, имитируем успех для теста дизайна
-            document.getElementById('payModal').style.display = 'flex';
-            document.getElementById('payDetails').innerText = "Тестовий режим (Сервер офлайн)";
+            alert("Помилка з'єднання з сервером");
+            btn.disabled = false;
         }
     };
 </script>
+
 </body>
 </html>
