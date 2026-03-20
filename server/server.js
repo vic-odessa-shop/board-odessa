@@ -178,10 +178,19 @@ app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'in
 // Запустите его один раз в браузере: адрес-вашего-сайта.com/api/admin/clear-database
 app.get('/api/admin/clear-database', async (req, res) => {
     try {
-        await Ad.deleteMany({});
-        res.send("База полностью очищена! Удалите этот код из server.js после использования.");
-    } catch (e) { res.status(500).send(e.message); }
+        console.log("Запрос на очистку базы...");
+        const result = await Ad.deleteMany({});
+        res.send(`
+            <h1>Результат очистки:</h1>
+            <p>Видалено документів: ${result.deletedCount}</p>
+            <a href="/">Повернутися на головну</a>
+        `);
+    } catch (e) {
+        console.error("Помилка очистки:", e);
+        res.status(500).send("Помилка: " + e.message);
+    }
 });
+
 
 
 app.listen(process.env.PORT || 3000, () => {
