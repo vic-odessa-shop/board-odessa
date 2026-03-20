@@ -181,19 +181,19 @@
     }
 */
 async function loadAds() {
-        try {
-            const res = await fetch('/api/ads');
-            if (!res.ok) throw new Error('Ошибка сервера'); // Добавляем проверку статуса
-            allAds = await res.json();
-        } catch (e) {
-            console.error("Ошибка загрузки:", e);
-            allAds = []; // Очищаем заглушки, чтобы не путать людей старыми данными
-            document.getElementById('adsList').innerHTML = 
-                '<p style="text-align:center; padding:20px; color:#777;">Наразі вакансій немає або виникла помилка з\'єднання. Спробуйте оновити сторінку.</p>';
-        }
+    const header = document.querySelector('.logo-text');
+    header.innerText = "⚓ ЗАВАНТАЖЕННЯ... ⚓";
+    try {
+        const res = await fetch('/api/ads');
+        allAds = await res.json();
+        header.innerText = "⚓ РОБОТА ОДЕСА ⚓";
         renderAds(allAds);
-        initDragScroll();
+    } catch (e) {
+        header.innerText = "⚠️ ПОМИЛКА МЕРЕЖІ";
+        console.error(e);
     }
+    initDragScroll();
+}
 
      function renderAds(ads) {
         const list = document.getElementById('adsList');

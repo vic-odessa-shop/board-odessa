@@ -170,9 +170,6 @@ setInterval(() => {
     axios.get("https://board-odessa.onrender.com").catch(() => {});
 }, 800000);
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
-
 
 // ВНИМАНИЕ: Этот адрес удалит ВСЕ объявления. 
 // Запустите его один раз в браузере: адрес-вашего-сайта.com/api/admin/clear-database
@@ -190,6 +187,13 @@ app.get('/api/admin/clear-database', async (req, res) => {
         res.status(500).send("Помилка: " + e.message);
     }
 });
+
+
+
+app.use(express.static(path.join(__dirname, '..', 'public')));
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
+
+
 
 
 
