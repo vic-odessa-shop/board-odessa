@@ -195,14 +195,15 @@ async function loadAds() {
         initDragScroll();
     }
 
-        function renderAds(ads) {
+            function renderAds(ads) {
         const list = document.getElementById('adsList');
         const vipList = document.getElementById('vipList');
         const vipSection = document.getElementById('vipSection');
         list.innerHTML = '';
         vipList.innerHTML = '';
         
-        // Исправленный фильтр: VIP — это только true, остальные — обычные
+        // Исправленная логика: 
+        // Если isVip точно true — в VIP. Во всех остальных случаях — в обычные.
         const vips = ads.filter(a => a.isVip === true);
         const regulars = ads.filter(a => a.isVip !== true);
         
@@ -219,13 +220,18 @@ async function loadAds() {
             });
         } else { vipSection.style.display = 'none'; }
         
+        // Если обычных объявлений нет, выведем надпись
+        if (regulars.length === 0 && vips.length === 0) {
+            list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Наразі нових вакансій немає</p>';
+        }
+        
         regulars.forEach(ad => {
             list.innerHTML += `
             <div class="ad-card" onclick="openAd('${ad.id}')">
                 <div style="font-size:10px; color:#999; font-weight:bold; margin-bottom:5px;">${ad.category}</div>
                 <div style="font-weight:bold; font-size:17px;">${ad.vacancy}</div>
                 <div class="salary">${ad.salary} грн</div>
-                <div style="font-size:13px; color:#777;">📍 ${ad.city}</div>
+                <div style="font-size:13px; color:#777;">📍 ${ad.city} ${ad.address ? '• ' + ad.address : ''}</div>
             </div>`;
         });
     }

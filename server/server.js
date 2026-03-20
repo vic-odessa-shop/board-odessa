@@ -130,6 +130,8 @@ async function sendToChannel(ad) {
         `👤 *Посада:* ${ad.vacancy}\n` +
         `💰 *Зарплата:* ${ad.salary} грн\n` +
         `📍 *Місто:* ${ad.city}\n` +
+        `🏠 *Адреса:* ${ad.address || 'Уточнюйте'}\n` + // Добавили адрес
+        `🕘 *Графік:* ${ad.schedule || 'За домовленістю'}\n` + // Добавили график
         `📝 *Опис:* ${ad.duties}\n\n` +
         `📞 *КОНТАКТИ:* \n` +
         `📱 ${ad.phone} (${ad.person})\n` +
@@ -145,6 +147,7 @@ async function sendToChannel(ad) {
         });
     } catch (err) { console.error("Ошибка канала:", err); }
 }
+
 
 // АВТО-МЕНЕДЖЕР
 setInterval(async () => {
