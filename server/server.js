@@ -173,6 +173,17 @@ setInterval(() => {
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
 
+
+// ВНИМАНИЕ: Этот адрес удалит ВСЕ объявления. 
+// Запустите его один раз в браузере: адрес-вашего-сайта.com/api/admin/clear-database
+app.get('/api/admin/clear-database', async (req, res) => {
+    try {
+        await Ad.deleteMany({});
+        res.send("База полностью очищена! Удалите этот код из server.js после использования.");
+    } catch (e) { res.status(500).send(e.message); }
+});
+
+
 app.listen(process.env.PORT || 3000, () => {
     console.log('Server live');
     bot.launch().catch(err => console.error("TG Error:", err));

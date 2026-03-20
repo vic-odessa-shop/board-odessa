@@ -195,17 +195,19 @@ async function loadAds() {
         initDragScroll();
     }
 
- function renderAds(ads) {
+     function renderAds(ads) {
         const list = document.getElementById('adsList');
         const vipList = document.getElementById('vipList');
         const vipSection = document.getElementById('vipSection');
         list.innerHTML = '';
         vipList.innerHTML = '';
         
-        // Исправленная логика: 
-        // Если isVip точно true — в VIP. Во всех остальных случаях — в обычные.
-        const vips = ads.filter(a => a.isVip === true);
-        const regulars = ads.filter(a => a.isVip !== true);
+        // МАКСИМАЛЬНО ГИБКИЙ ФИЛЬТР
+        // В VIP попадают только те, у кого в поле isVip стоит true (как булево или как строка)
+        const vips = ads.filter(a => String(a.isVip) === 'true');
+        
+        // В обычные попадает ВСЁ ОСТАЛЬНОЕ (false, null, undefined)
+        const regulars = ads.filter(a => String(a.isVip) !== 'true');
         
         if (vips.length > 0) {
             vipSection.style.display = 'block';
@@ -218,9 +220,10 @@ async function loadAds() {
                     <div class="salary">${ad.salary} грн</div>
                 </div>`;
             });
-        } else { vipSection.style.display = 'none'; }
+        } else { 
+            vipSection.style.display = 'none'; 
+        }
         
-        // Если обычных объявлений нет, выведем надпись
         if (regulars.length === 0 && vips.length === 0) {
             list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Наразі нових вакансій немає</p>';
         }
