@@ -47,6 +47,13 @@
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .modal-content { background: white; width: 90%; max-height: 85%; border-radius: 25px; padding: 25px; position: relative; overflow-y: auto; }
+    
+
+    /* ДОБАВЬТЕ ЭТО В <style> */
+    #adsList { min-height: 200px; padding-bottom: 20px; }
+    .drag-scroll { touch-action: pan-y; } /* Позволяет скроллить страницу вертикально, даже если коснулись слайдера */
+
+    
     </style>
 </head>
 <body>
@@ -107,7 +114,7 @@
 <script>
     let allAds = [];
 
-    // ФУНКЦИЯ DRAG-TO-SCROLL (как на OLX для мышки)
+    // Функция перетаскивания (Drag-to-Scroll)
     function initDragScroll() {
         const sliders = document.querySelectorAll('.drag-scroll');
         sliders.forEach(slider => {
@@ -129,86 +136,39 @@
         });
     }
 
-// блок для теста на локальном компьютере без базы в облаке
- /*   async function loadAds() {
+    // Загрузка данных с сервера
+    async function loadAds() {
+        const header = document.querySelector('.logo-text');
+        header.innerText = "⚓ ЗАВАНТАЖЕННЯ... ⚓";
         try {
             const res = await fetch('/api/ads');
             allAds = await res.json();
+            header.innerText = "⚓ РОБОТА ОДЕСА ⚓";
+            renderAds(allAds);
         } catch (e) {
-            allAds = [
-                { id: '1',
-				category: 'IT, комп\'ютери, інтернет',
-				vacancy: 'Senior Developer',
-				salary: '80000',
-				city: 'Одеса',
-				isVip: true,
-				duties: 'Код...',
-				status: 'active' },
-                
-				{ id: '2',
-				category: 'Торгівля',
-				vacancy: 'Менеджер',
-				salary: '25000',
-				city: 'Одеса',
-				isVip: true,
-				duties: 'Продажі...',
-				status: 'active' },
-				
-                { id: '3',
-				category: 'Ресторани - Кафе',
-				vacancy: 'Бариста',
-				salary: '18000',
-				city: 'Одеса',
-				isVip: true,
-				duties: 'Кава...',
-				status: 'active' },
-				
-                { id: '4',
-				category: 'Охорона - Безпека',
-				vacancy: 'Охоронець',
-				salary: '15000',
-				city: 'Одеса',
-				isVip: false, duties: 'Об\'єкт...',
-				status: 'active',
-				phone: '+380670000000', 
-				telegram: 'vics_work', // Тестовый логин
-				viber: '+380670000000' // Тестовый номер
- 				}
-	        ];
+            header.innerText = "⚠️ ПОМИЛКА МЕРЕЖІ";
+            console.error(e);
         }
-        renderAds(allAds);
-        initDragScroll(); // Запускаем захват мышкой
+        initDragScroll();
     }
-*/
-async function loadAds() {
-    const header = document.querySelector('.logo-text');
-    header.innerText = "⚓ ЗАВАНТАЖЕННЯ... ⚓";
-    try {
-        const res = await fetch('/api/ads');
-        allAds = await res.json();
-        header.innerText = "⚓ РОБОТА ОДЕСА ⚓";
-        renderAds(allAds);
-    } catch (e) {
-        header.innerText = "⚠️ ПОМИЛКА МЕРЕЖІ";
-        console.error(e);
-    }
-    initDragScroll();
-}
 
-     function renderAds(ads) {
+    // Отрисовка карточек на странице
+    function renderAds(ads) {
         const list = document.getElementById('adsList');
         const vipList = document.getElementById('vipList');
         const vipSection = document.getElementById('vipSection');
+        
         list.innerHTML = '';
         vipList.innerHTML = '';
         
-        // МАКСИМАЛЬНО ГИБКИЙ ФИЛЬТР
-        // В VIP попадают только те, у кого в поле isVip стоит true (как булево или как строка)
-        const vips = ads.filter(a => String(a.isVip) === 'true');
+        // Фильтруем: только активные
+        const activeAds = ads.filter(a => a.status === 'active');
         
-        // В обычные попадает ВСЁ ОСТАЛЬНОЕ (false, null, undefined)
-        const regulars = ads.filter(a => String(a.isVip) !== 'true');
+        // Разделяем на VIP и обычные
+        const vips = activeAds.filter(a => String(a.isVip) === 'true');
+        const regulars = activeAds.filter(a => String(a.isVip) !== 'true');
         
+        // Вывод VIP в слайдер
         if (vips.length > 0) {
             vipSection.style.display = 'block';
             vips.forEach(ad => {
@@ -224,21 +184,26 @@ async function loadAds() {
             vipSection.style.display = 'none'; 
         }
         
-        if (regulars.length === 0 && vips.length === 0) {
+        // Вывод обычных объявлений
+        if (regulars.length > 0) {
+            regulars.forEach(ad => {
+                list.innerHTML += `
+                <div class="ad-card" onclick="openAd('${ad.id}')">
+                    <div style="font-size:10px; color:#999; font-weight:bold; margin-bottom:5px;">${ad.category}</div>
+                    <div style="font-weight:bold; font-size:17px;">${ad.vacancy}</div>
+                    <div class="salary">${ad.salary} грн</div>
+                    <div style="font-size:13px; color:#777;">📍 ${ad.city} ${ad.address ? '• ' + ad.address : ''}</div>
+                </div>`;
+            });
+        }
+
+        // Если вообще ничего нет
+        if (vips.length === 0 && regulars.length === 0) {
             list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Наразі нових вакансій немає</p>';
         }
-        
-        regulars.forEach(ad => {
-            list.innerHTML += `
-            <div class="ad-card" onclick="openAd('${ad.id}')">
-                <div style="font-size:10px; color:#999; font-weight:bold; margin-bottom:5px;">${ad.category}</div>
-                <div style="font-weight:bold; font-size:17px;">${ad.vacancy}</div>
-                <div class="salary">${ad.salary} грн</div>
-                <div style="font-size:13px; color:#777;">📍 ${ad.city} ${ad.address ? '• ' + ad.address : ''}</div>
-            </div>`;
-        });
     }
 
+    // Открытие модального окна с деталями
     function openAd(id) {
         const ad = allAds.find(a => String(a.id) === String(id));
         if(!ad) return;
@@ -258,10 +223,8 @@ async function loadAds() {
                 <div style="font-size:14px; margin-bottom:5px;">🕘 <b>Графік:</b> ${ad.schedule || 'За домовленістю'}</div>
                 <div style="font-size:14px;">🏠 <b>Адреса/Район:</b> ${ad.address || 'Уточнюйте'}</div>
             </div>
-			
-			
 
-          ${isPending ? 
+            ${isPending ? 
                 `<div style="background:#fff3cd; padding:15px; border-radius:15px; text-align:center; border:1px solid #ffeeba; color:#856404;">
                     🔒 <b>Контакти приховані</b><br>
                     <small>З'являться після активації оголошення.</small>
@@ -270,18 +233,13 @@ async function loadAds() {
                     <p style="margin:0 0 12px 0; font-size:18px;">
                         📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:var(--main); text-decoration:none; font-weight:bold;">${ad.phone || 'не вказано'}</a>
                     </p>
-                    
                     <div style="display:flex; gap:10px; margin-bottom:12px;">
-                        ${ad.telegram ? 
-                            `<a href="https://t.me/${ad.telegram.replace('@','')}" target="_blank" style="flex:1; background:#0088cc; color:white; text-decoration:none; padding:10px; border-radius:10px; text-align:center; font-size:12px; font-weight:bold;">Telegram</a>` : ''}
-                        ${ad.viber ? 
-                            `<a href="viber://chat?number=${ad.viber.replace('+','')}" style="flex:1; background:#7360f2; color:white; text-decoration:none; padding:10px; border-radius:10px; text-align:center; font-size:12px; font-weight:bold;">Viber</a>` : ''}
+                        ${ad.telegram ? `<a href="https://t.me/${ad.telegram.replace('@','')}" target="_blank" style="flex:1; background:#0088cc; color:white; text-decoration:none; padding:10px; border-radius:10px; text-align:center; font-size:12px; font-weight:bold;">Telegram</a>` : ''}
+                        ${ad.viber ? `<a href="viber://chat?number=${ad.viber.replace('+','')}" style="flex:1; background:#7360f2; color:white; text-decoration:none; padding:10px; border-radius:10px; text-align:center; font-size:12px; font-weight:bold;">Viber</a>` : ''}
                     </div>
-
                     <p style="margin:0; font-size:16px; color:#555;">👤 <b>Контакт:</b> ${ad.person || 'Роботодавець'}</p>
                  </div>`
             }
-
 
             <div style="margin-top:25px; font-size:10px; color:#bbb; border-top:1px solid #eee; padding-top:10px; display:flex; justify-content:space-between;">
                 <span>KOD: #${ad.id}</span>
@@ -294,6 +252,7 @@ async function loadAds() {
         document.getElementById('modalOverlay').style.display = 'flex';
     }
 
+    // Фильтрация по категориям
     function filterCat(cat, btn) {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -301,13 +260,18 @@ async function loadAds() {
         renderAds(filtered);
     }
 
+    // Поиск
     function searchAds() {
         const q = document.getElementById('searchInput').value.toLowerCase();
         renderAds(allAds.filter(a => a.vacancy.toLowerCase().includes(q) || a.city.toLowerCase().includes(q)));
     }
 
+    // Закрытие модалки
     function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+
+    // Запуск при загрузке страницы
     loadAds();
+
 </script>
 </body>
 </html>
