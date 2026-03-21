@@ -6,6 +6,23 @@
     <title>Робота Одеса ⚓</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+    /* Чтобы рекламные карточки не падали вниз, а шли в ряд */
+#promoList {
+    display: flex !important; /* Принудительно в ряд */
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding-bottom: 10px;
+}
+#promoList::-webkit-scrollbar { display: none; } /* Прячем полосу прокрутки */
+
+.promo-card {
+    flex: 0 0 280px; /* Запрещаем сжиматься, ширина 280px */
+    scroll-snap-align: start;
+}
+
+    
+    
         :root { --main: #007bff; --bg: #f4f6f9; --text: #1a1a1a; --gold: #ffc107; }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding-bottom: 90px; overflow-x: hidden; }
         
@@ -210,7 +227,6 @@ async function loadBanners() {
         const res = await fetch('/api/banners');
         let banners = await res.json();
 
-        // Якщо реклами немає — показуємо свою заглушку
         if (banners.length === 0) {
             banners = [{
                 title: "⚓ Ваша реклама тут",
@@ -219,14 +235,13 @@ async function loadBanners() {
             }];
         }
 
-        // Перемішуємо, щоб порядок був випадковим
         banners.sort(() => Math.random() - 0.5);
 
         const list = document.getElementById('promoList');
+        // ТУТ ГЛАВНОЕ: добавлен class="promo-card"
         list.innerHTML = banners.map(b => `
-            <div onclick="window.open('${b.link}', '_blank')" 
-                 style="min-width:280px; background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%); 
-                        padding:18px; border-radius:20px; border:1px solid #bbdefb; flex-shrink:0; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <div class="promo-card" onclick="window.open('${b.link}', '_blank')" 
+                 style="background: white; padding:18px; border-radius:20px; border:1px solid #bbdefb; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                 <div style="font-size:9px; color:#1976d2; font-weight:bold; margin-bottom:8px; opacity:0.7;">📢 РЕКЛАМНА ПРОПОЗИЦІЯ</div>
                 <div style="font-weight:bold; font-size:17px; color:#0d47a1; margin-bottom:6px;">${b.title}</div>
                 <div style="font-size:13px; color:#444; line-height:1.4;">${b.content}</div>
@@ -236,6 +251,7 @@ async function loadBanners() {
         document.getElementById('promoSection').style.display = 'block';
     } catch (e) { console.log("Ошибка рекламы", e); }
 }
+
 
 
  function renderAds(ads) {
