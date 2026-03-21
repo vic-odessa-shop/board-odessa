@@ -152,9 +152,14 @@
         // Фильтруем только те, что активны (Approved)
         const activeAds = ads.filter(a => a.status === 'active');
         
-        const vips = activeAds.filter(a => String(a.isVip) === 'true');
-        const regulars = activeAds.filter(a => String(a.isVip) !== 'true');
-        
+        // Более надежный фильтр
+const vips = activeAds.filter(a => 
+    a.isVip === true || a.isVip === 'true' || a.isVip === 1 || a.isVip === '1'
+);
+const regulars = activeAds.filter(a => 
+    !a.isVip || a.isVip === false || a.isVip === 'false' || a.isVip === 0 || a.isVip === '0'
+);
+
         if (vips.length > 0) {
             vipSection.style.display = 'block';
             vips.forEach(ad => {
