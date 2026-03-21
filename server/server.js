@@ -148,9 +148,26 @@ app.post('/api/ads/create', async (req, res) => {
 
 app.get('/api/admin/all-ads', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
+    
+    // 1. Авто-архивация: переводим просроченные в 'archived'
+    await Ad.updateMany(
+        { status: 'active', expireAt: { $lt: new Date() } },
+        { $set: { status: 'archived' } }
+    );
+
     const ads = await Ad.find({}).sort({ createdAt: -1 });
-    res.json(ads);
+    
+    // 2. Считаем статистику для админки
+    const stats = {
+        total: ads.length,
+        pending: ads.filter(a => a.status === 'pending').length,
+        active: ads.filter(a => a.status === 'active').length,
+        banners: await Banner.countDocuments()
+    };
+
+    res.json({ ads, stats });
 });
+
 
 app.post('/api/admin/update/:id', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();

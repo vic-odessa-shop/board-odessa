@@ -10,6 +10,7 @@
         .card { background: white; padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid #ccc; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .card.active { border-left-color: #28a745; }
         .card.pending { border-left-color: #ffc107; }
+        .card.archived { border-left-color: #6c757d; opacity: 0.8; }
         .card.vip { background: #fffdf0; border-left-color: #d4af37; }
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
@@ -18,6 +19,8 @@
         .btn-del { background: #dc3545; color: white; border: none; padding: 12px; border-radius: 8px; flex: 0 0 50px; }
         .cb-container { position: absolute; top: 15px; right: 15px; transform: scale(1.5); }
         .info { font-size: 11px; color: #666; margin-top: 10px; line-height: 1.4; border-top: 1px solid #eee; padding-top: 8px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; }
+        .stat-item { background:white; padding:10px; border-radius:10px; text-align:center; font-size:11px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -37,6 +40,7 @@
     </div>
 
     <div id="main" style="display:none;">
+        <div id="stats-bar" class="stats-grid"></div>
         <div id="list"></div>
         <div id="banner-section">
             <h2 style="margin:30px 15px 10px;">📢 Керування рекламою</h2>
@@ -63,9 +67,18 @@
         const res = await fetch('/api/admin/all-ads', { headers: { 'x-admin-key': adminKey } });
         if (!res.ok) { localStorage.removeItem('admin_key'); location.reload(); return; }
         
-        const ads = await res.json();
+        const { ads, stats } = await res.json();
         document.getElementById('main-toolbar').style.display = 'flex';
         document.getElementById('main').style.display = 'block';
+
+        // Вивід статистики
+        document.getElementById('stats-bar').innerHTML = `
+            <div class="stat-item">📦 Всього<br><b>${stats.total}</b></div>
+            <div class="stat-item" style="background:#fff3cd">⏳ Чекають<br><b>${stats.pending}</b></div>
+            <div class="stat-item" style="background:#d4edda">✅ Активні<br><b>${stats.active}</b></div>
+            <div class="stat-item" style="background:#e3f2fd">📢 Реклама<br><b>${stats.banners}</b></div>
+        `;
+
         const list = document.getElementById('list');
         list.innerHTML = "";
 
@@ -83,6 +96,7 @@
                         <select id="stat-${ad.id}">
                             <option value="active" ${ad.status === 'active' ? 'selected' : ''}>Active</option>
                             <option value="pending" ${ad.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="archived" ${ad.status === 'archived' ? 'selected' : ''}>Archived</option>
                         </select>
                         <select id="vip-${ad.id}">
                             <option value="false" ${!isVip ? 'selected' : ''}>Обычное</option>
@@ -100,7 +114,6 @@
                     </div>
                 </div>`;
         });
-        
         await fetchBanners();
     }
 
@@ -110,7 +123,7 @@
         const bannerList = document.getElementById('banner-list');
         
         if (banners.length === 0) {
-            bannerList.innerHTML = '<p style="margin:15px; color:#666;">Поки що немає активної реклами</p>';
+            bannerList.innerHTML = '<p style="margin:15px; color:#666;">Поки що немає активної рекламы</p>';
             return;
         }
 
@@ -136,12 +149,12 @@
         const content = prompt("Короткий рекламний текст:");
         const link = prompt("Куди веде (напр. tel:+380... або посилання):");
 
-        const res = await fetch('/api/admin/banners/save', {
+        await fetch('/api/admin/banners/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
             body: JSON.stringify({ title, content, link })
         });
-        if (res.ok) location.reload();
+        location.reload();
     }
 
     async function updateBanner(id) {
@@ -151,21 +164,21 @@
             content: document.getElementById(`bcont-${id}`).value,
             link: document.getElementById(`blink-${id}`).value
         };
-        const res = await fetch('/api/admin/banners/save', {
+        await fetch('/api/admin/banners/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
             body: JSON.stringify(data)
         });
-        if (res.ok) alert('✅ Рекламу оновлено!');
+        alert('✅ Оновлено!');
     }
 
     async function deleteBanner(id) {
         if (!confirm('Видалити?')) return;
-        const res = await fetch('/api/admin/banners/' + id, { 
+        await fetch('/api/admin/banners/' + id, { 
             method: 'DELETE', 
             headers: { 'x-admin-key': adminKey } 
         });
-        if (res.ok) location.reload();
+        location.reload();
     }
 
     function toggleSelect(id, checked) {
@@ -182,20 +195,21 @@
             isVip: document.getElementById(`vip-${id}`).value === 'true',
             duties: document.getElementById(`dut-${id}`).value
         };
-        const res = await fetch('/api/admin/update/' + id, {
+        await fetch('/api/admin/update/' + id, {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
             body: JSON.stringify(data)
         });
-        if(res.ok) alert('Збережено!');
+        alert('Збережено!');
     }
 
     async function repostSelected() {
         if(!confirm(`Опублікувати обрані (${selectedIds.size} шт.)?`)) return;
-        const res = await fetch('/api/admin/repost-batch', {
+        await fetch('/api/admin/repost-batch', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
             body: JSON.stringify({ ids: Array.from(selectedIds) })
         });
-        if(res.ok) { alert('🚀 Опубліковано!'); location.reload(); }
+        alert('🚀 Опубліковано!'); 
+        location.reload();
     }
 
     async function deleteAd(id) {
