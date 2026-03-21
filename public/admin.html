@@ -24,11 +24,10 @@
 
     <div class="toolbar" id="main-toolbar" style="display:none;">
         <span id="counter" style="font-weight:bold;">Обрано: 0</span>
-        <button onclick="repostSelected()" id="repostBtn" style="background:white; color:#007bff; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; display:none;">🚀 В КАНАЛ</button>
-        
-        <button onclick="showBannersEditor()" style="background:#ff9800; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; margin-left:10px;">📢 Реклама</button>
-
-        
+        <div style="display:flex; gap:8px;">
+            <button onclick="repostSelected()" id="repostBtn" style="background:white; color:#007bff; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; display:none;">🚀 В КАНАЛ</button>
+            <button onclick="showBannersEditor()" style="background:#ff9800; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold;">📢 Реклама</button>
+        </div>
         <button onclick="localStorage.removeItem('admin_key'); location.reload();" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:8px; border-radius:5px; font-size:10px;">Вихід</button>
     </div>
 
@@ -37,15 +36,28 @@
         <button onclick="login()" style="width:100%; margin-top:10px; padding:15px; background:#007bff; color:white; border:none; border-radius:8px;">Увійти</button>
     </div>
 
-    <div id="list"></div>
+    <div id="main" style="display:none;">
+        <div id="list"></div>
+        <div id="banner-section">
+            <h2 style="margin:30px 15px 10px;">📢 Керування рекламою</h2>
+            <div id="banner-list"></div>
+        </div>
+    </div>
 
 <script>
     const adminKey = localStorage.getItem('admin_key');
     let selectedIds = new Set();
 
-    if (!adminKey) { document.getElementById('auth').style.display = 'block'; } else { fetchAds(); }
+    if (!adminKey) { 
+        document.getElementById('auth').style.display = 'block'; 
+    } else { 
+        fetchAds(); 
+    }
 
-    function login() { localStorage.setItem('admin_key', document.getElementById('pw').value); location.reload(); }
+    function login() { 
+        localStorage.setItem('admin_key', document.getElementById('pw').value); 
+        location.reload(); 
+    }
 
     async function fetchAds() {
         const res = await fetch('/api/admin/all-ads', { headers: { 'x-admin-key': adminKey } });
@@ -53,6 +65,7 @@
         
         const ads = await res.json();
         document.getElementById('main-toolbar').style.display = 'flex';
+        document.getElementById('main').style.display = 'block';
         const list = document.getElementById('list');
         list.innerHTML = "";
 
@@ -88,8 +101,71 @@
                 </div>`;
         });
         
-        await fetchBanners(); // Завантажуємо список реклами після вакансій
+        await fetchBanners();
+    }
 
+    async function fetchBanners() {
+        const res = await fetch('/api/banners');
+        const banners = await res.json();
+        const bannerList = document.getElementById('banner-list');
+        
+        if (banners.length === 0) {
+            bannerList.innerHTML = '<p style="margin:15px; color:#666;">Поки що немає активної реклами</p>';
+            return;
+        }
+
+        bannerList.innerHTML = banners.map(b => `
+            <div class="card" style="border-left-color: #ff9800; background: #fffaf0;">
+                <div style="font-weight:bold; color:#e65100; margin-bottom:10px;">РЕКЛАМНИЙ БАНЕР</div>
+                <div class="edit-grid">
+                    <input type="text" id="btitle-${b._id}" value="${b.title || ''}" placeholder="Заголовок">
+                    <input type="text" id="blink-${b._id}" value="${b.link || ''}" placeholder="tel: або https://">
+                </div>
+                <textarea id="bcont-${b._id}" rows="2" placeholder="Текст реклами">${b.content || ''}</textarea>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn-save" style="background:#ff9800" onclick="updateBanner('${b._id}')">💾 Оновити</button>
+                    <button class="btn-del" onclick="deleteBanner('${b._id}')">🗑</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function showBannersEditor() {
+        const title = prompt("Назва компанії/послуги:");
+        if (!title) return;
+        const content = prompt("Короткий рекламний текст:");
+        const link = prompt("Куди веде (напр. tel:+380... або посилання):");
+
+        const res = await fetch('/api/admin/banners/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+            body: JSON.stringify({ title, content, link })
+        });
+        if (res.ok) location.reload();
+    }
+
+    async function updateBanner(id) {
+        const data = {
+            _id: id,
+            title: document.getElementById(`btitle-${id}`).value,
+            content: document.getElementById(`bcont-${id}`).value,
+            link: document.getElementById(`blink-${id}`).value
+        };
+        const res = await fetch('/api/admin/banners/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+            body: JSON.stringify(data)
+        });
+        if (res.ok) alert('✅ Рекламу оновлено!');
+    }
+
+    async function deleteBanner(id) {
+        if (!confirm('Видалити?')) return;
+        const res = await fetch('/api/admin/banners/' + id, { 
+            method: 'DELETE', 
+            headers: { 'x-admin-key': adminKey } 
+        });
+        if (res.ok) location.reload();
     }
 
     function toggleSelect(id, checked) {
@@ -128,95 +204,6 @@
             document.getElementById('card-'+id).remove();
         }
     }
-    
-    async function showBannersEditor() {
-    const title = prompt("Заголовок реклами (напр. СТО АвтоСвіт):");
-    if (!title) return;
-    const content = prompt("Текст реклами:");
-    const link = prompt("Посилання (https://t.me/...):");
-
-    const res = await fetch('/api/admin/banners/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-        body: JSON.stringify({ title, content, link })
-    });
-
-    if (res.ok) {
-        alert('✅ Рекламу додано! Оновіть головну сторінку.');
-    } else {
-        alert('❌ Помилка збереження');
-    }
-}
-
-    async function fetchBanners() {
-    const res = await fetch('/api/banners');
-    const banners = await res.json();
-    
-    // Создаем заголовок и контейнер для рекламы, если их еще нет
-    let bannerSection = document.getElementById('banner-list');
-    if (!bannerSection) {
-        const div = document.createElement('div');
-        div.innerHTML = `<h2 style="margin:20px 15px 10px;">📢 Керування рекламою</h2><div id="banner-list"></div>`;
-        document.getElementById('main').appendChild(div);
-        bannerSection = document.getElementById('banner-list');
-    }
-
-    bannerSection.innerHTML = banners.map(b => `
-        <div class="card" style="border-left-color: #ff9800; background: #fffaf0;">
-            <div style="font-weight:bold; color:#e65100; margin-bottom:10px;">РЕКЛАМНИЙ БАНЕР</div>
-            <div class="edit-grid">
-                <input type="text" id="btitle-${b._id}" value="${b.title || ''}" placeholder="Заголовок">
-                <input type="text" id="blink-${b._id}" value="${b.link || ''}" placeholder="Посилання (tel: або https://)">
-            </div>
-            <textarea id="bcont-${b._id}" rows="2" placeholder="Текст реклами">${b.content || ''}</textarea>
-            
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn-save" style="background:#ff9800" onclick="updateBanner('${b._id}')">💾 Оновити</button>
-                <button class="btn-del" onclick="deleteBanner('${b._id}')">🗑</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-async function updateBanner(id) {
-    const data = {
-        _id: id,
-        title: document.getElementById(`btitle-${id}`).value,
-        content: document.getElementById(`bcont-${id}`).value,
-        link: document.getElementById(`blink-${id}`).value
-    };
-    const res = await fetch('/api/admin/banners/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-        body: JSON.stringify(data)
-    });
-    if (res.ok) alert('✅ Рекламу оновлено!');
-}
-
-async function deleteBanner(id) {
-    if (!confirm('Видалити цей банер?')) return;
-    const res = await fetch('/api/admin/banners/' + id, { 
-        method: 'DELETE', 
-        headers: { 'x-admin-key': adminKey } 
-    });
-    if (res.ok) location.reload();
-}
-
-// Обновим функцию добавления, чтобы она была удобнее
-async function showBannersEditor() {
-    const title = prompt("Назва компанії/послуги:");
-    if (!title) return;
-    const content = prompt("Короткий рекламний текст:");
-    const link = prompt("Куди веде (напр. tel:+380... або посилання):");
-
-    await fetch('/api/admin/banners/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-        body: JSON.stringify({ title, content, link })
-    });
-    location.reload();
-}
-
 </script>
 </body>
 </html>
