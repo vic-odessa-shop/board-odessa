@@ -53,7 +53,19 @@
     #adsList { min-height: 200px; padding-bottom: 20px; }
     .drag-scroll { touch-action: pan-y; } /* Позволяет скроллить страницу вертикально, даже если коснулись слайдера */
 
-    
+    /* Исправление скролла для телефона */
+.slider-wrapper { 
+    touch-action: pan-y !important; 
+    -webkit-overflow-scrolling: touch !important; 
+    overflow-x: auto !important;
+}
+/* Чтобы карточки точно были видны */
+.ad-card { 
+    display: block !important; 
+    visibility: visible !important; 
+    opacity: 1 !important;
+}
+
     </style>
 </head>
 <body>
@@ -116,25 +128,40 @@
 
     // Функция перетаскивания (Drag-to-Scroll)
     function initDragScroll() {
-        const sliders = document.querySelectorAll('.drag-scroll');
-        sliders.forEach(slider => {
-            let isDown = false; let startX; let scrollLeft;
-            slider.addEventListener('mousedown', (e) => {
-                isDown = true; slider.classList.add('active');
-                startX = e.pageX - slider.offsetLeft;
-                scrollLeft = slider.scrollLeft;
-            });
-            slider.addEventListener('mouseleave', () => { isDown = false; });
-            slider.addEventListener('mouseup', () => { isDown = false; });
-            slider.addEventListener('mousemove', (e) => {
-                if(!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - slider.offsetLeft;
-                const walk = (x - startX) * 2;
-                slider.scrollLeft = scrollLeft - walk;
-            });
+    const sliders = document.querySelectorAll('.drag-scroll');
+    sliders.forEach(slider => {
+        let isDown = false; 
+        let startX; 
+        let scrollLeft;
+
+        // Работаем ТОЛЬКО с событиями мыши
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.style.cursor = 'grabbing';
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
         });
-    }
+
+        slider.addEventListener('mouseleave', () => { 
+            isDown = false; 
+            slider.style.cursor = 'grab';
+        });
+
+        slider.addEventListener('mouseup', () => { 
+            isDown = false; 
+            slider.style.cursor = 'grab';
+        });
+
+        slider.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault(); // Блокирует выделение текста, пока тянем мышкой
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2; // Скорость прокрутки
+            slider.scrollLeft = scrollLeft - walk;
+        });
+    });
+}
+
 
     // Загрузка данных с сервера
     async function loadAds() {
