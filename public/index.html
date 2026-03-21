@@ -167,24 +167,30 @@ html, body {
         initDragScroll();
     }
 
-       function renderAds(ads) {
+           function renderAds(ads) {
         const list = document.getElementById('adsList');
         const vipList = document.getElementById('vipList');
         const vipSection = document.getElementById('vipSection');
         
+        // Очистка перед отрисовкой
         list.innerHTML = '';
         vipList.innerHTML = '';
         
-        // 1. Берем ВСЕ активные (без учета регистра)
-        const activeAds = ads.filter(a => String(a.status).toLowerCase() === 'active');
-        
-        if (activeAds.length > 0) {
-            activeAds.forEach(ad => {
-                // Проверяем VIP это или нет (любой тип данных)
-                const isItVip = ad.isVip === true || String(ad.isVip).toLowerCase() === 'true' || ad.isVip === 1;
+        if (!ads || ads.length === 0) {
+            list.innerHTML = '<p style="text-align:center; padding:20px;">Дані не отримані з сервера</p>';
+            return;
+        }
+
+        ads.forEach(ad => {
+            // ОЧЕНЬ ГИБКАЯ ПРОВЕРКА СТАТУСА (убираем пробелы и меняем регистр)
+            const currentStatus = String(ad.status || '').toLowerCase().trim();
+            
+            if (currentStatus === 'active') {
+                // ПРОВЕРКА VIP
+                const isItVip = ad.isVip === true || String(ad.isVip).toLowerCase().trim() === 'true' || ad.isVip === 1;
 
                 const cardHTML = `
-                <div class="ad-card" onclick="openAd('${ad.id}')" style="display:block !important; background:white; margin-bottom:15px; border:1px solid #eee;">
+                <div class="ad-card" onclick="openAd('${ad.id}')" style="display:block !important; background:white; margin-bottom:15px; border:1px solid #eee; position:relative;">
                     ${isItVip ? '<span style="color:#ffc107; font-weight:bold; font-size:10px;">★ VIP</span>' : ''}
                     <div style="font-size:10px; color:#999; font-weight:bold;">${ad.category}</div>
                     <div style="font-weight:bold; font-size:17px; color:#000; margin:5px 0;">${ad.vacancy}</div>
@@ -197,16 +203,17 @@ html, body {
                 } else {
                     list.innerHTML += cardHTML;
                 }
-            });
-        }
+            }
+        });
 
-        // Показываем VIP-блок, только если там что-то есть
-        vipSection.style.display = vipList.innerHTML ? 'block' : 'none';
+        // Управление видимостью блоков
+        vipSection.style.display = (vipList.innerHTML.trim() !== '') ? 'block' : 'none';
 
-        if (!list.innerHTML && !vipList.innerHTML) {
-            list.innerHTML = '<p style="text-align:center; padding:20px;">Вакансій не знайдено</p>';
+        if (list.innerHTML.trim() === '' && vipList.innerHTML.trim() === '') {
+            list.innerHTML = '<p style="text-align:center; padding:20px;">Активних оголошень не знайдено (Перевірте статус в БД)</p>';
         }
     }
+
 
 
 
