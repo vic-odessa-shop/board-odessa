@@ -53,6 +53,24 @@
     touch-action: pan-x !important;
 }
 
+
+
+/* Разблокировка вертикального скролла */
+html, body {
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+.slider-wrapper, .container, .ad-card {
+    touch-action: pan-y !important;
+}
+
+/* Убираем лишние веса, которые могут тормозить отрисовку */
+.ad-card {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
     </style>
 </head>
 <body>
@@ -149,7 +167,7 @@
         initDragScroll();
     }
 
-        function renderAds(ads) {
+       function renderAds(ads) {
         const list = document.getElementById('adsList');
         const vipList = document.getElementById('vipList');
         const vipSection = document.getElementById('vipSection');
@@ -157,52 +175,39 @@
         list.innerHTML = '';
         vipList.innerHTML = '';
         
-        // 1. Фильтруем только активные (любого регистра)
+        // 1. Берем ВСЕ активные (без учета регистра)
         const activeAds = ads.filter(a => String(a.status).toLowerCase() === 'active');
         
-        // 2. Разделяем на VIP и обычные (учитываем Boolean из вашего Алерта)
-        const vips = activeAds.filter(a => 
-            a.isVip === true || String(a.isVip).toLowerCase() === 'true' || a.isVip === 1
-        );
+        if (activeAds.length > 0) {
+            activeAds.forEach(ad => {
+                // Проверяем VIP это или нет (любой тип данных)
+                const isItVip = ad.isVip === true || String(ad.isVip).toLowerCase() === 'true' || ad.isVip === 1;
 
-        const regulars = activeAds.filter(a => 
-            !a.isVip || a.isVip === false || String(a.isVip).toLowerCase() === 'false' || a.isVip === 0
-        );
-        
-        // 3. Вывод VIP
-        if (vips.length > 0) {
-            vipSection.style.display = 'block';
-            vips.forEach(ad => {
-                vipList.innerHTML += `
-                <div class="vip-card" onclick="openAd('${ad.id}')">
-                    <span class="vip-tag">VIP</span>
-                    <div style="font-size:10px; color:var(--main); font-weight:bold;">${ad.category}</div>
-                    <div style="font-weight:bold; height:38px; overflow:hidden; margin:5px 0;">${ad.vacancy}</div>
-                    <div class="salary">${ad.salary} грн</div>
+                const cardHTML = `
+                <div class="ad-card" onclick="openAd('${ad.id}')" style="display:block !important; background:white; margin-bottom:15px; border:1px solid #eee;">
+                    ${isItVip ? '<span style="color:#ffc107; font-weight:bold; font-size:10px;">★ VIP</span>' : ''}
+                    <div style="font-size:10px; color:#999; font-weight:bold;">${ad.category}</div>
+                    <div style="font-weight:bold; font-size:17px; color:#000; margin:5px 0;">${ad.vacancy}</div>
+                    <div class="salary" style="color:#28a745; font-weight:bold;">${ad.salary} грн</div>
+                    <div style="font-size:13px; color:#777;">📍 ${ad.city}</div>
                 </div>`;
-            });
-        } else { 
-            vipSection.style.display = 'none'; 
-        }
-        
-        // 4. Вывод обычных
-        if (regulars.length > 0) {
-            regulars.forEach(ad => {
-                list.innerHTML += `
-                <div class="ad-card" onclick="openAd('${ad.id}')" style="display:block; background:white;">
-                    <div style="font-size:10px; color:#999; font-weight:bold; margin-bottom:5px;">${ad.category}</div>
-                    <div style="font-weight:bold; font-size:17px; color:#000;">${ad.vacancy}</div>
-                    <div class="salary">${ad.salary} грн</div>
-                    <div style="font-size:13px; color:#777;">📍 ${ad.city} ${ad.address ? '• ' + ad.address : ''}</div>
-                </div>`;
+
+                if (isItVip) {
+                    vipList.innerHTML += cardHTML;
+                } else {
+                    list.innerHTML += cardHTML;
+                }
             });
         }
 
-        // 5. Если пусто
-        if (vips.length === 0 && regulars.length === 0) {
-            list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Наразі нових вакансій немає</p>';
+        // Показываем VIP-блок, только если там что-то есть
+        vipSection.style.display = vipList.innerHTML ? 'block' : 'none';
+
+        if (!list.innerHTML && !vipList.innerHTML) {
+            list.innerHTML = '<p style="text-align:center; padding:20px;">Вакансій не знайдено</p>';
         }
     }
+
 
 
     function openAd(id) {
