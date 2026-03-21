@@ -218,6 +218,13 @@
             document.getElementById('card-'+id).remove();
         }
     }
+    
+    // ANTI-SLEEP
+const APP_URL = "https://board-odessa.onrender.com"; // Заменил на вашу ссылку
+setInterval(() => {
+    axios.get(APP_URL).catch(() => {});
+}, 800000);
+
 </script>
 </body>
 </html>
