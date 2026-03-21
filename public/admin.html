@@ -25,6 +25,10 @@
     <div class="toolbar" id="main-toolbar" style="display:none;">
         <span id="counter" style="font-weight:bold;">Обрано: 0</span>
         <button onclick="repostSelected()" id="repostBtn" style="background:white; color:#007bff; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; display:none;">🚀 В КАНАЛ</button>
+        
+        <button onclick="showBannersEditor()" style="background:#ff9800; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; margin-left:10px;">📢 Реклама</button>
+
+        
         <button onclick="localStorage.removeItem('admin_key'); location.reload();" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:8px; border-radius:5px; font-size:10px;">Вихід</button>
     </div>
 
@@ -121,6 +125,27 @@
             document.getElementById('card-'+id).remove();
         }
     }
+    
+    async function showBannersEditor() {
+    const title = prompt("Заголовок реклами (напр. СТО АвтоСвіт):");
+    if (!title) return;
+    const content = prompt("Текст реклами:");
+    const link = prompt("Посилання (https://t.me/...):");
+
+    const res = await fetch('/api/admin/banners/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ title, content, link })
+    });
+
+    if (res.ok) {
+        alert('✅ Рекламу додано! Оновіть головну сторінку.');
+    } else {
+        alert('❌ Помилка збереження');
+    }
+}
+
+    
 </script>
 </body>
 </html>
