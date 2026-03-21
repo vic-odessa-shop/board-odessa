@@ -132,6 +132,16 @@ html, body {
         <div class="promo-item">📢 <b>РЕКЛАМА №1:</b> Найкращі кав'ярні міста!</div>
     </div>
 
+<div id="promoSection" style="display:none; margin-bottom: 25px;">
+    <div style="padding:0 15px; margin-bottom:10px;">
+        <span style="font-weight:bold; color:#888; font-size:12px; letter-spacing:1px;">🔥 НАШІ ПАРТНЕРИ</span>
+    </div>
+    <div id="promoList" style="display:flex; overflow-x:auto; gap:12px; padding:0 15px; scrollbar-width:none;">
+        </div>
+</div>
+
+
+
     <div class="vip-panel" id="vipSection" style="display:none;">
         <div style="padding:0 15px 10px; font-weight:bold; color:var(--gold); font-size:14px;">⭐ ТОП ПРОПОЗИЦІЇ</div>
         <div class="slider-wrapper drag-scroll" id="vipList"></div>
@@ -179,6 +189,8 @@ html, body {
     }
 
     async function loadAds() {
+        await loadBanners(); // Запускаємо рекламу перед вакансіями
+
         const header = document.querySelector('.logo-text');
         header.innerText = "⚓ ЗАВАНТАЖЕННЯ... ⚓";
         try {
@@ -192,6 +204,39 @@ html, body {
         }
         initDragScroll();
     }
+
+async function loadBanners() {
+    try {
+        const res = await fetch('/api/banners');
+        let banners = await res.json();
+
+        // Якщо реклами немає — показуємо свою заглушку
+        if (banners.length === 0) {
+            banners = [{
+                title: "⚓ Ваша реклама тут",
+                content: "Бажаєте залучити клієнтів? Тисніть для зв'язку з адміном!",
+                link: "https://t.me/vash_admin_bot" 
+            }];
+        }
+
+        // Перемішуємо, щоб порядок був випадковим
+        banners.sort(() => Math.random() - 0.5);
+
+        const list = document.getElementById('promoList');
+        list.innerHTML = banners.map(b => `
+            <div onclick="window.open('${b.link}', '_blank')" 
+                 style="min-width:280px; background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%); 
+                        padding:18px; border-radius:20px; border:1px solid #bbdefb; flex-shrink:0; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <div style="font-size:9px; color:#1976d2; font-weight:bold; margin-bottom:8px; opacity:0.7;">📢 РЕКЛАМНА ПРОПОЗИЦІЯ</div>
+                <div style="font-weight:bold; font-size:17px; color:#0d47a1; margin-bottom:6px;">${b.title}</div>
+                <div style="font-size:13px; color:#444; line-height:1.4;">${b.content}</div>
+            </div>
+        `).join('');
+        
+        document.getElementById('promoSection').style.display = 'block';
+    } catch (e) { console.log("Ошибка рекламы", e); }
+}
+
 
  function renderAds(ads) {
     const list = document.getElementById('adsList');

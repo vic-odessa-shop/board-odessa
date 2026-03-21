@@ -42,6 +42,38 @@ const adSchema = new mongoose.Schema({
 });
 const Ad = mongoose.model('Ad', adSchema);
 
+// --- СЕКЦІЯ РЕКЛАМИ ---
+const bannerSchema = new mongoose.Schema({
+    title: String,
+    content: String,
+    link: String,
+    type: { type: String, default: 'top' }, // top - вгорі, feed - у стрічці
+    isActive: { type: Boolean, default: true }
+});
+const Banner = mongoose.model('Banner', bannerSchema);
+
+// Маршрут для сайту: отримати всі банери
+app.get('/api/banners', async (req, res) => {
+    try {
+        const b = await Banner.find({ isActive: true });
+        res.json(b);
+    } catch (e) { res.json([]); }
+});
+
+// Маршрут для адмінки: зберегти/оновити банер
+app.post('/api/admin/banners/save', async (req, res) => {
+    if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
+    const d = req.body;
+    if (d._id) {
+        await Banner.findByIdAndUpdate(d._id, d);
+    } else {
+        await new Banner(d).save();
+    }
+    res.json({ success: true });
+});
+
+
+
 // Вспомогательная функция проверки телефона
 function hasHiddenPhone(text) {
     if (!text) return false;
