@@ -83,6 +83,20 @@ html, body {
     -webkit-overflow-scrolling: touch !important;
 }
 
+
+.simple-vacancy {
+    display: block !important;
+    background: white !important;
+    border-radius: 20px !important;
+    padding: 18px !important;
+    margin-bottom: 15px !important;
+    border: 1px solid #eee !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+
 </style>
 </head>
 <body>
@@ -179,7 +193,7 @@ html, body {
         initDragScroll();
     }
 
-    function renderAds(ads) {
+ function renderAds(ads) {
     const list = document.getElementById('adsList');
     const vipList = document.getElementById('vipList');
     const vipSection = document.getElementById('vipSection');
@@ -197,33 +211,32 @@ html, body {
         if (status === 'active') {
             const isVip = ad.isVip === true || String(ad.isVip).toLowerCase().trim() === 'true' || ad.isVip === 1;
 
-            // Шаблон карточки
-            const card = `
-            <div class="${isVip ? 'vip-card' : 'ad-card'}" onclick="openAd('${ad.id}')">
-                ${isVip ? '<span class="vip-tag">VIP</span>' : ''}
-                <div style="font-size:10px; color:#999; font-weight:bold; margin-bottom:5px;">${ad.category}</div>
-                <div style="font-weight:bold; font-size:17px; color:#1a1a1a;">${ad.vacancy}</div>
-                <div class="salary" style="color:#28a745; font-weight:bold; font-size:18px; margin:5px 0;">${ad.salary} грн</div>
-                <div style="font-size:13px; color:#777;">📍 ${ad.city}</div>
-            </div>`;
-
             if (isVip) {
-                vipHtml += card;
+                vipHtml += `
+                <div class="vip-card" onclick="openAd('${ad.id}')">
+                    <span class="vip-tag">VIP</span>
+                    <div style="font-size:10px; color:#007bff; font-weight:bold; margin-bottom:5px;">${ad.category}</div>
+                    <div style="font-weight:bold; height:38px; overflow:hidden; margin:5px 0; color:#1a1a1a;">${ad.vacancy}</div>
+                    <div style="color:#28a745; font-weight:bold; font-size:18px;">${ad.salary} грн</div>
+                </div>`;
             } else {
-                mainHtml += card;
+                // НОВОЕ ИМЯ КЛАССА: simple-vacancy
+                mainHtml += `
+                <div class="simple-vacancy" onclick="openAd('${ad.id}')">
+                    <div style="font-size:10px; color:#999; font-weight:bold; margin-bottom:5px;">${ad.category}</div>
+                    <div style="font-weight:bold; font-size:17px; color:#1a1a1a;">${ad.vacancy}</div>
+                    <div style="color:#28a745; font-weight:bold; font-size:18px; margin:8px 0;">${ad.salary} грн</div>
+                    <div style="font-size:13px; color:#777;">📍 ${ad.city}</div>
+                </div>`;
             }
         }
     });
 
-    // Вставляем накопленный HTML в блоки
     list.innerHTML = mainHtml || '<p style="text-align:center; padding:20px; color:#999;">Звичайних вакансій поки немає</p>';
     vipList.innerHTML = vipHtml;
-
-    // Показываем VIP-секцию только если есть VIP-карточки
-    if (vipSection) {
-        vipSection.style.display = vipHtml ? 'block' : 'none';
-    }
+    if (vipSection) vipSection.style.display = vipHtml ? 'block' : 'none';
 }
+
 
 
 
