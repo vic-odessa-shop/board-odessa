@@ -55,38 +55,66 @@
         location.reload();
     }
 
-    async function loadData() {
+     async function loadData() {
+        const container = document.getElementById('list');
+        container.innerHTML = '🔄 Завантаження даних...';
         document.getElementById('adminContent').style.display = 'block';
-        const res = await fetch('/api/admin/all-ads', {
+
+        try {
+            const res = await fetch('/api/admin/all-ads', {
+                headers: { 'x-admin-key': localStorage.getItem('admin_key') }
+            });
+
+            if (res.status === 403) {
+                container.innerHTML = '<b style="color:red;">❌ Помилка: Невірний пароль!</b>';
+                setTimeout(logout, 2000); // Выкинет через 2 секунды
+                return;
+            }
+
+            if (!res.ok) {
+                container.innerHTML = '<b style="color:red;">❌ Помилка сервера: ' + res.status + '</b>';
+                return;
+            }
+
+            const ads = await res.json();
+            container.innerHTML = '';
+
+            if (ads.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px;">📭 База даних порожня</p>';
+                return;
+            }
+
+            ads.forEach(ad => {
+                container.innerHTML += `
+                    <div class="ad-card" id="card-${ad.id}">
+                        <div style="font-weight:bold;">#${ad.id} — ${ad.vacancy}</div>
+                        <div class="status-badge">Статус: ${ad.status} | VIP: ${ad.isVip}</div>
+                        <div class="info-row">👤 ${ad.person} (${ad.phone})</div>
+                        <div class="info-row">🆔 TG ID: <b>${ad.userId || 'браузер'}</b></div>
+                        <div class="info-row">📅 Створено: ${new Date(ad.createdAt).toLocaleString()}</div>
+                        <div class="controls">
+                            ${ad.status !== 'active' ? `<button class="btn-ok" onclick="activateAd('${ad.id}')">✅ Активувати</button>` : '<span>✅ Вже в ефірі</span>'}
+                            <button class="btn-del" onclick="deleteAd('${ad.id}')">🗑 Видалити</button>
+                        </div>
+                    </div>
+                `;
+            });
+        } catch (e) {
+            container.innerHTML = '<b style="color:red;">❌ Помилка мережі: ' + e.message + '</b>';
+        }
+    }
+
+    // Добавим функцию активации для кнопки
+    async function activateAd(id) {
+        if(!confirm('Активувати та відправити в канал?')) return;
+        const res = await fetch('/api/admin/approve/' + id, {
+            method: 'POST',
             headers: { 'x-admin-key': localStorage.getItem('admin_key') }
         });
-
-        if(res.status === 403) {
-            alert("Невірний пароль!");
-            logout();
-            return;
-        }
-
-        const ads = await res.json();
-        const container = document.getElementById('list');
-        container.innerHTML = '';
-
-        ads.forEach(ad => {
-            container.innerHTML += `
-                <div class="ad-card">
-                    <div style="font-weight:bold;">#${ad.id} — ${ad.vacancy}</div>
-                    <div class="status-badge">Статус: ${ad.status} | VIP: ${ad.isVip}</div>
-                    <div class="info-row">👤 ${ad.person} (${ad.phone})</div>
-                    <div class="info-row">🆔 TG ID: <b>${ad.userId || 'браузер'}</b></div>
-                    <div class="info-row">📅 Створено: ${new Date(ad.createdAt).toLocaleString()}</div>
-                    <div class="controls">
-                        <button class="btn-ok" onclick="activateAd('${ad.id}')">Активація</button>
-                        <button class="btn-del" onclick="deleteAd('${ad.id}')">Видалити</button>
-                    </div>
-                </div>
-            `;
-        });
+        if(res.ok) loadData();
+        else alert('Помилка активації');
     }
+
 
     async function deleteAd(id) {
         if(!confirm('Видалити?')) return;
