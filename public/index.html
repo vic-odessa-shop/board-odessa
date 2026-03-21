@@ -155,6 +155,20 @@
         const vipSection = document.getElementById('vipSection');
         
         list.innerHTML = '';
+        
+            // ДИАГНОСТИКА (Временно)
+    if (ads.length > 0) {
+        const testAd = ads[0];
+        alert(
+            "ВСЕГО ОБЪЯВЛЕНИЙ: " + ads.length + "\n" +
+            "ПЕРВОЕ (Vacancy): " + testAd.vacancy + "\n" +
+            "STATUS: [" + testAd.status + "]\n" +
+            "ISVIP (тип): " + typeof testAd.isVip + "\n" +
+            "ISVIP (значение): " + testAd.isVip
+        );
+    }
+
+        
         vipList.innerHTML = '';
         
         // Фильтруем только те, что активны (Approved)
