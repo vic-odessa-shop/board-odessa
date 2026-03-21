@@ -148,6 +148,49 @@ async function sendToChannel(ad) {
     } catch (err) { console.error("Ошибка канала:", err); }
 }
 
+// --- API ДЛЯ ВЕБ-АДМИНКИ (УПРАВЛЕНИЕ ИЗ БРАУЗЕРА) ---
+
+// 1. Получить вообще все объявления (для админ-панели)
+app.get('/api/admin/all-ads', async (req, res) => {
+    const adminKey = req.headers['x-admin-key'];
+    if (!adminKey || adminKey !== process.env.ADMIN_PASS) {
+        return res.status(403).json({ error: "Доступ заборонено" });
+    }
+    try {
+        const ads = await Ad.find({}).sort({ createdAt: -1 });
+        res.json(ads);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 2. Активация объявления из браузера
+app.post('/api/admin/approve/:id', async (req, res) => {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_PASS) return res.status(403).send("Stop");
+    try {
+        const ad = await Ad.findOne({ id: req.params.id });
+        if (!ad) return res.status(404).send("Не знайдено");
+
+        ad.status = 'active';
+        ad.lastRepostDate = new Date();
+        await ad.save();
+        
+        // Отправляем в канал при активации
+        await sendToChannel(ad);
+        
+        res.json({ success: true });
+    } catch (e) { res.status(500).send(e.message); }
+});
+
+// 3. Удаление из браузера
+app.delete('/api/admin/delete/:id', async (req, res) => {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_PASS) return res.status(403).send("Stop");
+    try {
+        await Ad.deleteOne({ id: req.params.id });
+        res.json({ success: true });
+    } catch (e) { res.status(500).send(e.message); }
+});
+
 
 // АВТО-МЕНЕДЖЕР
 setInterval(async () => {

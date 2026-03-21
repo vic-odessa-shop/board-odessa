@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін-панель ⚓</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 10px; }
+        .ad-card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .controls { display: flex; gap: 5px; margin-top: 10px; }
+        button { padding: 8px; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-del { background: #dc3545; }
+        .btn-ok { background: #28a745; }
+        .info-row { font-size: 12px; color: #666; margin: 3px 0; }
+        .status-badge { font-size: 10px; padding: 2px 5px; border-radius: 4px; background: #eee; }
+        #authBlock { background: white; padding: 20px; border-radius: 15px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="authBlock" style="display:none;">
+        <h3>🔑 Вхід в адмін-панель</h3>
+        <input type="password" id="passInput" placeholder="Введіть пароль" style="padding:10px; width:80%; margin-bottom:10px;">
+        <br>
+        <button class="btn-ok" onclick="savePass()" style="width:85%">Увійти</button>
+    </div>
+
+    <div id="adminContent" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>⚓ Керування</h2>
+            <button class="btn-del" onclick="logout()" style="font-size:10px;">Вихід</button>
+        </div>
+        <div id="list"></div>
+    </div>
+
+<script>
+    let ADMIN_KEY = localStorage.getItem('admin_key');
+
+    if(!ADMIN_KEY) {
+        document.getElementById('authBlock').style.display = 'block';
+    } else {
+        loadData();
+    }
+
+    function savePass() {
+        const p = document.getElementById('passInput').value;
+        if(p) {
+            localStorage.setItem('admin_key', p);
+            location.reload();
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('admin_key');
+        location.reload();
+    }
+
+    async function loadData() {
+        document.getElementById('adminContent').style.display = 'block';
+        const res = await fetch('/api/admin/all-ads', {
+            headers: { 'x-admin-key': localStorage.getItem('admin_key') }
+        });
+
+        if(res.status === 403) {
+            alert("Невірний пароль!");
+            logout();
+            return;
+        }
+
+        const ads = await res.json();
+        const container = document.getElementById('list');
+        container.innerHTML = '';
+
+        ads.forEach(ad => {
+            container.innerHTML += `
+                <div class="ad-card">
+                    <div style="font-weight:bold;">#${ad.id} — ${ad.vacancy}</div>
+                    <div class="status-badge">Статус: ${ad.status} | VIP: ${ad.isVip}</div>
+                    <div class="info-row">👤 ${ad.person} (${ad.phone})</div>
+                    <div class="info-row">🆔 TG ID: <b>${ad.userId || 'браузер'}</b></div>
+                    <div class="info-row">📅 Створено: ${new Date(ad.createdAt).toLocaleString()}</div>
+                    <div class="controls">
+                        <button class="btn-ok" onclick="activateAd('${ad.id}')">Активація</button>
+                        <button class="btn-del" onclick="deleteAd('${ad.id}')">Видалити</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    async function deleteAd(id) {
+        if(!confirm('Видалити?')) return;
+        await fetch('/api/admin/delete/' + id, {
+            method: 'DELETE',
+            headers: { 'x-admin-key': localStorage.getItem('admin_key') }
+        });
+        loadData();
+    }
+</script>
+</body>
+</html>
