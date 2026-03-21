@@ -149,39 +149,27 @@
         initDragScroll();
     }
 
-    function renderAds(ads) {
+        function renderAds(ads) {
         const list = document.getElementById('adsList');
         const vipList = document.getElementById('vipList');
         const vipSection = document.getElementById('vipSection');
         
         list.innerHTML = '';
-        
-            // ДИАГНОСТИКА (Временно)
-    if (ads.length > 0) {
-        const testAd = ads[0];
-        alert(
-            "ВСЕГО ОБЪЯВЛЕНИЙ: " + ads.length + "\n" +
-            "ПЕРВОЕ (Vacancy): " + testAd.vacancy + "\n" +
-            "STATUS: [" + testAd.status + "]\n" +
-            "ISVIP (тип): " + typeof testAd.isVip + "\n" +
-            "ISVIP (значение): " + testAd.isVip
-        );
-    }
-
-        
         vipList.innerHTML = '';
         
-        // Фильтруем только те, что активны (Approved)
-        const activeAds = ads.filter(a => a.status === 'active');
+        // 1. Фильтруем только активные (любого регистра)
+        const activeAds = ads.filter(a => String(a.status).toLowerCase() === 'active');
         
-        // Более надежный фильтр
-const vips = activeAds.filter(a => 
-    a.isVip === true || a.isVip === 'true' || a.isVip === 1 || a.isVip === '1'
-);
-const regulars = activeAds.filter(a => 
-    !a.isVip || a.isVip === false || a.isVip === 'false' || a.isVip === 0 || a.isVip === '0'
-);
+        // 2. Разделяем на VIP и обычные (учитываем Boolean из вашего Алерта)
+        const vips = activeAds.filter(a => 
+            a.isVip === true || String(a.isVip).toLowerCase() === 'true' || a.isVip === 1
+        );
 
+        const regulars = activeAds.filter(a => 
+            !a.isVip || a.isVip === false || String(a.isVip).toLowerCase() === 'false' || a.isVip === 0
+        );
+        
+        // 3. Вывод VIP
         if (vips.length > 0) {
             vipSection.style.display = 'block';
             vips.forEach(ad => {
@@ -197,10 +185,11 @@ const regulars = activeAds.filter(a =>
             vipSection.style.display = 'none'; 
         }
         
+        // 4. Вывод обычных
         if (regulars.length > 0) {
             regulars.forEach(ad => {
                 list.innerHTML += `
-                <div class="ad-card" onclick="openAd('${ad.id}')">
+                <div class="ad-card" onclick="openAd('${ad.id}')" style="display:block; background:white;">
                     <div style="font-size:10px; color:#999; font-weight:bold; margin-bottom:5px;">${ad.category}</div>
                     <div style="font-weight:bold; font-size:17px; color:#000;">${ad.vacancy}</div>
                     <div class="salary">${ad.salary} грн</div>
@@ -209,10 +198,12 @@ const regulars = activeAds.filter(a =>
             });
         }
 
+        // 5. Если пусто
         if (vips.length === 0 && regulars.length === 0) {
-            list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">На даний момент вакансій немає</p>';
+            list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Наразі нових вакансій немає</p>';
         }
     }
+
 
     function openAd(id) {
         const ad = allAds.find(a => String(a.id) === String(id));
