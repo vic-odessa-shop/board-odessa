@@ -167,37 +167,38 @@ html, body {
         initDragScroll();
     }
 
-           function renderAds(ads) {
+    function renderAds(ads) {
     const list = document.getElementById('adsList');
     const vipSection = document.getElementById('vipSection');
     
-    // 1. Очистка
-    list.innerHTML = '';
-    vipSection.style.display = 'none'; // Временно скроем VIP-блок, чтобы не путаться
+    // 1. Прячем VIP на время теста
+    if(vipSection) vipSection.style.display = 'none';
     
-    // 2. Если массив пуст
+    // 2. Сначала собираем ВСЕ карточки в переменную 'htmlContent'
+    let htmlContent = '';
+
     if (!ads || ads.length === 0) {
-        list.innerHTML = '<p style="text-align:center; color:red; padding:20px;">МАСИВ ПОРОЖНІЙ</p>';
+        list.innerHTML = '<p style="text-align:center; color:red;">МАСИВ ПОРОЖНІЙ</p>';
         return;
     }
 
-    // 3. Выводим ВСЕ 5 карточек без фильтров
     ads.forEach(ad => {
-        list.innerHTML += `
-        <div class="ad-card" style="display:block !important; border:2px solid #007bff; margin-bottom:10px; padding:10px; background:white; color:black;">
-            <div style="background:#eee; padding:5px; font-size:10px; margin-bottom:10px; color:blue;">
-                <b>DEBUG ИНФО:</b><br>
-                STATUS: [${ad.status}] <br>
-                isVip: [${ad.isVip}] (тип: ${typeof ad.isVip})
-            </div>
-            <div style="font-weight:bold;">${ad.vacancy || 'Без назви'}</div>
-            <div>${ad.salary} грн</div>
+        // Формируем блок каждой карточки
+        htmlContent += `
+        <div style="display:block !important; border:2px solid green; margin:10px; padding:15px; background:white; color:black; border-radius:10px;">
+            <div style="font-size:10px; color:blue;">DEBUG: ${ad.vacancy} | Status: ${ad.status}</div>
+            <div style="font-weight:bold; font-size:18px;">${ad.vacancy || 'Без назви'}</div>
+            <div style="color:green; font-weight:bold;">${ad.salary} грн</div>
         </div>`;
     });
 
-    // 4. Итоговая метка
-    list.innerHTML += `<div style="text-align:center; color:blue; font-size:12px; padding:10px;">Всього в масиві: ${ads.length}</div>`;
+    // Добавляем финальную метку
+    htmlContent += `<div style="text-align:center; color:blue; padding:10px;">Успішно виведено: ${ads.length} шт.</div>`;
+
+    // 3. Вставляем ВСЁ СРАЗУ в список
+    list.innerHTML = htmlContent;
 }
+
 
 
 
