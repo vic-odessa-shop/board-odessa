@@ -231,6 +231,31 @@ app.get('/api/admin/clear-database', async (req, res) => {
     }
 });
 
+// 4. ОБНОВЛЕНИЕ ОБЪЯВЛЕНИЯ (Редактирование из браузера)
+app.post('/api/admin/update/:id', async (req, res) => {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_PASS) return res.status(403).send("Stop");
+    
+    try {
+        const id = req.params.id;
+        const newData = req.body; // Получаем всё, что прислал админ
+        
+        // Находим и обновляем в базе
+        const ad = await Ad.findOneAndUpdate(
+            { id: id }, 
+            { $set: newData }, // Обновляем только присланные поля
+            { new: true }      // Возвращаем обновленный объект
+        );
+
+        if (!ad) return res.status(404).send("Не знайдено");
+        
+        console.log(`✅ Адмін оновив оголошення ${id}`);
+        res.json({ success: true, ad });
+    } catch (e) { 
+        res.status(500).json({ error: e.message }); 
+    }
+});
+
 
 
 app.use(express.static(path.join(__dirname, '..', 'public')));

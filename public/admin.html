@@ -5,30 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель Керування ⚓</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
-        .card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; }
-        .err { color: red; font-weight: bold; background: #ffdada; padding: 15px; border-radius: 10px; }
-        button { padding: 10px; cursor: pointer; }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
+        #status { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* Стили карточек */
+        .card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; border-left: 6px solid #ccc; position: relative; }
+        .card.active { border-left-color: #28a745; }
+        .card.pending { border-left-color: #ffc107; }
+        .card.archive { border-left-color: #6c757d; opacity: 0.8; }
+        .card.vip { background: #fffdf0; border-left-color: #d4af37; border-width: 2px 2px 2px 6px; }
+
+        /* Поля ввода */
+        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        textarea { grid-column: span 2; font-family: inherit; }
+
+        /* Кнопки */
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; flex: 1; transition: 0.2s; }
+        .btn-save { background: #28a745; color: white; }
+        .btn-del { background: #dc3545; color: white; flex: 0 0 100px; }
+        .btn-login { background: #007bff; color: white; width: 100%; margin-top: 10px; }
+        
+        button:active { transform: scale(0.98); }
+
+        /* Служебная инфа */
+        .info-row { font-size: 11px; color: #666; margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px; line-height: 1.4; }
+        .err { color: red; background: #ffdada; padding: 15px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="status">⏳ Ініціалізація...</div>
-    <hr>
-    <div id="auth" style="display:none;">
-        <input type="password" id="pw" placeholder="Пароль">
-        <button onclick="login()">Увійти</button>
+
+    <div id="status">⏳ Завантаження...</div>
+
+    <div id="auth" style="display:none; padding: 20px;">
+        <h3 style="text-align:center;">Вхід в Адмін-панель</h3>
+        <input type="password" id="pw" placeholder="Введіть ADMIN_PASS">
+        <button class="btn-login" onclick="login()">Увійти</button>
     </div>
-    <div id="main" style="display:none;">
-        <button onclick="localStorage.removeItem('admin_key'); location.reload();">Вихід</button>
-        <div id="list" style="margin-top:20px;"></div>
+
+    <div id="main" style="display:none; padding: 0 5px;">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <button onclick="location.reload()" style="background:#eee; flex:none; padding: 8px 15px;">🔄 Оновити</button>
+            <button onclick="localStorage.removeItem('admin_key'); location.reload();" style="background:#666; color:white; flex:none; padding: 8px 15px;">Вихід</button>
+        </div>
+        
+        <div id="list"></div>
     </div>
 
 <script>
     const statusDiv = document.getElementById('status');
-    const key = localStorage.getItem('admin_key');
+    const adminKey = localStorage.getItem('admin_key');
 
-    if (!key) {
-        statusDiv.innerText = "🔑 Потрібен пароль";
+    // Проверка ключа при загрузке
+    if (!adminKey) {
+        statusDiv.innerText = "🔑 Потрібна авторизація";
         document.getElementById('auth').style.display = 'block';
     } else {
         fetchAds();
@@ -43,48 +74,122 @@
     }
 
     async function fetchAds() {
-        statusDiv.innerText = "📡 Запит до сервера...";
+        statusDiv.innerText = "📡 Отримання даних...";
         try {
             const res = await fetch('/api/admin/all-ads', {
-                headers: { 'x-admin-key': localStorage.getItem('admin_key') }
+                headers: { 'x-admin-key': adminKey }
             });
 
             if (res.status === 403) {
-                statusDiv.innerHTML = "<div class='err'>❌ 403: Пароль не підходить! (Перевірте ADMIN_PASS в Render)</div>";
-                return;
-            }
-            if (!res.ok) {
-                statusDiv.innerHTML = `<div class='err'>❌ Помилка сервера: ${res.status}</div>`;
+                statusDiv.innerHTML = "<div class='err'>❌ Пароль невірний! Очистіть кеш або введіть заново.</div>";
+                localStorage.removeItem('admin_key');
+                document.getElementById('auth').style.display = 'block';
                 return;
             }
 
             const ads = await res.json();
-            statusDiv.innerText = `✅ Знайдено оголошень: ${ads.length}`;
+            statusDiv.innerText = `📊 Всього записів: ${ads.length}`;
             document.getElementById('main').style.display = 'block';
             
             const list = document.getElementById('list');
-            if (ads.length === 0) { list.innerHTML = "База порожня"; return; }
+            list.innerHTML = "";
+            
+            if (ads.length === 0) { list.innerHTML = "Пусто"; return; }
 
             ads.forEach(ad => {
+                const isVip = ad.isVip === true || String(ad.isVip) === 'true';
+                
                 list.innerHTML += `
-                    <div class="card">
-                        <b>#${ad.id}</b> - ${ad.vacancy} <br>
-                        Статус: <u>${ad.status}</u> | TG ID: ${ad.userId || 'браузер'} <br>
-                        <button onclick="deleteAd('${ad.id}')" style="background:#ff9b9b">Видалити</button>
+                    <div class="card ${ad.status} ${isVip ? 'vip' : ''}" id="card-${ad.id}">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <b>#${ad.id}</b>
+                            <span style="font-size:12px; font-weight:bold; color:#007bff">${ad.status.toUpperCase()}</span>
+                        </div>
+                        
+                        <div class="edit-grid">
+                            <input type="text" id="vac-${ad.id}" value="${ad.vacancy || ''}" placeholder="Посада">
+                            <input type="text" id="sal-${ad.id}" value="${ad.salary || ''}" placeholder="Зарплата">
+                            
+                            <select id="stat-${ad.id}">
+                                <option value="active" ${ad.status === 'active' ? 'selected' : ''}>Active (Видно всім)</option>
+                                <option value="pending" ${ad.status === 'pending' ? 'selected' : ''}>Pending (Модерація)</option>
+                                <option value="archive" ${ad.status === 'archive' ? 'selected' : ''}>Archive (Приховано)</option>
+                            </select>
+
+                            <select id="vip-${ad.id}">
+                                <option value="false" ${!isVip ? 'selected' : ''}>Звичайне</option>
+                                <option value="true" ${isVip ? 'selected' : ''}>VIP ⭐</option>
+                            </select>
+                        </div>
+
+                        <textarea id="dut-${ad.id}" rows="3" placeholder="Опис обов'язків">${ad.duties || ''}</textarea>
+
+                        <div class="btn-group">
+                            <button class="btn-save" onclick="saveAd('${ad.id}')">💾 Зберегти</button>
+                            <button class="btn-del" onclick="deleteAd('${ad.id}')">🗑</button>
+                        </div>
+
+                        <div class="info-row">
+                            📅 Створено: ${new Date(ad.createdAt).toLocaleDateString()}<br>
+                            💰 Тариф: ${ad.tariff || '—'} | Репостів: ${ad.repostsRemaining || 0}<br>
+                            ⌛ Кінець: ${ad.expireAt ? new Date(ad.expireAt).toLocaleDateString() : 'безстроково'}<br>
+                            📱 Контакт: ${ad.phone || '—'} | UserID: ${ad.userId || 'web'}
+                        </div>
                     </div>`;
             });
         } catch (e) {
-            statusDiv.innerHTML = `<div class='err'>❌ Помилка мережі: ${e.message}</div>`;
+            statusDiv.innerHTML = `<div class='err'>❌ Помилка: ${e.message}</div>`;
+        }
+    }
+
+    async function saveAd(id) {
+        const btn = event.target;
+        const oldText = btn.innerText;
+        btn.innerText = "⏳...";
+        
+        const data = {
+            vacancy: document.getElementById(`vac-${id}`).value,
+            salary: document.getElementById(`sal-${id}`).value,
+            status: document.getElementById(`stat-${id}`).value,
+            isVip: document.getElementById(`vip-${id}`).value === 'true',
+            duties: document.getElementById(`dut-${id}`).value
+        };
+
+        try {
+            const res = await fetch('/api/admin/update/' + id, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-admin-key': adminKey 
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                btn.innerText = "✅ Готово";
+                setTimeout(() => btn.innerText = oldText, 2000);
+                document.getElementById(`card-${id}`).style.borderColor = "#28a745";
+            } else {
+                alert('Помилка сервера при збереженні');
+                btn.innerText = oldText;
+            }
+        } catch (e) {
+            alert('Помилка мережі');
+            btn.innerText = oldText;
         }
     }
 
     async function deleteAd(id) {
-        if(!confirm('Видалити?')) return;
-        await fetch('/api/admin/delete/'+id, { 
-            method: 'DELETE', 
-            headers: {'x-admin-key': localStorage.getItem('admin_key')} 
-        });
-        location.reload();
+        if(!confirm('Видалити безповоротно?')) return;
+        try {
+            const res = await fetch('/api/admin/delete/' + id, { 
+                method: 'DELETE', 
+                headers: {'x-admin-key': adminKey} 
+            });
+            if(res.ok) {
+                document.getElementById(`card-${id}`).remove();
+            }
+        } catch (e) { alert('Помилка при видаленні'); }
     }
 </script>
 </body>
