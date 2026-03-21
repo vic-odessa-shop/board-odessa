@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель Керування ⚓</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+        .card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; }
+        .err { color: red; font-weight: bold; background: #ffdada; padding: 15px; border-radius: 10px; }
+        button { padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="status">⏳ Ініціалізація...</div>
+    <hr>
+    <div id="auth" style="display:none;">
+        <input type="password" id="pw" placeholder="Пароль">
+        <button onclick="login()">Увійти</button>
+    </div>
+    <div id="main" style="display:none;">
+        <button onclick="localStorage.removeItem('admin_key'); location.reload();">Вихід</button>
+        <div id="list" style="margin-top:20px;"></div>
+    </div>
+
+<script>
+    const statusDiv = document.getElementById('status');
+    const key = localStorage.getItem('admin_key');
+
+    if (!key) {
+        statusDiv.innerText = "🔑 Потрібен пароль";
+        document.getElementById('auth').style.display = 'block';
+    } else {
+        fetchAds();
+    }
+
+    function login() {
+        const val = document.getElementById('pw').value;
+        if (val) {
+            localStorage.setItem('admin_key', val);
+            location.reload();
+        }
+    }
+
+    async function fetchAds() {
+        statusDiv.innerText = "📡 Запит до сервера...";
+        try {
+            const res = await fetch('/api/admin/all-ads', {
+                headers: { 'x-admin-key': localStorage.getItem('admin_key') }
+            });
+
+            if (res.status === 403) {
+                statusDiv.innerHTML = "<div class='err'>❌ 403: Пароль не підходить! (Перевірте ADMIN_PASS в Render)</div>";
+                return;
+            }
+            if (!res.ok) {
+                statusDiv.innerHTML = `<div class='err'>❌ Помилка сервера: ${res.status}</div>`;
+                return;
+            }
+
+            const ads = await res.json();
+            statusDiv.innerText = `✅ Знайдено оголошень: ${ads.length}`;
+            document.getElementById('main').style.display = 'block';
+            
+            const list = document.getElementById('list');
+            if (ads.length === 0) { list.innerHTML = "База порожня"; return; }
+
+            ads.forEach(ad => {
+                list.innerHTML += `
+                    <div class="card">
+                        <b>#${ad.id}</b> - ${ad.vacancy} <br>
+                        Статус: <u>${ad.status}</u> | TG ID: ${ad.userId || 'браузер'} <br>
+                        <button onclick="deleteAd('${ad.id}')" style="background:#ff9b9b">Видалити</button>
+                    </div>`;
+            });
+        } catch (e) {
+            statusDiv.innerHTML = `<div class='err'>❌ Помилка мережі: ${e.message}</div>`;
+        }
+    }
+
+    async function deleteAd(id) {
+        if(!confirm('Видалити?')) return;
+        await fetch('/api/admin/delete/'+id, { 
+            method: 'DELETE', 
+            headers: {'x-admin-key': localStorage.getItem('admin_key')} 
+        });
+        location.reload();
+    }
+</script>
+</body>
+</html>
