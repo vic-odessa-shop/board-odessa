@@ -206,8 +206,7 @@ html, body {
     }
 
     async function loadAds() {
-        await loadBanners(); // Запускаємо рекламу перед вакансіями
-
+        await loadBanners(); 
         const header = document.querySelector('.logo-text');
         header.innerText = "⚓ ЗАВАНТАЖЕННЯ... ⚓";
         try {
@@ -222,39 +221,93 @@ html, body {
         initDragScroll();
     }
 
-async function loadBanners() {
-    try {
-        const res = await fetch('/api/banners');
-        let banners = await res.json();
+    async function loadBanners() {
+        try {
+            const res = await fetch('/api/banners');
+            let banners = await res.json();
+            if (banners.length === 0) {
+                banners = [{
+                    title: "⚓ Ваша реклама тут",
+                    content: "Бажаєте залучити клієнтів? Тисніть для зв'язку з адміном!",
+                    link: "https://t.me/vic_odessa" 
+                }];
+            }
+            banners.sort(() => Math.random() - 0.5);
+            const list = document.getElementById('promoList');
+            list.innerHTML = banners.map(b => `
+                <div class="promo-card" onclick="window.open('${b.link}', '_blank')" 
+                     style="background: white; padding:18px; border-radius:20px; border:1px solid #bbdefb; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor:pointer;">
+                    <div style="font-size:9px; color:#1976d2; font-weight:bold; margin-bottom:8px; opacity:0.7;">📢 РЕКЛАМНА ПРОПОЗИЦІЯ</div>
+                    <div style="font-weight:bold; font-size:17px; color:#0d47a1; margin-bottom:6px;">${b.title}</div>
+                    <div style="font-size:13px; color:#444; line-height:1.4;">${b.content}</div>
+                </div>
+            `).join('');
+            document.getElementById('promoSection').style.display = 'block';
+        } catch (e) { console.log("Ошибка рекламы", e); }
+    }
 
-        if (banners.length === 0) {
-            banners = [{
-                title: "⚓ Ваша реклама тут",
-                content: "Бажаєте залучити клієнтів? Тисніть для зв'язку з адміном!",
-                link: "https://t.me/vash_admin_bot" 
-            }];
+    // ВОТ ЭТУ ФУНКЦИЮ МЫ ВОЗВРАЩАЕМ:
+    function renderAds(ads) {
+        const list = document.getElementById('adsList');
+        const vipList = document.getElementById('vipList');
+        const vipSection = document.getElementById('vipSection');
+        let mainHtml = ''; let vipHtml = '';
+
+        if (!ads || ads.length === 0) {
+            list.innerHTML = '<p style="text-align:center; padding:20px;">Вакансій не знайдено</p>';
+            if(vipSection) vipSection.style.display = 'none';
+            return;
         }
 
-        banners.sort(() => Math.random() - 0.5);
+        ads.forEach(ad => {
+            const isPending = ad.status === 'pending';
+            const isVip = ad.isVip === true || String(ad.isVip) === 'true';
+            const statusLabel = isPending ? '<div style="font-size:10px; color:#ff9800; font-weight:bold; margin-bottom:5px;">⏳ ОЧІКУЄ ОПЛАТИ</div>' : '';
 
-        const list = document.getElementById('promoList');
-        // ТУТ ГЛАВНОЕ: добавлен class="promo-card"
-        list.innerHTML = banners.map(b => `
-            <div class="promo-card" onclick="window.open('${b.link}', '_blank')" 
-                 style="background: white; padding:18px; border-radius:20px; border:1px solid #bbdefb; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                <div style="font-size:9px; color:#1976d2; font-weight:bold; margin-bottom:8px; opacity:0.7;">📢 РЕКЛАМНА ПРОПОЗИЦІЯ</div>
-                <div style="font-weight:bold; font-size:17px; color:#0d47a1; margin-bottom:6px;">${b.title}</div>
-                <div style="font-size:13px; color:#444; line-height:1.4;">${b.content}</div>
+            const html = `
+                <div class="${isVip ? 'vip-card' : 'simple-vacancy'}" onclick="openAd('${ad.id}')" style="cursor:pointer;">
+                    ${isVip ? '<span class="vip-tag">VIP</span>' : ''}
+                    ${statusLabel}
+                    <div style="font-size:10px; color:#999; font-weight:bold;">${ad.category}</div>
+                    <div style="font-weight:bold; font-size:17px; color:#1a1a1a;">${ad.vacancy}</div>
+                    <div style="color:#28a745; font-weight:bold; font-size:18px; margin:8px 0;">${ad.salary}</div>
+                    <div style="font-size:13px; color:#777;">📍 ${ad.city}</div>
+                </div>`;
+
+            if (isVip) vipHtml += html; else mainHtml += html;
+        });
+
+        list.innerHTML = mainHtml;
+        if (vipList) vipList.innerHTML = vipHtml;
+        if (vipSection) vipSection.style.display = vipHtml ? 'block' : 'none';
+    }
+
+    function openAd(id) {
+        const ad = allAds.find(a => String(a.id) === String(id));
+        if(!ad) return;
+        const isPending = ad.status === 'pending';
+
+        document.getElementById('modalBody').innerHTML = `
+            <div style="font-size:11px; color:var(--main); font-weight:bold;">${ad.category}</div>
+            <h2 style="margin:10px 0;">${ad.vacancy}</h2>
+            <div class="salary">${ad.salary}</div>
+            <div style="background:#f8f9fa; padding:15px; border-radius:15px; margin-bottom:15px;">
+                <div style="white-space:pre-wrap; margin-bottom:10px;">${ad.duties}</div>
+                <div style="font-size:14px;">📍 <b>Місто:</b> ${ad.city}</div>
+                <div style="font-size:14px;">🕘 <b>Графік:</b> ${ad.schedule}</div>
+                <div style="font-size:14px;">🏠 <b>Район:</b> ${ad.address}</div>
             </div>
-        `).join('');
-        
-        document.getElementById('promoSection').style.display = 'block';
-    } catch (e) { console.log("Ошибка рекламы", e); }
-}
-
-
-
-renderAds(ads)
+            <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:18px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'};">
+                ${isPending 
+                    ? '<p style="margin:0; text-align:center; font-weight:bold; color:#856404;">⌛ Контакти будуть доступні після оплати</p>' 
+                    : `<p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:var(--main); font-weight:bold;">${ad.phone}</a></p>
+                       <p style="margin:10px 0 0; color:#555;">👤 <b>Контакт:</b> ${ad.person}</p>`
+                }
+            </div>
+            <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:#f0f0f0;">Закрити</button>
+        `;
+        document.getElementById('modalOverlay').style.display = 'flex';
+    }
 
     function filterCat(cat, btn) {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -271,6 +324,7 @@ renderAds(ads)
     function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
 
     loadAds();
+
 </script>
 </body>
 </html>
