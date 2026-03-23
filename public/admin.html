@@ -6,7 +6,7 @@
     <title>Адмін-панель ⚓</title>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; padding: 0; margin: 0; padding-bottom: 80px; }
-        .toolbar { position: sticky; top: 0; z-index: 100; background: #007bff; color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
+        .toolbar { position: sticky; top: 0; z-index: 100; background: #007bff; color: white; д: 12px; display: flex; justify-content: space-between; align,-items: center; box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
         .card { background: white; padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid #ccc; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .card.active { border-left-color: #28a745; }
         .card.pending { border-left-color: #ffc107; }
@@ -219,12 +219,6 @@
         }
     }
     
-    // ANTI-SLEEP
-const APP_URL = "https://board-odessa.onrender.com"; // Заменил на вашу ссылку
-setInterval(() => {
-    axios.get(APP_URL).catch(() => {});
-}, 800000);
-
 </script>
 </body>
 </html>

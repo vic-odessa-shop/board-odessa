@@ -218,3 +218,9 @@ app.listen(process.env.PORT || 3000, () => {
     console.log('Server live');
     bot.launch().catch(err => console.error("TG Error:", err));
 });
+
+    // ANTI-SLEEP
+const APP_URL = "https://board-odessa.onrender.com"; // Заменил на вашу ссылку
+setInterval(() => {
+    axios.get(APP_URL).catch(() => {});
+}, 800000);
