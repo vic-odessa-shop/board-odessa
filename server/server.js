@@ -105,10 +105,12 @@ bot.start((ctx) => {
 // --- API ДЛЯ САЙТА ---
 app.get('/api/ads', async (req, res) => {
     try {
-        const ads = await Ad.find({ status: 'active' }).sort({ isVip: -1, createdAt: -1 });
+        // Теперь на сайт попадают и активные, и те, что ждут оплаты
+        const ads = await Ad.find({ status: { $in: ['active', 'pending'] } }).sort({ isVip: -1, createdAt: -1 });
         res.json(ads);
     } catch (e) { res.status(500).send(e.message); }
 });
+
 
 app.get('/api/banners', async (req, res) => {
     try { res.json(await Banner.find({ isActive: true })); } catch (e) { res.json([]); }
@@ -204,19 +206,30 @@ bot.on('callback_query', async (ctx) => {
     try {
         const [action, adId] = ctx.callbackQuery.data.split('_');
         const ad = await Ad.findOne({ id: adId });
+        
         if (action === 'paid' && ad) {
             ad.status = 'active';
-            ad.lastRepostDate = new Date();
             await ad.save();
-            // Тут должна быть функция sendToChannel(ad)
-            await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n✅ ОПУБЛІКОВАНО');
+            
+            // ОТПРАВЛЯЕМ В КАНАЛ (этой части у вас не было)
+            const text = `⚓ *НОВА ВАКАНСІЯ* ⚓\n\n` +
+                `👤 *Посада:* ${ad.vacancy}\n` +
+                `💰 *Зарплата:* ${ad.salary}\n` +
+                `🕘 *Графік:* ${ad.schedule}\n` +
+                `📝 *Опис:* ${ad.duties}\n\n` +
+                `📞 *Контакти:* ${ad.phone} (${ad.person})\n` +
+                `🚀 [Відкрити дошку](https://board-odessa.onrender.com)`;
+            
+            await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { parse_mode: 'Markdown' });
+            await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n✅ ОПУБЛІКОВАНО В КАНАЛ');
+            
         } else if (action === 'del') {
             await Ad.deleteOne({ id: adId });
             await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n🗑 ВИДАЛЕНО');
         }
-        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
     } catch (e) { console.log(e); }
 });
+
 
 // Запуск сервера
 app.use(express.static(path.join(__dirname, '..', 'public')));
