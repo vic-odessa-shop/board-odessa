@@ -12,12 +12,12 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     gap: 12px;
-    padding-bottom: 10px;
+ /*   padding-bottom: 10px;  */
 }
 #promoList::-webkit-scrollbar { display: none; } /* Прячем полосу прокрутки */
 
 .promo-card {
-    flex: 0 0 280px; /* Запрещаем сжиматься, ширина 280px */
+    flex: 0 0 240px; /* Запрещаем сжиматься, ширина 240px */
     scroll-snap-align: start;
 }
 
@@ -26,20 +26,20 @@
         :root { --main: #007bff; --bg: #f4f6f9; --text: #1a1a1a; --gold: #ffc107; }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding-bottom: 90px; overflow-x: hidden; }
         
-        header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 20px 15px; text-align: center; border-radius: 0 0 25px 25px; }
+        header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 2px 15px; text-align: center; border-radius: 0 0 25px 25px; }
         .logo-text { font-size: 24px; font-weight: 800; font-style: italic; }
         
-        .search-panel { position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 10px; }
+        .search-panel { position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 7px; }
         .search-box { display: flex; gap: 8px; background: white; padding: 5px; border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; margin: 0 10px; }
-        .search-box input { flex: 1; border: none; padding: 10px 15px; outline: none; font-size: 16px; border-radius: 30px; }
-        .btn-search { background: var(--main); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+        .search-box input { flex: 1; border: none; padding: 1px 15px; outline: none; font-size: 13px; border-radius: 30px; }
+        .btn-search { background: var(--main); color: white; border: none; width: 25px; height: 25px; border-radius: 50%; font-size: 16px; cursor: pointer; }
 
         /* СЛАЙДЕРЫ (Меню и VIP) */
         /* 1. СЛАЙДЕРЫ (Категории и VIP) */
 .slider-wrapper { 
     display: flex !important; 
     gap: 12px; 
-    padding: 10px 15px; 
+    padding: 5px 15px; 
     overflow-x: auto !important; 
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-x !important; /* Важно для скролла пальцем */
@@ -74,7 +74,7 @@
         .cat-btn { background: white; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; white-space: nowrap; font-size: 13px; font-weight: 600; cursor: pointer; }
         .cat-btn.active { background: var(--main); color: white; border-color: var(--main); }
 
-        .vip-panel { background: #fff; padding: 15px 0; margin: 10px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+        .vip-panel { background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
         .vip-card { min-width: 240px; background: #fffdf0; border: 2px solid var(--gold); border-radius: 18px; padding: 15px; position: relative; flex-shrink: 0; cursor: pointer; }
         .vip-tag { position: absolute; top: 10px; right: 10px; background: var(--gold); color: #856404; font-size: 9px; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
 
@@ -119,7 +119,7 @@ html, body {
 <body>
 
 <header>
-    <div class="logo-text">⚓ РОБОТА ОДЕСА ⚓</div>
+    <div onclick="checkAdminTaps()"  style="user-select:none; cursor:pointer; class="logo-text">⚓ РОБОТА ОДЕСА ⚓</div>
 </header>
 
 <div class="search-panel">
@@ -149,7 +149,7 @@ html, body {
         <div class="promo-item">📢 <b>РЕКЛАМА №1:</b> Найкращі кав'ярні міста!</div>
     </div>
 
-<div id="promoSection" style="display:none; margin-bottom: 25px;">
+<div id="promoSection" style="display:none; margin-bottom: 5px;">
     <div style="padding:0 15px; margin-bottom:10px;">
         <span style="font-weight:bold; color:#888; font-size:12px; letter-spacing:1px;">🔥 НАШІ ПАРТНЕРИ</span>
     </div>
@@ -160,7 +160,7 @@ html, body {
 
 
     <div class="vip-panel" id="vipSection" style="display:none;">
-        <div style="padding:0 15px 10px; font-weight:bold; color:var(--gold); font-size:14px;">⭐ ТОП ПРОПОЗИЦІЇ</div>
+        <div style="padding:0 15px 0px; font-weight:bold; color:var(--gold); font-size:14px;">⭐ ТОП ПРОПОЗИЦІЇ</div>
         <div class="slider-wrapper drag-scroll" id="vipList"></div>
     </div>
 
@@ -171,9 +171,9 @@ html, body {
 <div class="bottom-nav">
     <a href="javascript:void(0)" class="nav-link" onclick="alert('Інфо: Тисніть на картку для деталей.')"><span>❓</span><br>Інфо</a>
     <a href="create.html" class="nav-link add-btn">➕ ПОДАТИ</a>
-    <a href="https://t.me/vic_odessa" class="nav-link"><span>👤</span><br>Адмін</a>
+    <a href="https://t.me/odessa_smart_job_bot" class="nav-link"><span>👤</span><br>Адмін</a>
 </div>
-
+ 
 <div id="modalOverlay" class="modal" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <span onclick="closeModal()" style="position:absolute; top:20px; right:25px; font-size:30px; color:#bbb; cursor:pointer;">&times;</span>
@@ -182,6 +182,17 @@ html, body {
 </div>
 
 <script>
+//  «Секретный переход» в admin.html 5 раз тапнут за 3 сек.
+let adminTaps = 0;
+function checkAdminTaps() {
+    adminTaps++;
+    if (adminTaps === 5) {
+        window.location.href = 'admin.html';
+        adminTaps = 0;
+    }
+    setTimeout(() => adminTaps = 0, 2000); // Сброс, если нажатия слишком медленные
+}
+
     let allAds = [];
 
     function initDragScroll() {
@@ -229,7 +240,7 @@ html, body {
                 banners = [{
                     title: "⚓ Ваша реклама тут",
                     content: "Бажаєте залучити клієнтів? Тисніть для зв'язку з адміном!",
-                    link: "https://t.me/vic_odessa" 
+                    link: "https://t.me/odessa_smart_job_bot" 
                 }];
             }
             banners.sort(() => Math.random() - 0.5);
