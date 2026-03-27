@@ -113,6 +113,25 @@ html, body {
     opacity: 1 !important;
 }
 
+/* Гарантируем видимость обычных карточек */
+#adsList {
+    display: block !important;
+    min-height: 50px;
+}
+
+/* Исправляем VIP слайдер */
+#vipList {
+    display: flex !important;
+    flex-direction: row;
+    gap: 12px;
+}
+
+/* Убираем конфликт высоты в промо */
+.promo-card {
+    min-width: 260px; /* Чтобы текст не сжимался */
+    flex-shrink: 0;
+}
+
 
 </style>
 </head>
@@ -144,18 +163,15 @@ html, body {
     <button class="cat-btn" onclick="filterCat('Інше', this)">📁 Інше</button>
 </div>
 
-<div class="container">
-    <div class="promo-container" id="promoList">
-        <div class="promo-item">📢 <b>РЕКЛАМА №1:</b> Найкращі кав'ярні міста!</div>
-    </div>
 
-<div id="promoSection" style="display:none; margin-bottom: 5px;">
+<div id="promoSection" style="margin-top: 15px;">
     <div style="padding:0 15px; margin-bottom:10px;">
         <span style="font-weight:bold; color:#888; font-size:12px; letter-spacing:1px;">🔥 НАШІ ПАРТНЕРИ</span>
     </div>
-    <div id="promoList" style="display:flex; overflow-x:auto; gap:12px; padding:0 15px; scrollbar-width:none;">
+    <div id="promoList" class="slider-wrapper">
         </div>
 </div>
+
 
 
 
