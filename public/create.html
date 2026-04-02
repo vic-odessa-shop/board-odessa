@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --main: #007bff; --bg: #f4f6f9; --text: #222; --gold: #ffc107; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 15px; margin: 0;}
         .back-btn { display: inline-block; margin-bottom: 20px; color: var(--main); text-decoration: none; font-weight: bold; font-size: 14px; }
         .form-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 15px; }
@@ -43,13 +43,28 @@
             </select>
         </div>
 
+<div style="background: white; padding: 15px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #eee;">
+    <p style="margin-top: 0; font-weight: bold; color: #555; font-size: 14px;">Що ви публікуєте?</p>
+    
+    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer;">
+        <input type="radio" name="adType" value="vacancy" checked onclick="updateFormLabels('vacancy')" style="width: 20px; height: 20px;">
+        <span style="font-size: 16px; font-weight: 600;">💼 Пропоную роботу (Вакансія)</span>
+    </label>
+
+    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+        <input type="radio" name="adType" value="seeker" onclick="updateFormLabels('seeker')" style="width: 20px; height: 20px;">
+        <span style="font-size: 16px; font-weight: 600;">👤 Шукаю роботу (Резюме)</span>
+    </label>
+</div>
+
+
         <div class="form-group"><input type="text" id="vacancy" placeholder="Назва вакансії" required></div>
         <div class="form-group"><textarea id="duties" placeholder="📋 Опис та обов'язки..." rows="4" required></textarea></div>
         <div class="form-group"><input type="text" id="schedule" placeholder="🗓 Графік (напр. 2/2)"></div>
         <div class="form-group"><input type="text" id="salary" placeholder="💰 Зарплата (текстом)" required></div>
         <div class="form-group"><input type="text" id="city" placeholder="📍 Місто" value="Одеса"></div>
-        <div class="form-group"><input type="text" id="address" placeholder="🏠 Адреса"></div>
-        <div class="form-group"><input type="tel" id="phone" placeholder="📞 Телефон" required></div>
+        <div class="form-group"><input type="text" id="address" placeholder="🏠 Адреса або Район"></div>
+        <div class="form-group"><input type="text" inputmode="decimal"  id="phone" placeholder="📞 Телефон" required></div>
         
         <div style="display:flex; gap:10px;" class="form-group">
             <input type="text" id="tg_user" placeholder="✈️ TG @">
@@ -70,9 +85,15 @@
         </div>
 
         <div class="price-block">
-            <input type="checkbox" id="isVip" onchange="calcPrice()"> 💎 VIP (+150 грн)
+            <input type="checkbox" id="isVip" onchange="calcPrice()" style="width:20px; height:20px;"> 💎 VIP (+150 грн)
             <div style="font-size:18px; font-weight:800; margin-top:10px;">До сплати: <span id="totalSum">400</span> грн</div>
         </div>
+
+<div class="form-group" id="payMethodGroup" style="display:none; margin-bottom: 15px;">
+    <label style="display: block; font-size: 13px; color: #666; margin-bottom: 5px;">💳 Спосіб оплати</label>
+    <select id="payMethod" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: white;">
+        </select>
+</div>
 
         <button type="submit" id="submitBtn">Опублікувати та до оплати</button>
     </form>
@@ -87,6 +108,51 @@
 </div>
 
 <script>
+// Скрипт загрузки методов оплаты    
+async function loadPaymentMethods() {
+    try {
+        const res = await fetch('/api/active-pay-methods');
+        const methods = await res.json();
+        const select = document.getElementById('payMethod');
+        const group = document.getElementById('payMethodGroup');
+
+        if (methods.length > 0) {
+            select.innerHTML = methods.map(m => `<option value="${m}">${m}</option>`).join('');
+            group.style.display = 'block'; // Показываем блок, если есть хоть один метод
+        } else {
+            // Если в админке всё выключено — пишем предупреждение
+            group.innerHTML = '<p style="color:red; font-size:12px;">⚠️ Оплата тимчасово недоступна, зверніться до адміна</p>';
+            group.style.display = 'block';
+        }
+    } catch (e) {
+        console.error("Ошибка загрузки методов оплаты", e);
+    }
+}
+
+// Запускаем при загрузке страницы
+loadPaymentMethods();
+
+let vacancyInOut ="НОВА ВАКАНСІЯ";
+function updateFormLabels(type) {
+    const isSeeker = (type === 'seeker');
+    
+    // 1. Меняем заголовок (поле Название)
+    
+    if (isSeeker) {
+        vacancyInOut = "Шукаю роботу";
+        duties.placeholder = "📋 Опис бажаних умов та резюме";
+        salary.placeholder = "💰 Бажана зарплата";
+  
+    } else {
+        vacancyInOut = "НОВА ВАКАНСІЯ";
+        duties.placeholder = "📋 Опис та обов'язки...";
+        salary.placeholder = "💰 Зарплата (текстом)";
+  
+    }
+}
+
+
+
     const tg = window.Telegram?.WebApp;
     function calcPrice() {
         const base = parseInt(document.getElementById('tariff').value);
@@ -100,6 +166,7 @@
         btn.disabled = true;
 
         const data = {
+            vacancyInOut: vacancyInOut,
             category: document.getElementById('category').value,
             vacancy: document.getElementById('vacancy').value,
             duties: document.getElementById('duties').value,
@@ -123,7 +190,7 @@
         });
         const result = await res.json();
         if(res.ok) {
-            let details = `📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту ${result.id}\n`;
+        let details = `📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту ${result.id}\n`;
             details += `💰 СУМА: ${result.price} грн\n`;
             details += "-------------------------\n";
             details += `💳 РЕКВІЗИТИ: \n${result.payment}\n`;
@@ -132,6 +199,7 @@
 
             document.getElementById('payDetails').innerText = details;
             document.getElementById('payModal').style.display = 'flex';
+
         }
     };
 </script>

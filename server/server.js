@@ -30,11 +30,13 @@ const adSchema = new mongoose.Schema({
     isVip: { type: Boolean, default: false },
     userId: String,
     status: { type: String, default: 'pending' },
-    createdAt: { type: Date, default: Date.now },
     expireAt: Date,
-    repostsRemaining: Number,
-    lastRepostDate: Date
-});
+    repostsRemaining: { type: Number, default: 0 },
+    repostIntervalHrs: { type: Number, default: 24 }, // По умолчанию раз в сутки
+    lastRepostDate: { type: Date, default: Date.now },
+    views: { type: Number, default: 0 }
+}, { timestamps: true });
+
 const Ad = mongoose.model('Ad', adSchema);
 
 // --- СХЕМА ТАРИФОВ (Новое!) ---
@@ -69,9 +71,15 @@ const Banner = mongoose.model('Banner', bannerSchema);
 
 // --- ЛОГИКА РОТАТОРА ---
 // Выбирает реквизит, который использовался МЕНЬШЕ всего раз
-async function getNextPaymentDetail() {
-    const details = await Payment.find({ isActive: true }).sort({ usageCount: 1 });
-    if (details.length === 0) return "Реквізити уточнюйте в адміна";
+async function getNextPaymentDetail(userChoice) {
+    // Ищем активный реквизит именно того типа, который выбрал юзер
+    const details = await Payment.find({
+        isActive: true,
+        label: userChoice
+    }).sort({ usageCount: 1 }); // Берем тот, который меньше всего светился
+
+    if (details.length === 0) return null;
+
     const selected = details[0];
     selected.usageCount += 1;
     await selected.save();
@@ -105,10 +113,27 @@ bot.start((ctx) => {
 // --- API ДЛЯ САЙТА ---
 app.get('/api/ads', async (req, res) => {
     try {
-        // Теперь на сайт попадают и активные, и те, что ждут оплаты
-        const ads = await Ad.find({ status: { $in: ['active', 'pending'] } }).sort({ isVip: -1, createdAt: -1 });
+        // status: 'active' гарантирует, что мы не тянем черновики
+        const ads = await Ad.find({ status: 'active' })
+                            .sort({ updatedAt: -1 }) // Свежие и репостнутые — сверху
+                            .limit(25);              // Только первые 25 штук
         res.json(ads);
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
+
+// Вставь это после получения списка объявлений
+app.post('/api/ads/view/:id', async (req, res) => {
+    try {
+        const adId = req.params.id;
+        await Ad.findOneAndUpdate({ id: adId }, { $inc: { views: 1 } });
+        res.status(200).json({ success: true });
+    } catch (err) {
+        console.error('Ошибка счетчика:', err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
 });
 
 
@@ -134,6 +159,7 @@ app.post('/api/ads/create', async (req, res) => {
             isVip: t.isVip,
             status: 'pending',
             repostsRemaining: t.reposts,
+            repostIntervalHrs: t.id === '800' ? 12 : 24, // Например: Турбо - каждые 12ч, остальные - 24ч
             expireAt: new Date(Date.now() + t.days * 24 * 60 * 60 * 1000)
         });
         await newAd.save();
@@ -151,6 +177,18 @@ app.post('/api/ads/create', async (req, res) => {
         // Возвращаем на сайт реквизиты для клиента
         res.json({ id: adId, success: true, payment: paymentDetail, price: t.price });
     } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Отдает только те типы оплаты, которые включены в админке
+// Новый маршрут (API), чтобы сайт знал, что показывать
+app.get('/api/active-pay-methods', async (req, res) => {
+    try {
+        // Ищем все активные реквизиты и вынимаем из них уникальные названия (Картка, Телефон и т.д.)
+        const activeMethods = await Payment.distinct('label', { isActive: true });
+        res.json(activeMethods);
+    } catch (e) {
+        res.json([]);
+    }
 });
 
 // --- АДМИН-API: ТАРИФЫ И РЕКВИЗИТЫ ---
@@ -201,6 +239,25 @@ app.post('/api/admin/update/:id', async (req, res) => {
     res.json({ success: !!ad });
 });
 
+async function sendToTelegram(ad) {
+    try {
+        const text = `⚓ *${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : `${ ad.vacancyInOut }`}* ⚓\n\n` +
+            `👤 *Посада:* ${ad.vacancy}\n` +
+            `📝 *Опис:* ${ad.duties}\n\n` +
+            `🕘 *Графік:* ${ad.schedule}\n\n` +
+            `💰 *Зарплата:* ${ad.salary}\n` +
+            `📍 *Місто/Район:* ${ad.city}, ${ad.address}\n` +
+            `📞 *Контакти:* ${ad.phone} (${ad.person})\n\n` +
+            `🚀 [Відкрити в Mini App](https://board-odessa.onrender.com)\n\n`;
+
+        await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { parse_mode: 'Markdown' });
+        return true;
+    } catch (e) {
+        console.error("Ошибка отправки в канал:", e);
+        return false;
+    }
+}
+
 // КНОПКИ В БОТЕ (Оплачено / Удалить)
 bot.on('callback_query', async (ctx) => {
     try {
@@ -209,23 +266,13 @@ bot.on('callback_query', async (ctx) => {
         
         if (action === 'paid' && ad) {
             ad.status = 'active';
+            ad.lastRepostDate = new Date(); // Засекаем время первого поста
             await ad.save();
-            
-            // ОТПРАВЛЯЕМ В КАНАЛ (этой части у вас не было)
-            const text = `⚓ *НОВА ВАКАНСІЯ* ⚓\n\n` +
-                `👤 *Посада:* ${ad.vacancy}\n` +
-                `💰 *Зарплата:* ${ad.salary}\n` +
-                `🕘 *Графік:* ${ad.schedule}\n` +
-                `📝 *Опис:* ${ad.duties}\n\n` +
-                `📞 *Контакти:* ${ad.phone} (${ad.person})\n` +
-                `🚀 [Відкрити дошку](https://board-odessa.onrender.com)`;
-            
-            await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { parse_mode: 'Markdown' });
-            await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n✅ ОПУБЛІКОВАНО В КАНАЛ');
-            
-        } else if (action === 'del') {
-            await Ad.deleteOne({ id: adId });
-            await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n🗑 ВИДАЛЕНО');
+
+            const sent = await sendToTelegram(ad);
+            if (sent) {
+                await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n✅ ОПУБЛІКОВАНО ТА АКТИВОВАНО');
+            }
         }
     } catch (e) { console.log(e); }
 });
@@ -234,6 +281,44 @@ bot.on('callback_query', async (ctx) => {
 // Запуск сервера
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
+
+// ФУНКЦИЯ ПРОВЕРКИ ОЧЕРЕДИ (АВТОПИЛОТ)
+async function checkScheduledReposts() {
+    const now = new Date();
+    try {
+        const ads = await Ad.find({
+            status: 'active',
+            repostsRemaining: { $gt: 0 },
+            repostIntervalHrs: { $gt: 0 }
+        });
+
+        for (let ad of ads) {
+            const lastPost = new Date(ad.lastRepostDate);
+            const diffInMs = now - lastPost;
+            const intervalInMs = ad.repostIntervalHrs * 60 * 60 * 1000;
+
+            if (diffInMs >= intervalInMs) {
+                console.log(`[AUTO] Время репоста для ${ad.id}`);
+                
+                // Вызов твоей функции отправки в ТГ
+                const result = await sendToTelegram(ad); 
+                
+                if (result) {
+                    ad.repostsRemaining -= 1;
+                    ad.lastRepostDate = now;
+                    // save() обновит updatedAt, и карточка всплывет на сайте
+                    await ad.save(); 
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Ошибка автопостинга:", e);
+    }
+}
+
+// Запускаем проверку каждые 30 минут
+setInterval(checkScheduledReposts, 30 * 60 * 1000);
+
 
 app.listen(process.env.PORT || 3000, () => {
     bot.launch().catch(err => console.error("TG Error:", err));

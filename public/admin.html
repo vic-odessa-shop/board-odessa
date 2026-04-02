@@ -1,111 +1,308 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Адмін-панель ⚓</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 0; margin: 0; padding-bottom: 80px; }
-        .toolbar { position: sticky; top: 0; z-index: 100; background: #007bff; color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
-        .card { background: white; padding: 15px; margin: 12px; border-radius: 12px; border-left: 6px solid #ccc; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .card.active { border-left-color: #28a745; }
-        .card.pending { border-left-color: #ffc107; }
-        .card.archived { border-left-color: #6c757d; opacity: 0.8; }
-        .card.vip { background: #fffdf0; border-left-color: #d4af37; }
-        
-        /* Стили для новых блоков управления */
-        .admin-section { margin: 25px 12px; padding: 15px; background: #fff; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333; display: flex; align-items: center; gap: 8px; }
-        
-        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
-        .tariff-row { display: grid; grid-template-columns: 1fr 80px 80px 80px 45px; gap: 8px; align-items: center; margin-bottom: 10px; background: #f9f9f9; padding: 8px; border-radius: 8px; }
-        
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        textarea { grid-column: span 2; }
-        
-        .btn-save { background: #28a745; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-del { background: #dc3545; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
-        .btn-add { background: #007bff; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 10px; }
-        
-        .cb-container { position: absolute; top: 15px; right: 15px; transform: scale(1.5); }
-        .info { font-size: 11px; color: #666; margin-top: 10px; line-height: 1.4; border-top: 1px solid #eee; padding-top: 8px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; }
-        .stat-item { background:white; padding:10px; border-radius:10px; text-align:center; font-size:11px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+      body {
+        font-family: sans-serif;
+        background: #f0f2f5;
+        padding: 0;
+        margin: 0;
+        padding-bottom: 80px;
+      }
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #007bff;
+        color: white;
+        padding: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      }
+      .card {
+        background: white;
+        padding: 15px;
+        margin: 12px;
+        border-radius: 12px;
+        border-left: 6px solid #ccc;
+        position: relative;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      .card.active {
+        border-left-color: #28a745;
+      }
+      .card.pending {
+        border-left-color: #ffc107;
+      }
+      .card.archived {
+        border-left-color: #6c757d;
+        opacity: 0.8;
+      }
+      .card.vip {
+        background: #fffdf0;
+        border-left-color: #d4af37;
+      }
+
+      /* Стили для новых блоков управления */
+      .admin-section {
+        margin: 25px 12px;
+        padding: 15px;
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .edit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 10px 0;
+      }
+      .tariff-row {
+        display: grid;
+        grid-template-columns: 1fr 80px 80px 80px 45px;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 10px;
+        background: #f9f9f9;
+        padding: 8px;
+        border-radius: 8px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+      textarea {
+        grid-column: span 2;
+      }
+
+      .btn-save {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .btn-del {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .btn-add {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        width: 100%;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .cb-container {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        transform: scale(1.5);
+      }
+      .info {
+        font-size: 11px;
+        color: #666;
+        margin-top: 10px;
+        line-height: 1.4;
+        border-top: 1px solid #eee;
+        padding-top: 8px;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        padding: 15px;
+      }
+      .stat-item {
+        background: white;
+        padding: 10px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 11px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
     </style>
-</head>
-<body>
-
-    <div class="toolbar" id="main-toolbar" style="display:none;">
-        <span id="counter" style="font-weight:bold;">Обрано: 0</span>
-        <div style="display:flex; gap:8px;">
-            <button onclick="repostSelected()" id="repostBtn" style="background:white; color:#007bff; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; display:none;">🚀 В КАНАЛ</button>
-            <button onclick="showBannersEditor()" style="background:#ff9800; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold;">📢 Реклама</button>
-        </div>
-        <button onclick="localStorage.removeItem('admin_key'); location.reload();  window.location.href = 'index.html';" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:8px; border-radius:5px; font-size:10px;">Вихід</button>
+  </head>
+  <body>
+    <div class="toolbar" id="main-toolbar" style="display: none">
+      <span id="counter" style="font-weight: bold">Обрано: 0</span>
+      <div style="display: flex; gap: 8px">
+        <button
+          onclick="repostSelected()"
+          id="repostBtn"
+          style="
+            background: white;
+            color: #007bff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: none;
+          "
+        >
+          🚀 В КАНАЛ
+        </button>
+        <button
+          onclick="showBannersEditor()"
+          style="
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+          "
+        >
+          📢 Реклама
+        </button>
+      </div>
+      <button
+        onclick="
+          localStorage.removeItem('admin_key');
+          location.reload();
+          window.location.href = 'index.html';
+        "
+        style="
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: none;
+          padding: 8px;
+          border-radius: 5px;
+          font-size: 10px;
+        "
+      >
+        Вихід
+      </button>
     </div>
 
-    <div id="auth" style="display:none; padding:40px 20px; text-align:center;">
-        <input type="password" id="pw" placeholder="Пароль">
-        <button onclick="login()" style="width:100%; margin-top:10px; padding:15px; background:#007bff; color:white; border:none; border-radius:8px;">Увійти</button>
+    <div
+      id="auth"
+      style="display: none; padding: 40px 20px; text-align: center"
+    >
+      <input type="password" id="pw" placeholder="Пароль" />
+      <button
+        onclick="login()"
+        style="
+          width: 100%;
+          margin-top: 10px;
+          padding: 15px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 8px;
+        "
+      >
+        Увійти
+      </button>
     </div>
 
-    <div id="main" style="display:none;">
-        
-        <div id="stats-bar" class="stats-grid"></div>
+    <div id="main" style="display: none">
+      <div id="stats-bar" class="stats-grid"></div>
 
-        <div class="admin-section">
-            <div class="section-title">📊 Налаштування тарифів</div>
-            <div style="display: grid; grid-template-columns: 1fr 80px 80px 80px 45px; gap: 8px; font-size: 10px; color: gray; padding: 0 8px 5px;">
-                <div>Назва</div><div>Ціна (₴)</div><div>Днів</div><div>Постів</div><div></div>
-            </div>
-            <div id="tariff-list"></div>
+      <div class="admin-section">
+        <div class="section-title">📊 Налаштування тарифів</div>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 80px 80px 80px 45px;
+            gap: 8px;
+            font-size: 10px;
+            color: gray;
+            padding: 0 8px 5px;
+          "
+        >
+          <div>Назва</div>
+          <div>Ціна (₴)</div>
+          <div>Днів</div>
+          <div>Постів</div>
+          <div></div>
         </div>
+        <div id="tariff-list"></div>
+      </div>
 
-        <div class="admin-section">
-            <div class="section-title">💳 Реквізити (Ротатор)</div>
-            <div id="payment-list"></div>
-            <button class="btn-add" onclick="addPayment()">+ Додати картку / IBAN</button>
-        </div>
+      <div class="admin-section">
+        <div class="section-title">💳 Реквізити (Ротатор)</div>
+        <div id="payment-list"></div>
+        <button class="btn-add" onclick="addPayment()">
+          + Додати картку / IBAN
+        </button>
+      </div>
 
-        <div id="list"></div>
+      <div id="list"></div>
 
-        <div id="banner-section">
-            <h2 style="margin:30px 15px 10px;">📢 Керування рекламою</h2>
-            <div id="banner-list"></div>
-        </div>
+      <div id="banner-section">
+        <h2 style="margin: 30px 15px 10px">📢 Керування рекламою</h2>
+        <div id="banner-list"></div>
+      </div>
     </div>
 
-<script>
-    const adminKey = localStorage.getItem('admin_key');
-    let selectedIds = new Set();
+    <script>
+      const adminKey = localStorage.getItem("admin_key");
+      let selectedIds = new Set();
 
-    // ПРОВЕРКА ВХОДА: Если ключа нет, показываем окно пароля
-    if (!adminKey) { 
-        document.getElementById('auth').style.display = 'block'; 
-    } else { 
-        fetchAllData(); 
-    }
+      // ПРОВЕРКА ВХОДА: Если ключа нет, показываем окно пароля
+      if (!adminKey) {
+        document.getElementById("auth").style.display = "block";
+      } else {
+        fetchAllData();
+      }
 
-    function login() { 
-        localStorage.setItem('admin_key', document.getElementById('pw').value); 
-        location.reload(); 
-    }
+      function login() {
+        localStorage.setItem("admin_key", document.getElementById("pw").value);
+        location.reload();
+      }
 
-    // ГЛАВНАЯ ФУНКЦИЯ ЗАГРУЗКИ: Собирает всё воедино
-    async function fetchAllData() {
-        await fetchAds();      // Загрузка вакансий и статистики
-        await fetchTariffs();  // Загрузка настроек тарифов
+      // ГЛАВНАЯ ФУНКЦИЯ ЗАГРУЗКИ: Собирает всё воедино
+      async function fetchAllData() {
+        await fetchAds(); // Загрузка вакансий и статистики
+        await fetchTariffs(); // Загрузка настроек тарифов
         await fetchPayments(); // Загрузка карт для оплаты
-        await fetchBanners();  // Загрузка рекламы
-    }
+        await fetchBanners(); // Загрузка рекламы
+      }
 
-    // --- МОДУЛЬ ТАРИФОВ ---
-    async function fetchTariffs() {
-        const res = await fetch('/api/admin/tariffs', { headers: { 'x-admin-key': adminKey } });
+      // --- МОДУЛЬ ТАРИФОВ ---
+      async function fetchTariffs() {
+        const res = await fetch("/api/admin/tariffs", {
+          headers: { "x-admin-key": adminKey },
+        });
         const tariffs = await res.json();
-        const container = document.getElementById('tariff-list');
-        
-        container.innerHTML = tariffs.map(t => `
+        const container = document.getElementById("tariff-list");
+
+        container.innerHTML = tariffs
+          .map(
+            (t) => `
             <div class="tariff-row">
                 <div style="font-weight:bold; font-size:13px;">${t.label}</div>
                 <input type="number" id="t-price-${t.id}" value="${t.price}">
@@ -113,31 +310,40 @@
                 <input type="number" id="t-reposts-${t.id}" value="${t.reposts}">
                 <button class="btn-save" onclick="saveTariff('${t.id}')">💾</button>
             </div>
-        `).join('');
-    }
+        `,
+          )
+          .join("");
+      }
 
-    async function saveTariff(id) {
+      async function saveTariff(id) {
         const data = {
-            id: id,
-            price: document.getElementById(`t-price-${id}`).value,
-            days: document.getElementById(`t-days-${id}`).value,
-            reposts: document.getElementById(`t-reposts-${id}`).value
+          id: id,
+          price: document.getElementById(`t-price-${id}`).value,
+          days: document.getElementById(`t-days-${id}`).value,
+          reposts: document.getElementById(`t-reposts-${id}`).value,
         };
-        const res = await fetch('/api/admin/tariffs/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-            body: JSON.stringify(data)
+        const res = await fetch("/api/admin/tariffs/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": adminKey,
+          },
+          body: JSON.stringify(data),
         });
-        if(res.ok) alert('Тариф оновлено!');
-    }
+        if (res.ok) alert("Тариф оновлено!");
+      }
 
-    // --- МОДУЛЬ РЕКВИЗИТОВ (РОТАТОР) ---
-    async function fetchPayments() {
-        const res = await fetch('/api/admin/payments', { headers: { 'x-admin-key': adminKey } });
+      // --- МОДУЛЬ РЕКВИЗИТОВ (РОТАТОР) ---
+      async function fetchPayments() {
+        const res = await fetch("/api/admin/payments", {
+          headers: { "x-admin-key": adminKey },
+        });
         const payments = await res.json();
-        const container = document.getElementById('payment-list');
-        
-        container.innerHTML = payments.map(p => `
+        const container = document.getElementById("payment-list");
+
+        container.innerHTML = payments
+          .map(
+            (p) => `
             <div class="card" style="border-left-color: #28a745; margin: 8px 0;">
                 <div class="edit-grid">
                     <input type="text" id="p-label-${p._id}" value="${p.label}" placeholder="Назва (Приват)">
@@ -149,64 +355,81 @@
                     <button class="btn-del" onclick="deletePayment('${p._id}')">🗑</button>
                 </div>
             </div>
-        `).join('');
-    }
+        `,
+          )
+          .join("");
+      }
 
-    async function addPayment() {
+      async function addPayment() {
         const label = prompt("Назва банку/власника:");
         const value = prompt("Номер картки або IBAN:");
         if (!label || !value) return;
-        await fetch('/api/admin/payments/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-            body: JSON.stringify({ label, value })
+        await fetch("/api/admin/payments/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": adminKey,
+          },
+          body: JSON.stringify({ label, value }),
         });
         fetchPayments();
-    }
+      }
 
-    async function savePayment(id) {
+      async function savePayment(id) {
         const data = {
-            _id: id,
-            label: document.getElementById(`p-label-${id}`).value,
-            value: document.getElementById(`p-val-${id}`).value
+          _id: id,
+          label: document.getElementById(`p-label-${id}`).value,
+          value: document.getElementById(`p-val-${id}`).value,
         };
-        await fetch('/api/admin/payments/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-            body: JSON.stringify(data)
+        await fetch("/api/admin/payments/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": adminKey,
+          },
+          body: JSON.stringify(data),
         });
-        alert('Реквізити збережено!');
-    }
+        alert("Реквізити збережено!");
+      }
 
-    async function deletePayment(id) {
-        if(!confirm('Видалити ці реквізити?')) return;
-        await fetch('/api/admin/payments/' + id, { method: 'DELETE', headers: { 'x-admin-key': adminKey } });
+      async function deletePayment(id) {
+        if (!confirm("Видалити ці реквізити?")) return;
+        await fetch("/api/admin/payments/" + id, {
+          method: "DELETE",
+          headers: { "x-admin-key": adminKey },
+        });
         fetchPayments();
-    }
+      }
 
-    // --- МОДУЛЬ ОБЪЯВЛЕНИЙ (ВАШ БАЗОВЫЙ) ---
-    async function fetchAds() {
-        const res = await fetch('/api/admin/all-ads', { headers: { 'x-admin-key': adminKey } });
-        if (!res.ok) { localStorage.removeItem('admin_key'); location.reload(); return; }
-        
+      // --- МОДУЛЬ ОБЪЯВЛЕНИЙ (ВАШ БАЗОВЫЙ) ---
+      async function fetchAds() {
+        const res = await fetch("/api/admin/all-ads", {
+          headers: { "x-admin-key": adminKey },
+        });
+        if (!res.ok) {
+          localStorage.removeItem("admin_key");
+          location.reload();
+          return;
+        }
+
         const { ads, stats } = await res.json();
-        document.getElementById('main-toolbar').style.display = 'flex';
-        document.getElementById('main').style.display = 'block';
+        document.getElementById("main-toolbar").style.display = "flex";
+        document.getElementById("main").style.display = "block";
 
-        document.getElementById('stats-bar').innerHTML = `
+        document.getElementById("stats-bar").innerHTML = `
             <div class="stat-item">📦 Всього<br><b>${stats.total}</b></div>
             <div class="stat-item" style="background:#fff3cd">⏳ Чекають<br><b>${stats.pending}</b></div>
             <div class="stat-item" style="background:#d4edda">✅ Активні<br><b>${stats.active}</b></div>
             <div class="stat-item" style="background:#e3f2fd">📢 Реклама<br><b>${stats.banners}</b></div>
         `;
 
-        const list = document.getElementById('list');
+        const list = document.getElementById("list");
         list.innerHTML = "";
 
-        ads.forEach(ad => {
-            const isVip = ad.isVip === true || String(ad.isVip) === 'true';
-            list.innerHTML += `
-                <div class="card ${ad.status} ${isVip ? 'vip' : ''}" id="card-${ad.id}">
+        ads.forEach((ad) => {
+          const isVip = ad.isVip === true || String(ad.isVip) === "true";
+          list.innerHTML += `
+                <div class="card ${ad.status} ${isVip ? "vip" : ""}" id="card-${ad.id}">
                     <div class="cb-container">
                         <input type="checkbox" onchange="toggleSelect('${ad.id}', this.checked)">
                     </div>
@@ -215,128 +438,208 @@
                         <input type="text" id="vac-${ad.id}" value="${ad.vacancy}">
                         <input type="text" id="sal-${ad.id}" value="${ad.salary}">
                         <select id="stat-${ad.id}">
-                            <option value="active" ${ad.status === 'active' ? 'selected' : ''}>Active</option>
-                            <option value="pending" ${ad.status === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="archived" ${ad.status === 'archived' ? 'selected' : ''}>Archived</option>
+                            <option value="active" ${ad.status === "active" ? "selected" : ""}>Active</option>
+                            <option value="pending" ${ad.status === "pending" ? "selected" : ""}>Pending</option>
+                            <option value="archived" ${ad.status === "archived" ? "selected" : ""}>Archived</option>
                         </select>
                         <select id="vip-${ad.id}">
-                            <option value="false" ${!isVip ? 'selected' : ''}>Обычное</option>
-                            <option value="true" ${isVip ? 'selected' : ''}>VIP ⭐</option>
+                            <option value="false" ${!isVip ? "selected" : ""}>Обычное</option>
+                            <option value="true" ${isVip ? "selected" : ""}>VIP ⭐</option>
                         </select>
                     </div>
-                    <textarea id="dut-${ad.id}" rows="2">${ad.duties || ''}</textarea>
+                    <textarea id="dut-${ad.id}" rows="2">${ad.duties || ""}</textarea>
+
+// Вставь это в fetchAds() сразу после </textarea>
+// Обновляем внешний вид карточки
+                    <div style="background: rgba(0,0,0,0.05); padding: 8px; border-radius: 5px; margin-top: 10px; font-size: 12px; border: 1px solid #ddd;">
+                    <div style="margin-bottom: 8px;">📊 Проглядів: <b>${ad.views || 0}</b></div>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span>🚀 Репости:</span>
+            <input type="number" id="reposts-${ad.id}" value="${ad.repostsRemaining || 0}" 
+                   style="width: 45px; padding: 2px;" 
+                   onchange="updateAdLimit('${ad.id}', 'repostsRemaining', this.value)">
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span>⏱ Інтервал (год):</span>
+            <input type="number" id="interval-${ad.id}" value="${ad.repostIntervalHrs || 0}" 
+                   style="width: 45px; padding: 2px;" 
+                   onchange="updateAdLimit('${ad.id}', 'repostIntervalHrs', this.value)">
+        </div>
+    </div>
+</div>
+
                     <div style="display:flex; gap:10px; margin-top:10px;">
                         <button class="btn-save" onclick="saveAd('${ad.id}')">💾 Зберегти</button>
                         <button class="btn-del" onclick="deleteAd('${ad.id}')">🗑</button>
                     </div>
                     <div class="info">
-                        📅 ${new Date(ad.createdAt).toLocaleDateString()} | 💰 ${ad.tariff || '—'} | ⌛ ${ad.expireAt ? new Date(ad.expireAt).toLocaleDateString() : '∞'}<br>
-                        📱 ${ad.phone} | User: ${ad.userId || 'web'}
+                        📅 ${new Date(ad.createdAt).toLocaleDateString()} | 💰 ${ad.tariff || "—"} | ⌛ ${ad.expireAt ? new Date(ad.expireAt).toLocaleDateString() : "∞"}<br>
+                        📱 ${ad.phone} | User: ${ad.userId || "web"}
                     </div>
                 </div>`;
         });
-    }
+      }
 
-    // --- МОДУЛЬ БАННЕРОВ (РЕКЛАМА) ---
-    async function fetchBanners() {
-        const res = await fetch('/api/banners');
+      // --- МОДУЛЬ БАННЕРОВ (РЕКЛАМА) ---
+      async function fetchBanners() {
+        const res = await fetch("/api/banners");
         const banners = await res.json();
-        const bannerList = document.getElementById('banner-list');
-        
+        const bannerList = document.getElementById("banner-list");
+
         if (banners.length === 0) {
-            bannerList.innerHTML = '<p style="margin:15px; color:#666;">Поки що немає активної рекламы</p>';
-            return;
+          bannerList.innerHTML =
+            '<p style="margin:15px; color:#666;">Поки що немає активної рекламы</p>';
+          return;
         }
 
-        bannerList.innerHTML = banners.map(b => `
+        bannerList.innerHTML = banners
+          .map(
+            (b) => `
             <div class="card" style="border-left-color: #ff9800; background: #fffaf0;">
                 <div style="font-weight:bold; color:#e65100; margin-bottom:10px;">РЕКЛАМНИЙ БАНЕР</div>
                 <div class="edit-grid">
-                    <input type="text" id="btitle-${b._id}" value="${b.title || ''}" placeholder="Заголовок">
-                    <input type="text" id="blink-${b._id}" value="${b.link || ''}" placeholder="tel: або https://">
+                    <input type="text" id="btitle-${b._id}" value="${b.title || ""}" placeholder="Заголовок">
+                    <input type="text" id="blink-${b._id}" value="${b.link || ""}" placeholder="tel: або https://">
                 </div>
-                <textarea id="bcont-${b._id}" rows="2" placeholder="Текст реклами">${b.content || ''}</textarea>
+                <textarea id="bcont-${b._id}" rows="2" placeholder="Текст реклами">${b.content || ""}</textarea>
                 <div style="display:flex; gap:10px; margin-top:10px;">
                     <button class="btn-save" style="background:#ff9800" onclick="updateBanner('${b._id}')">💾 Оновити</button>
                     <button class="btn-del" onclick="deleteBanner('${b._id}')">🗑</button>
                 </div>
             </div>
-        `).join('');
-    }
+        `,
+          )
+          .join("");
+      }
 
-    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (Чекбоксы, Репост, Удаление) ---
-    function toggleSelect(id, checked) {
-        if(checked) selectedIds.add(id); else selectedIds.delete(id);
-        document.getElementById('counter').innerText = `Обрано: ${selectedIds.size}`;
-        document.getElementById('repostBtn').style.display = selectedIds.size > 0 ? 'block' : 'none';
-    }
+      // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (Чекбоксы, Репост, Удаление) ---
+      function toggleSelect(id, checked) {
+        if (checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+        document.getElementById("counter").innerText =
+          `Обрано: ${selectedIds.size}`;
+        document.getElementById("repostBtn").style.display =
+          selectedIds.size > 0 ? "block" : "none";
+      }
 
-    async function saveAd(id) {
+      async function saveAd(id) {
         const data = {
-            vacancy: document.getElementById(`vac-${id}`).value,
-            salary: document.getElementById(`sal-${id}`).value,
-            status: document.getElementById(`stat-${id}`).value,
-            isVip: document.getElementById(`vip-${id}`).value === 'true',
-            duties: document.getElementById(`dut-${id}`).value
+          vacancy: document.getElementById(`vac-${id}`).value,
+          salary: document.getElementById(`sal-${id}`).value,
+          status: document.getElementById(`stat-${id}`).value,
+          isVip: document.getElementById(`vip-${id}`).value === "true",
+          duties: document.getElementById(`dut-${id}`).value,
+// Интеграция в существующую кнопку «Зберегти»
+          repostsRemaining: parseInt(document.getElementById(`reposts-${id}`).value),
+        repostIntervalHrs: parseInt(document.getElementById(`interval-${id}`).value)
         };
-        await fetch('/api/admin/update/' + id, {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-            body: JSON.stringify(data)
+        await fetch("/api/admin/update/" + id, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": adminKey,
+          },
+          body: JSON.stringify(data),
         });
-        alert('Збережено!');
-    }
+        alert("Збережено!");
+      }
 
-    async function repostSelected() {
-        if(!confirm(`Опублікувати обрані (${selectedIds.size} шт.)?`)) return;
-        await fetch('/api/admin/repost-batch', {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-            body: JSON.stringify({ ids: Array.from(selectedIds) })
+      async function repostSelected() {
+        if (!confirm(`Опублікувати обрані (${selectedIds.size} шт.)?`)) return;
+        await fetch("/api/admin/repost-batch", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": adminKey,
+          },
+          body: JSON.stringify({ ids: Array.from(selectedIds) }),
         });
-        alert('🚀 Опубліковано!'); 
+        alert("🚀 Опубліковано!");
         location.reload();
-    }
+      }
 
-    async function deleteAd(id) {
-        if(confirm('Видалити?')) {
-            await fetch('/api/admin/delete/'+id, { method:'DELETE', headers:{'x-admin-key':adminKey} });
-            document.getElementById('card-'+id).remove();
+      async function deleteAd(id) {
+        if (confirm("Видалити?")) {
+          await fetch("/api/admin/delete/" + id, {
+            method: "DELETE",
+            headers: { "x-admin-key": adminKey },
+          });
+          document.getElementById("card-" + id).remove();
         }
-    }
+      }
 
-    async function showBannersEditor() {
+      async function showBannersEditor() {
         const title = prompt("Назва компанії/послуги:");
         if (!title) return;
         const content = prompt("Короткий рекламний текст:");
         const link = prompt("Куди веде (напр. tel:+380... або посилання):");
-        await fetch('/api/admin/banners/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-            body: JSON.stringify({ title, content, link })
+        await fetch("/api/admin/banners/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": adminKey,
+          },
+          body: JSON.stringify({ title, content, link }),
         });
         location.reload();
-    }
+      }
 
-    async function updateBanner(id) {
+      async function updateBanner(id) {
         const data = {
-            _id: id,
-            title: document.getElementById(`btitle-${id}`).value,
-            content: document.getElementById(`bcont-${id}`).value,
-            link: document.getElementById(`blink-${id}`).value
+          _id: id,
+          title: document.getElementById(`btitle-${id}`).value,
+          content: document.getElementById(`bcont-${id}`).value,
+          link: document.getElementById(`blink-${id}`).value,
         };
-        await fetch('/api/admin/banners/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
-            body: JSON.stringify(data)
+        await fetch("/api/admin/banners/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": adminKey,
+          },
+          body: JSON.stringify(data),
         });
-        alert('✅ Оновлено!');
-    }
+        alert("✅ Оновлено!");
+      }
 
-    async function deleteBanner(id) {
-        if (!confirm('Видалити?')) return;
-        await fetch('/api/admin/banners/' + id, { method: 'DELETE', headers: { 'x-admin-key': adminKey } });
+      async function deleteBanner(id) {
+        if (!confirm("Видалити?")) return;
+        await fetch("/api/admin/banners/" + id, {
+          method: "DELETE",
+          headers: { "x-admin-key": adminKey },
+        });
         location.reload();
+      }
+
+      // Додай в кінець <script>
+    // Добавляем функцию сохранения в БД
+async function updateAdLimit(adId, field, value) {
+    try {
+        const res = await fetch('/api/ads/update-limits', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-admin-key': adminKey 
+            },
+            body: JSON.stringify({ 
+                id: adId, 
+                [field]: parseInt(value) 
+            })
+        });
+        
+        if (res.ok) {
+            console.log(`[OK] ${field} оновлено`);
+            // Можно добавить мигание рамки инпута для подтверждения
+            document.getElementById(`${field === 'repostsRemaining' ? 'reposts' : 'interval'}-${adId}`).style.borderColor = 'green';
+        }
+    } catch (err) {
+        console.error('Помилка оновлення:', err);
+        alert('Не вдалося зберегти ліміти');
     }
-    
-</script>
-</body>
+}
+    </script>
+  </body>
 </html>
