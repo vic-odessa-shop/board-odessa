@@ -3,6 +3,7 @@ const { Telegraf, Markup } = require('telegraf');
 const mongoose = require('mongoose');
 const path = require('path');
 const axios = require('axios');
+const { type } = require('os');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,7 @@ mongoose.connect(process.env.MONGO_URI);
 // --- СХЕМА ОБЪЯВЛЕНИЙ ---
 const adSchema = new mongoose.Schema({
     id: String,
+    vacancyInOut: { type:String, default: 'НОВА ВАКАНСІЯ'},
     category: String,
     vacancy: String,
     salary: String,
@@ -114,9 +116,10 @@ bot.start((ctx) => {
 app.get('/api/ads', async (req, res) => {
     try {
         // status: 'active' гарантирует, что мы не тянем черновики
-        const ads = await Ad.find({ status: 'active' })
-                            .sort({ updatedAt: -1 }) // Свежие и репостнутые — сверху
-                            .limit(25);              // Только первые 25 штук
+        // Теперь тянем и активные, и те, что ждут оплаты
+        const ads = await Ad.find({ status: { $in: ['active', 'pending'] } })
+            .sort({ updatedAt: -1 }) // Свежие и репостнутые — сверху
+            .limit(30);              // Только первые 25 штук        
         res.json(ads);
     } catch (err) {
         res.status(500).send(err);
@@ -150,7 +153,7 @@ app.post('/api/ads/create', async (req, res) => {
         if (!t) return res.status(400).json({ error: "Невірний тариф" });
         
         // 2. Получаем карту из ротатора
-        const paymentDetail = await getNextPaymentDetail();
+        const paymentDetail = await getNextPaymentDetail(d.payMethod);
         
         const adId = 'v' + Math.floor(10000 + Math.random() * 90000);
         const newAd = new Ad({
@@ -266,15 +269,21 @@ bot.on('callback_query', async (ctx) => {
         
         if (action === 'paid' && ad) {
             ad.status = 'active';
-            ad.lastRepostDate = new Date(); // Засекаем время первого поста
             await ad.save();
 
             const sent = await sendToTelegram(ad);
             if (sent) {
-                await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n✅ ОПУБЛІКОВАНО ТА АКТИВОВАНО');
+                await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n✅ ОПУБЛІКОВАНО');
+
+                // Уведомляем клиента (если это не 'web' пользователь)
+                if (ad.userId && ad.userId !== 'web') {
+                    bot.telegram.sendMessage(ad.userId, `🎉 Ваше оголошення "${ad.vacancy}" активовано та опубліковано в каналі!`).catch(e => console.log("User notify error:", e));
+                }
             }
         }
-    } catch (e) { console.log(e); }
+
+    }
+    catch (e) { console.log(e); }
 });
 
 

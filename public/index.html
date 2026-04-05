@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta property="og:title" content="Одеса-Борд ⚓ Робота та вакансії в Одесі">
+    <meta property="og:description" content="Знайди роботу або персонал в Одесі швидко. Авто-публікація в Telegram та зручний пошук.">
+    <meta property="og:url" content="https://board-odessa.onrender.com">
+    <meta property="og:type" content="website"> 
     <title>Робота Одеса ⚓</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -113,6 +117,32 @@ html, body {
     opacity: 1 !important;
 }
 
+      /* Стили для модалки помощи */
+     /* Специальный контейнер для помощи */
+.help-modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 450px;
+    /* Ограничиваем высоту, чтобы не вылетало за экран */
+    max-height: 75vh; 
+    /* Включаем вертикальную прокрутку */
+    overflow-y: auto; 
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    border: 1px solid #eee;
+}
+
+/* Красивый скроллбар для мобильных браузеров */
+.help-modal-content::-webkit-scrollbar {
+    width: 5px;
+}
+.help-modal-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
      #payModal {  position: fixed; top:0; left:1200px; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:3000; backdrop-filter: blur(5px); }
     .pay-content { font-size: 13px; background:white; padding:30px; border-radius:25px; width:85%; max-width:400px; text-align: center; }
     
@@ -171,7 +201,7 @@ html, body {
 </div>
 
 <div class="bottom-nav">
-    <a href="javascript:void(0)" class="nav-link" onclick="helpOn()"><span>❓</span><br>Інфо</a>
+    <a href="javascript:void(0)" class="nav-link" onclick="openHelp()"><span>❓</span><br>Інфо</a>
     <a href="create.html" class="nav-link add-btn">➕ ПОДАТИ</a>
     <a href="https://t.me/odessa_smart_job_bot" class="nav-link"><span>👤</span><br>Адмін</a>
 </div>
@@ -183,31 +213,43 @@ html, body {
     </div>
 </div>
 
- <div id="payModal">
-    <div class="pay-content">
-        <h3> Помощь</h3>
-        <div id="payDetails" style="background:#f8f9fa; padding:15px; border-radius:12px; margin:15px 0; font-family:monospace; text-align:left; white-space:pre-wrap;"></div>
-        <button onclick="helpOff()" style="width:100%; padding:15px; background:var(--main); color:rgb(249, 245, 245); border:none; border-radius:12px;">exit</button>
-    </div>
- </div>
+
 
 <script>
+function openHelp() {
+    document.getElementById('modalOverlay').innerHTML = `
+        <div class="help-modal-content">
+            <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver1</h3>
+            
+            <div style="background: #eef7ff; padding: 12px; border-radius: 15px; border-left: 4px solid #007bff; margin-bottom: 15px; font-size: 14px;">
+                🌍 <b>Ми всюди!</b> Оголошення доступні не тільки в Telegram, а й за прямою адресою: 
+                <br><a href="https://board-odessa.onrender.com" target="_blank" style="color:#007bff; font-weight:bold;">board-odessa.onrender.com</a> 
+                <br><i style="font-size: 12px; color: #555;">Це залучає тисячі користувачів з Google, які шукають роботу прямо зараз.</i>
+            </div>
+
+            <p style="font-size:14px;"><b>1. Як подати?</b> Тисніть "+", заповнюйте форму та обирайте зручний спосіб оплати.</p>
+            
+            <p style="font-size:14px;"><b>2. Що таке "Очікує оплати"?</b> Це статус вашого оголошення до моменту підтвердження адміном. Вакансію вже бачать на сайті, але контакти приховані.</p>
+
+            <p style="font-size:14px;"><b>3. Коли публікація в канал?</b> Одразу після вашої оплати та перевірки адміном оголошення стає активним і автоматично летить у наш Telegram-канал.</p>
+
+            <p style="font-size:14px;"><b>4. Авто-підйом:</b> Ваша вакансія не «тоне»! Система сама піднімає її вгору кожні 12 або 24 години (залежно від тарифу).</p>
+
+            <p style="font-size:14px;"><b>5. VIP-статус:</b> Бажаєте бути першим? Обирайте VIP, щоб закріпити вакансію над іншими оголошеннями.</p>
+</p>
+            <button onclick="closeModal()" style="width:100%; margin-top:15px; padding:16px; border-radius:15px; border:none; background:var(--main); color:#fff; font-weight:bold; cursor:pointer;">Зрозуміло!</button>
+        </div>
+    `;
+    document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+
+
 function helpOn() {
      document.getElementById('payModal').style.left = '0px';
 }
 
-function helpOff() {
-     document.getElementById('payModal').style.left = '1200px';
-}
-  let details = ` `;
-    details += `Это смарт доска обьявлений, где можно быстро и удобно найти сотрудника или дать обьявление о поиске вакансии.\n`;
-    details += ` Чтобы увидеть все данные о вакансии, тисніть на картку для деталей. \n
-     Можно делать поиск по специальности или сортировать по категории.\n`;
-     details += `Доска так же доступна из браузера, что увеличивает колличество просмотров. \n
-     Можно попасть на нее по\nhttps://board-odessa.onrender.com.\n`;
 
-    document.getElementById('payDetails').innerText = details;
-    document.getElementById('payModal').style.display = 'flex';
 //  «Секретный переход» в admin.html 5 раз тапнут за 3 сек.
 let adminTaps = 0;
 function checkAdminTaps() {
@@ -297,22 +339,39 @@ function checkAdminTaps() {
     }
 
     ads.forEach(ad => {
-        const isPending = ad.status === 'pending';
-        const isVip = ad.isVip === true || String(ad.isVip) === 'true';
-        const statusLabel = isPending ? '<div style="font-size:10px; color:#ff9800; font-weight:bold; margin-bottom:5px;">⏳ ОЧІКУЄ ОПЛАТИ</div>' : '';
+    const isPending = ad.status === 'pending';
+    const isVip = ad.isVip === true || String(ad.isVip) === 'true';
 
-        const html = `
-            <div class="${isVip ? 'vip-card' : 'simple-vacancy'}" onclick="openAd('${ad.id}')" style="cursor:pointer;">
-                ${isVip ? '<span class="vip-tag">VIP</span>' : ''}
-                ${statusLabel}
-                <div style="font-size:10px; color:#999; font-weight:bold;">${ad.category}</div>
-                <div style="font-weight:bold; font-size:17px; color:#1a1a1a;">${ad.vacancy}</div>
-                <div style="color:#28a745; font-weight:bold; font-size:18px; margin:8px 0;">${ad.salary}</div>
-                <div style="font-size:13px; color:#777;">📍 ${ad.city}</div>
-            </div>`;
+    // 1. Заголовок (Вакансия или Резюме), который мы починили в базе
+    // Если вдруг в старых записях его нет, ставим заглушку "ВАКАНСІЯ"
+    const headerText = ad.vacancyInOut || "НОВА ВАКАНСІЯ";
 
-        if (isVip) vipHtml += html; else mainHtml += html;
-    });
+    // 2. Улучшенная плашка статуса (сделаем её чуть заметнее рамкой)
+    const statusLabel = isPending 
+        ? `<div style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; margin-bottom: 8px; border: 1px solid #ffeeba; display: inline-block;">⏳ ОЧІКУЄ ОПЛАТИ</div>` 
+        : '';
+
+    const html = `
+        <div class="${isVip ? 'vip-card' : 'simple-vacancy'}" 
+             onclick="openAd('${ad.id}')" 
+             style="cursor:pointer; position: relative; ${isPending ? 'border-left: 4px solid #ffc107; opacity: 0.9;' : ''}">
+            
+            ${isVip ? '<span class="vip-tag">VIP</span>' : ''}
+            
+            <div style="font-size: 11px; color: #007bff; font-weight: 800; margin-bottom: 4px; text-transform: uppercase;">
+                ${headerText}
+            </div>
+
+            ${statusLabel}
+
+            <div style="font-size:10px; color:#999; font-weight:bold;">${ad.category}</div>
+            <div style="font-weight:bold; font-size:17px; color:#1a1a1a;">${ad.vacancy}</div>
+            <div style="color:#28a745; font-weight:bold; font-size:18px; margin:8px 0;">${ad.salary}</div>
+            <div style="font-size:13px; color:#777;">📍 ${ad.city}</div>
+        </div>`;
+
+    if (isVip) vipHtml += html; else mainHtml += html;
+});
 
     list.innerHTML = mainHtml;
     if (vipList) {
@@ -326,35 +385,56 @@ function checkAdminTaps() {
 }
 
     function openAd(id) {
-        const ad = allAds.find(a => String(a.id) === String(id));
-        if(!ad) return;
+    const ad = allAds.find(a => String(a.id) === String(id));
+    if(!ad) return;
 
-// ОТПРАВКА ПРОСМОТРА НА СЕРВЕР
+    // ОТПРАВКА ПРОСМОТРА НА СЕРВЕР
     fetch(`/api/ads/view/${id}`, { method: 'POST' }).catch(err => console.log('View count error'));
 
-        const isPending = ad.status === 'pending';
+    const isPending = ad.status === 'pending';
+    
+    // Подхватываем наш динамический заголовок (Вакансия / Шукаю роботу)
+    const headerText = ad.vacancyInOut || "ОГОЛОШЕННЯ";
 
-        document.getElementById('modalBody').innerHTML = `
-            <div style="font-size:11px; color:var(--main); font-weight:bold;">${ad.category}</div>
-            <h2 style="margin:10px 0;">${ad.vacancy}</h2>
-            <div class="salary">${ad.salary}</div>
-            <div style="background:#f8f9fa; padding:15px; border-radius:15px; margin-bottom:15px;">
-                <div style="white-space:pre-wrap; margin-bottom:10px;">${ad.duties}</div>
-                <div style="font-size:14px;">📍 <b>Місто:</b> ${ad.city}</div>
-                <div style="font-size:14px;">🕘 <b>Графік:</b> ${ad.schedule}</div>
-                <div style="font-size:14px;">🏠 <b>Район:</b> ${ad.address}</div>
-            </div>
-            <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:18px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'};">
-                ${isPending 
-                    ? '<p style="margin:0; text-align:center; font-weight:bold; color:#856404;">⌛ Контакти будуть доступні після оплати</p>' 
-                    : `<p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:var(--main); font-weight:bold;">${ad.phone}</a></p>
-                       <p style="margin:10px 0 0; color:#555;">👤 <b>Контакт:</b> ${ad.person}</p>`
-                }
-            </div>
-            <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:#f0f0f0;">Закрити</button>
-        `;
-        document.getElementById('modalOverlay').style.display = 'flex';
-    }
+    document.getElementById('modalBody').innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <div style="font-size: 11px; color: #007bff; font-weight: 800; text-transform: uppercase;">${headerText}</div>
+            <div style="font-size: 11px; color: #999; font-weight: bold;">${ad.category}</div>
+        </div>
+
+        <h2 style="margin: 5px 0 10px 0; font-size: 22px;">${ad.vacancy}</h2>
+        <div class="salary" style="color: #28a745; font-weight: 800; font-size: 20px; margin-bottom: 15px;">${ad.salary}</div>
+
+        <div style="background:#f8f9fa; padding:15px; border-radius:15px; margin-bottom:15px; border: 1px solid #eee;">
+            <div style="white-space:pre-wrap; margin-bottom:12px; line-height: 1.4; color: #333;">${ad.duties}</div>
+            <div style="font-size:14px; margin-bottom: 4px;">📍 <b>Місто:</b> ${ad.city}</div>
+            <div style="font-size:14px; margin-bottom: 4px;">🕘 <b>Графік:</b> ${ad.schedule}</div>
+            <div style="font-size:14px;">🏠 <b>Район:</b> ${ad.address}</div>
+        </div>
+
+        <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:20px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'}; transition: 0.3s;">
+            ${isPending 
+                ? `
+                <div style="text-align:center;">
+                    <p style="margin:0 0 5px 0; font-weight:bold; color:#856404; font-size: 16px;">⌛ Очікує оплати</p>
+                    <p style="margin:0; font-size: 12px; color: #856404; opacity: 0.8;">Контакти з'являться одразу після підтвердження адміном</p>
+                </div>
+                ` 
+                : `
+                <p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:#007bff; font-weight:bold; text-decoration: none;">${ad.phone}</a></p>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    ${ad.telegram ? `<a href="https://t.me/${ad.telegram.replace('@','')}" target="_blank" style="background:#0088cc; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;">Telegram</a>` : ''}
+                    ${ad.viber ? `<a href="viber://chat?number=${ad.viber.replace('+','')}" style="background:#7360f2; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;">Viber</a>` : ''}
+                </div>
+                <p style="margin:10px 0 0; color:#555; font-size: 14px;">👤 <b>Контакт:</b> ${ad.person}</p>
+                `
+            }
+        </div>
+
+        <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:#f0f0f0; font-weight: bold; color: #666; cursor: pointer;">Закрити</button>
+    `;
+    document.getElementById('modalOverlay').style.display = 'flex';
+}
 
     function filterCat(cat, btn) {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
