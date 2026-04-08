@@ -471,7 +471,7 @@ const overlay = document.getElementById("modalOverlay");
 
 body.innerHTML = `
 <div class="help-modal-content">
-            <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver1.7</h3>
+            <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver1.8</h3>
             
             <div style="background: #eef7ff; padding: 12px; border-radius: 15px; border-left: 4px solid #007bff; margin-bottom: 15px; font-size: 14px;">
                 🌍 <b>Ми всюди!</b> Оголошення доступні не тільки в Telegram: <a href="https://t.me/rabota_odessa_smart" target="_blank" style="color:#007bff; font-weight:bold;">rabota_odessa_smart</a>, а й за прямою адресою: 
@@ -708,13 +708,13 @@ body.innerHTML = `
                 <p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:#007bff; font-weight:bold; text-decoration: none;">${ad.phone}</a></p>
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     ${ad.telegram ? `<a href="https://t.me/${ad.telegram.replace(/[@\s]/g, '')}" target="_blank" style="background:#0088cc; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">Telegram</a>` : ''}
-             ${ad.viber ? `
-    <a href="https://msng.link/vi/${ad.viber.replace(/[^0-9]/g, '')}" 
-       target="_blank"
+           ${ad.viber ? `
+    <a href="viber://contact?number=%2B${ad.viber.replace(/[^0-9]/g, '')}" 
        style="background:#7360f2; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold; display: inline-block;">
        Viber
     </a>` : ''
 }
+
 
 
                 </div>
