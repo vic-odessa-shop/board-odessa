@@ -650,16 +650,34 @@
       }
 
   function openAd(id) {
+    // 1. Сначала находим объявление
     const ad = allAds.find(a => String(a.id) === String(id));
-    if(!ad) return;
+    if(!ad) {
+        console.error("Оголошення не знайдено");
+        return;
+    }
 
-    // ОТПРАВКА ПРОСМОТРА НА СЕРВЕР
-    fetch(`/api/ads/view/${id}`, { method: 'POST' }).catch(err => console.log('View count error'));
+    // 2. Находим элементы окна
+    const overlay = document.getElementById('modalOverlay');
+    const body = document.getElementById('modalBody');
+
+    // 3. Проверяем наличие элементов
+    if (!overlay || !body) {
+        console.error("Елементи модалки не знайдені в DOM!");
+        return;
+    }
+
+    // 4. Показываем оверлей ПЕРЕД заполнением данных
+    overlay.style.display = 'flex';
+
+    // 5. Отправляем просмотр
+    fetch(`/api/ads/view/${id}`, { method: 'POST' }).catch(err => {});
 
     const isPending = ad.status === 'pending';
     const headerText = ad.vacancyInOut || "ОГОЛОШЕННЯ";
 
-    document.getElementById('modalBody').innerHTML = `
+    // 6. Заполняем контент
+    body.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
             <div style="font-size: 11px; color: #007bff; font-weight: 800; text-transform: uppercase;">${headerText}</div>
             <div style="font-size: 11px; color: #999; font-weight: bold;">${ad.category}</div>
@@ -675,12 +693,12 @@
             <div style="font-size:14px;">🏠 <b>Район:</b> ${ad.address}</div>
         </div>
 
-        <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:20px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'}; transition: 0.3s;">
+        <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:20px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'};">
             ${isPending 
                 ? `
                 <div style="text-align:center;">
                     <p style="margin:0 0 5px 0; font-weight:bold; color:#856404; font-size: 16px;">⌛ Очікує оплати</p>
-                    <p style="margin:0; font-size: 12px; color: #856404; opacity: 0.8;">Контакти з'являться одразу після підтвердження адміном</p>
+                    <p style="margin:0; font-size: 12px; color: #856404;">Контакти з'являться після підтвердження</p>
                 </div>
                 ` 
                 : `
@@ -694,9 +712,8 @@
             }
         </div>
 
-        <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:#f0f0f0; font-weight: bold; color: #666; cursor: pointer;">Закрити</button>
+        <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:#f0f0f0; font-weight: bold; color: #666;">Закрити</button>
     `;
-    document.getElementById('modalOverlay').style.display = 'flex';
 }
 
 
