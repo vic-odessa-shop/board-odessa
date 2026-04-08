@@ -148,38 +148,68 @@ app.get('/api/banners', async (req, res) => {
 app.post('/api/ads/create', async (req, res) => {
     try {
         const d = req.body;
+
+        // обязательный дубляж для безопасности
+        // Улучшенная проверка на номера телефонов (UA-коды)
+        if (containsForbiddenContact(d.vacancy) || containsForbiddenContact(d.duties)) {
+            return res.status(400).json({
+                error: "Контакти та посилання заборонені в описі. Використовуйте спеціальні поля."
+            });
+        }
+
+
         // 1. Ищем настройки тарифа в базе
         const t = await Tariff.findOne({ id: d.tariff });
         if (!t) return res.status(400).json({ error: "Невірний тариф" });
-        
-        // 2. Получаем карту из ротатора
+
+        // --- ЛОГИКА VIP И ЦЕНЫ (Исправлено) ---
+        // Проверяем, пришла ли галочка VIP от пользователя
+        const userWantsVip = d.isVip === true || d.isVip === 'true';
+
+        // Итоговая цена: цена тарифа + 150, если выбран VIP
+        const finalPrice = t.price + (userWantsVip ? 150 : 0);
+
+        // Итоговый статус VIP: если он есть в тарифе ИЛИ выбран пользователем
+        const finalIsVip = t.isVip || userWantsVip;
+        // ---------------------------------------
+
+        // 2. Получаем карту из ротатора (передаем выбранный метод)
         const paymentDetail = await getNextPaymentDetail(d.payMethod);
-        
+
         const adId = 'v' + Math.floor(10000 + Math.random() * 90000);
         const newAd = new Ad({
             ...d,
             id: adId,
-            isVip: t.isVip,
+            isVip: finalIsVip, // Используем итоговый статус
             status: 'pending',
             repostsRemaining: t.reposts,
-            repostIntervalHrs: t.id === '800' ? 12 : 24, // Например: Турбо - каждые 12ч, остальные - 24ч
+            repostIntervalHrs: t.id === '800' ? 12 : 24,
             expireAt: new Date(Date.now() + t.days * 24 * 60 * 60 * 1000)
         });
         await newAd.save();
-        
-        // 3. Уведомление админу с ценой и картой
+
+        // 3. Уведомление админу (теперь с правильной ценой)
         if (process.env.ADMIN_ID) {
             bot.telegram.sendMessage(process.env.ADMIN_ID,
-                `🆕 ЗАМОВЛЕННЯ: ${adId}\n💰 До сплати: ${t.price} грн\n💳 Карта: ${paymentDetail}`, {
-                    ...Markup.inlineKeyboard([
-                        [Markup.button.callback('✅ Оплачено', `paid_${adId}`)],
-                        [Markup.button.callback('🗑 Видалити', `del_${adId}`)]
-                    ])
-                });
+                `🆕 ЗАМОВЛЕННЯ: ${adId}\n💎 VIP: ${finalIsVip ? 'ТАК' : 'НІ'}\n💰 До сплати: ${finalPrice} грн\n💳 Спосіб: ${d.payMethod}\n📍 Реквізити: ${paymentDetail}`, {
+                ...Markup.inlineKeyboard([
+                    [Markup.button.callback('✅ Оплачено', `paid_${adId}`)],
+                    [Markup.button.callback('🗑 Видалити', `del_${adId}`)]
+                ])
+            });
         }
-        // Возвращаем на сайт реквизиты для клиента
-        res.json({ id: adId, success: true, payment: paymentDetail, price: t.price });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+
+        // Возвращаем на сайт правильные реквизиты и итоговую цену
+        res.json({
+            id: adId,
+            success: true,
+            payment: paymentDetail,
+            price: finalPrice // Отправляем итоговую сумму с учетом VIP
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Отдает только те типы оплаты, которые включены в админке
@@ -332,6 +362,22 @@ setInterval(checkScheduledReposts, 30 * 60 * 1000);
 app.listen(process.env.PORT || 3000, () => {
     bot.launch().catch(err => console.error("TG Error:", err));
 });
+
+
+// Улучшенная проверка на номера телефонов (UA-коды)
+function containsForbiddenContact(text) {
+    if (!text) return false;
+
+    // 1. Поиск украинских мобильных и городских кодов (067, 050, 093, 048 и т.д.)
+    // Ищет комбинации: код + 7 цифр в разных форматах (+380..., 067..., 80...)
+    const phoneRegex = /(?:0|380|\+380|8)\s?\(?(?:50|66|95|99|67|68|96|97|98|63|73|93|44|48)\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/g;
+
+    // 2. Поиск ссылок (http, https, www, .com, .ua, .net и т.д.)
+    // Если решишь запретить ссылки, это выражение их поймает
+    const linkRegex = /(https?:\/\/|www\.|[\w.-]+\.(?:com|ua|net|org|biz|info|me|io))/gi;
+
+    return phoneRegex.test(text) || linkRegex.test(text);
+}
 
 // ANTI-SLEEP
 setInterval(() => { axios.get("https://board-odessa.onrender.com").catch(() => {}); }, 800000);

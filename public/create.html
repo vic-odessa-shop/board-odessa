@@ -59,7 +59,7 @@
 
 
         <div class="form-group"><input type="text" id="vacancy" placeholder="Назва вакансії" required></div>
-        <div class="form-group"><textarea id="duties" placeholder="📋 Опис та обов'язки..." rows="4" required></textarea></div>
+        <div class="form-group"><textarea id="duties" placeholder="📋 Опис та обов'язки... " rows="4" required></textarea></div>
         <div class="form-group"><input type="text" id="schedule" placeholder="🗓 Графік (напр. 2/2)"></div>
         <div class="form-group"><input type="text" id="salary" placeholder="💰 Зарплата (текстом)" required></div>
         <div class="form-group"><input type="text" id="city" placeholder="📍 Місто" value="Одеса"></div>
@@ -108,6 +108,15 @@
 </div>
 
 <script>
+// Улучшенная проверка на номера телефонов (UA-коды)
+function containsForbiddenContact(text) {
+    if (!text) return false;
+    // Регулярка для UA номеров и ссылок
+    const phoneRegex = /(?:0|380|\+380|8)\s?\(?(?:50|66|95|99|67|68|96|97|98|63|73|93|44|48)\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/g;
+    const linkRegex = /(https?:\/\/|www\.|[\w.-]+\.(?:com|ua|net|org|biz|info|me|io))/gi;
+    return phoneRegex.test(text) || linkRegex.test(text);
+}
+
 // Скрипт загрузки методов оплаты    
 async function loadPaymentMethods() {
     try {
@@ -152,7 +161,6 @@ function updateFormLabels(type) {
 }
 
 
-
     const tg = window.Telegram?.WebApp;
     function calcPrice() {
         const base = parseInt(document.getElementById('tariff').value);
@@ -162,6 +170,19 @@ function updateFormLabels(type) {
 
     document.getElementById('addForm').onsubmit = async (e) => {
         e.preventDefault();
+
+        // --- 1. Сначала берем значения для проверки ---
+    const vacancy = document.getElementById('vacancy').value;
+    const duties = document.getElementById('duties').value;
+
+    // --- 2. Сама проверка (вызываем функцию-фильтр) ---
+    if (containsForbiddenContact(vacancy) || containsForbiddenContact(duties)) {
+        alert("❌ Помилка! В описі або заголовку знайдено номер телефону або посилання. Будь ласка, вказуйте контакти ТІЛЬКИ у відповідних полях.");
+        // Важно: здесь НЕ блокируем кнопку, просто выходим из функции
+        return; 
+    }
+
+    // --- 3. Если проверка пройдена, блокируем кнопку и идем дальше ---
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
 
