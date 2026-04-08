@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Подати оголошення ⚓</title>
+    <title>Подати оголошення V.2.1⚓</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --main: #007bff; --bg: #f4f6f9; --text: #222; --gold: #ffc107; }
@@ -64,7 +64,10 @@
         <div class="form-group"><input type="text" id="salary" placeholder="💰 Зарплата (текстом)" required></div>
         <div class="form-group"><input type="text" id="city" placeholder="📍 Місто" value="Одеса"></div>
         <div class="form-group"><input type="text" id="address" placeholder="🏠 Адреса або Район"></div>
-        <div class="form-group"><input type="text" inputmode="decimal"  id="phone" placeholder="📞 Телефон" required></div>
+        <div class="form-group">
+    <input type="tel" inputmode="tel" id="phone" placeholder="📞 Телефон (напр. 067...)" required>
+</div>
+
         
         <div style="display:flex; gap:10px;" class="form-group">
             <input type="text" id="tg_user" placeholder="✈️ TG @">
