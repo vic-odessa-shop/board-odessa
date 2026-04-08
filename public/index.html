@@ -1,225 +1,474 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta property="og:title" content="Одеса-Борд ⚓ Робота та вакансії в Одесі">
-    <meta property="og:description" content="Знайди роботу або персонал в Одесі швидко. Авто-публікація в Telegram та зручний пошук.">
-    <meta property="og:url" content="https://board-odessa.onrender.com">
-    <meta property="og:type" content="website"> 
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta
+      property="og:title"
+      content="Одеса-Борд ⚓ Робота та вакансії в Одесі"
+    />
+    <meta
+      property="og:description"
+      content="Знайди роботу або персонал в Одесі швидко. Авто-публікація в Telegram та зручний пошук."
+    />
+    <meta property="og:url" content="https://board-odessa.onrender.com" />
+    <meta property="og:type" content="website" />
     <title>Робота Одеса ⚓</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-    /* Чтобы рекламные карточки не падали вниз, а шли в ряд */
-#promoList {
-    display: flex !important; /* Принудительно в ряд */
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 12px;
- /*   padding-bottom: 10px;  */
-}
-#promoList::-webkit-scrollbar { display: none; } /* Прячем полосу прокрутки */
+      /* Чтобы рекламные карточки не падали вниз, а шли в ряд */
+      #promoList {
+        display: flex !important; /* Принудительно в ряд */
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 12px;
+        /*   padding-bottom: 10px;  */
+      }
+      #promoList::-webkit-scrollbar {
+        display: none;
+      } /* Прячем полосу прокрутки */
 
-.promo-card {
-    flex: 0 0 240px; /* Запрещаем сжиматься, ширина 240px */
-    scroll-snap-align: start;
-}
+      .promo-card {
+        flex: 0 0 240px; /* Запрещаем сжиматься, ширина 240px */
+        scroll-snap-align: start;
+      }
 
-    
-    
-        :root { --main: #007bff; --bg: #f4f6f9; --text: #1a1a1a; --gold: #ffc107; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding-bottom: 90px; overflow-x: hidden; }
-        
-        header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 2px 15px; text-align: center; border-radius: 0 0 25px 25px; }
-        .logo-text { font-size: 24px; font-weight: 800; font-style: italic; }
-        
-        .search-panel { position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 7px; }
-        .search-box { display: flex; gap: 8px; background: white; padding: 5px; border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; margin: 0 10px; }
-        .search-box input { flex: 1; border: none; padding: 1px 15px; outline: none; font-size: 13px; border-radius: 30px; }
-        .btn-search { background: var(--main); color: white; border: none; width: 25px; height: 25px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+      :root {
+        --main: #007bff;
+        --bg: #f4f6f9;
+        --text: #1a1a1a;
+        --gold: #ffc107;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, sans-serif;
+        margin: 0;
+        padding-bottom: 90px;
+        overflow-x: hidden;
+      }
 
-        /* СЛАЙДЕРЫ (Меню и VIP) */
-        /* 1. СЛАЙДЕРЫ (Категории и VIP) */
-.slider-wrapper { 
-    display: flex !important; 
-    gap: 12px; 
-    padding: 5px 15px; 
-    overflow-x: auto !important; 
-    -webkit-overflow-scrolling: touch !important;
-    touch-action: pan-x !important; /* Важно для скролла пальцем */
-    scrollbar-width: none; /* Скрываем полосу в Firefox */
-}
-.slider-wrapper::-webkit-scrollbar { display: none; } /* Скрываем полосу в Chrome/Safari */
+      header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 2px 15px;
+        text-align: center;
+        border-radius: 0 0 25px 25px;
+      }
+      .logo-text {
+        font-size: 24px;
+        font-weight: 800;
+        font-style: italic;
+      }
 
-/* 2. ОБЫЧНЫЕ КАРТОЧКИ */
-.ad-card { 
-    display: block !important; 
-    background: white; 
-    border-radius: 20px; 
-    padding: 18px; 
-    margin-bottom: 15px; 
-    border: 1px solid #eaeaea;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    color: #1a1a1a;
-}
+      .search-panel {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--bg);
+        padding: 7px;
+      }
+      .search-box {
+        display: flex;
+        gap: 8px;
+        background: white;
+        padding: 5px;
+        border-radius: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        border: 1px solid #eee;
+        margin: 0 10px;
+      }
+      .search-box input {
+        flex: 1;
+        border: none;
+        padding: 1px 15px;
+        outline: none;
+        font-size: 13px;
+        border-radius: 30px;
+      }
+      .btn-search {
+        background: var(--main);
+        color: white;
+        border: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+      }
 
-/* 3. VIP КАРТОЧКИ (в слайдере) */
-.vip-card { 
-    min-width: 240px; 
-    background: #fffdf0; 
-    border: 2px solid var(--gold); 
-    border-radius: 18px; 
-    padding: 15px; 
-    position: relative; 
-    flex-shrink: 0; 
-}
+      /* СЛАЙДЕРЫ (Меню и VIP) */
+      /* 1. СЛАЙДЕРЫ (Категории и VIP) */
+      .slider-wrapper {
+        display: flex !important;
+        gap: 12px;
+        padding: 5px 15px;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-x !important; /* Важно для скролла пальцем */
+        scrollbar-width: none; /* Скрываем полосу в Firefox */
+      }
+      .slider-wrapper::-webkit-scrollbar {
+        display: none;
+      } /* Скрываем полосу в Chrome/Safari */
 
+      /* 2. ОБЫЧНЫЕ КАРТОЧКИ */
+      .ad-card {
+        display: block !important;
+        background: white;
+        border-radius: 20px;
+        padding: 18px;
+        margin-bottom: 15px;
+        border: 1px solid #eaeaea;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+        color: #1a1a1a;
+      }
 
-        .cat-btn { background: white; border: 1px solid #ddd; padding: 10px 18px; border-radius: 20px; white-space: nowrap; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .cat-btn.active { background: var(--main); color: white; border-color: var(--main); }
+      /* 3. VIP КАРТОЧКИ (в слайдере) */
+      .vip-card {
+        min-width: 240px;
+        background: #fffdf0;
+        border: 2px solid var(--gold);
+        border-radius: 18px;
+        padding: 15px;
+        position: relative;
+        flex-shrink: 0;
+      }
 
-        .vip-panel { background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
-        .vip-card { min-width: 240px; background: #fffdf0; border: 2px solid var(--gold); border-radius: 18px; padding: 15px; position: relative; flex-shrink: 0; cursor: pointer; }
-        .vip-tag { position: absolute; top: 10px; right: 10px; background: var(--gold); color: #856404; font-size: 9px; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
+      .cat-btn {
+        background: white;
+        border: 1px solid #ddd;
+        padding: 10px 18px;
+        border-radius: 20px;
+        white-space: nowrap;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .cat-btn.active {
+        background: var(--main);
+        color: white;
+        border-color: var(--main);
+      }
 
-        .container { padding: 0 15px; min-height: 300px; }
-        
-        .salary { color: #28a745; font-weight: 800; font-size: 20px; margin: 8px 0; }
-        
-        .promo-item { background: #fff3cd; border: 1px dashed #ffc107; padding: 12px; border-radius: 15px; text-align: center; font-size: 13px; margin-bottom: 15px; }
+      .vip-panel {
+        background: #fff;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+      }
+      .vip-card {
+        min-width: 240px;
+        background: #fffdf0;
+        border: 2px solid var(--gold);
+        border-radius: 18px;
+        padding: 15px;
+        position: relative;
+        flex-shrink: 0;
+        cursor: pointer;
+      }
+      .vip-tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--gold);
+        color: #856404;
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 5px;
+        font-weight: bold;
+      }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
-        .nav-link { text-decoration: none; color: #777; font-size: 11px; text-align: center; }
-        .add-btn { background: var(--main); color: white !important; padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-top: -8px; }
+      .container {
+        padding: 0 15px;
+        min-height: 300px;
+      }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; width: 90%; max-height: 85%; border-radius: 25px; padding: 25px; position: relative; overflow-y: auto; }
-        
+      .salary {
+        color: #28a745;
+        font-weight: 800;
+        font-size: 20px;
+        margin: 8px 0;
+      }
 
+      .promo-item {
+        background: #fff3cd;
+        border: 1px dashed #ffc107;
+        padding: 12px;
+        border-radius: 15px;
+        text-align: center;
+        font-size: 13px;
+        margin-bottom: 15px;
+      }
 
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        display: flex;
+        justify-content: space-around;
+        padding: 12px 0;
+        border-top: 1px solid #eee;
+        z-index: 1000;
+      }
+      .nav-link {
+        text-decoration: none;
+        color: #777;
+        font-size: 11px;
+        text-align: center;
+      }
+      .add-btn {
+        background: var(--main);
+        color: white !important;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        margin-top: -8px;
+      }
 
-/* Разблокировка вертикального скролла */
-html, body {
-    touch-action: pan-y !important;
-    -webkit-overflow-scrolling: touch !important;
-}
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(4px);
+      }
+      .modal-content {
+        background: white;
+        width: 90%;
+        max-height: 85%;
+        border-radius: 25px;
+        padding: 25px;
+        position: relative;
+        overflow-y: auto;
+      }
 
+      /* Разблокировка вертикального скролла */
+      html,
+      body {
+        touch-action: pan-y !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
 
-.simple-vacancy {
-    display: block !important;
-    background: white !important;
-    border-radius: 20px !important;
-    padding: 18px !important;
-    margin-bottom: 15px !important;
-    border: 1px solid #eee !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03) !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+      .simple-vacancy {
+        display: block !important;
+        background: white !important;
+        border-radius: 20px !important;
+        padding: 18px !important;
+        margin-bottom: 15px !important;
+        border: 1px solid #eee !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
 
       /* Стили для модалки помощи */
-     /* Специальный контейнер для помощи */
-.help-modal-content {
-    background: white;
-    padding: 25px;
-    border-radius: 24px;
-    width: 90%;
-    max-width: 450px;
-    /* Ограничиваем высоту, чтобы не вылетало за экран */
-    max-height: 75vh; 
-    /* Включаем вертикальную прокрутку */
-    overflow-y: auto; 
-    position: relative;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    border: 1px solid #eee;
-}
+      /* Специальный контейнер для помощи */
+      .help-modal-content {
+        background: white;
+        padding: 25px;
+        border-radius: 24px;
+        width: 90%;
+        max-width: 450px;
+        /* Ограничиваем высоту, чтобы не вылетало за экран */
+        max-height: 75vh;
+        /* Включаем вертикальную прокрутку */
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        border: 1px solid #eee;
+      }
 
-/* Красивый скроллбар для мобильных браузеров */
-.help-modal-content::-webkit-scrollbar {
-    width: 5px;
-}
-.help-modal-content::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-}
+      /* Красивый скроллбар для мобильных браузеров */
+      .help-modal-content::-webkit-scrollbar {
+        width: 5px;
+      }
+      .help-modal-content::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+      }
 
-     #payModal {  position: fixed; top:0; left:1200px; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:3000; backdrop-filter: blur(5px); }
-    .pay-content { font-size: 13px; background:white; padding:30px; border-radius:25px; width:85%; max-width:400px; text-align: center; }
-    
-</style>
-</head>
-<body>
+      #payModal {
+        position: fixed;
+        top: 0;
+        left: 1200px;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+        z-index: 3000;
+        backdrop-filter: blur(5px);
+      }
+      .pay-content {
+        font-size: 13px;
+        background: white;
+        padding: 30px;
+        border-radius: 25px;
+        width: 85%;
+        max-width: 400px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div
+        onclick="checkAdminTaps()"
+        style="user-select: none; cursor: pointer"
+        class="logo-text"
+      >
+        ⚓ РОБОТА ОДЕСА ⚓
+      </div>
+    </header>
 
-<header>
-    <div onclick="checkAdminTaps()"  style="user-select:none; cursor:pointer;" class="logo-text">⚓ РОБОТА ОДЕСА ⚓</div>
-</header>
-
-<div class="search-panel">
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Пошук вакансії...">
+    <div class="search-panel">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Пошук вакансії..." />
         <button class="btn-search" onclick="searchAds()">🔍</button>
-    </div>
-</div>
-
-<div class="slider-wrapper drag-scroll" id="catList">
-    <button class="cat-btn active" onclick="filterCat('Усі', this)">Усі вакансії</button>
-    <button class="cat-btn" onclick="filterCat('Автобізнес - Сервісне обслуговування', this)">🚗 Автобізнес</button>
-    <button class="cat-btn" onclick="filterCat('Банки, Фінанси', this)">💰 Банки / Фінанси</button>
-    <button class="cat-btn" onclick="filterCat('Медицина, фармацевтика', this)">💊 Медицина</button>
-    <button class="cat-btn" onclick="filterCat('Нерухомість', this)">🏠 Нерухомість</button>
-    <button class="cat-btn" onclick="filterCat('IT, комп\'ютери, інтернет', this)">💻 IT / Інтернет</button>
-    <button class="cat-btn" onclick="filterCat('Охорона - Безпека', this)">🛡️ Охорона</button>
-    <button class="cat-btn" onclick="filterCat('Клінінг', this)">🧹 Клінінг</button>
-    <button class="cat-btn" onclick="filterCat('Ресторани - Кафе', this)">🍕 Ресторани / Кафе</button>
-    <button class="cat-btn" onclick="filterCat('Ремонт', this)">🛠️ Ремонт</button>
-    <button class="cat-btn" onclick="filterCat('Торгівля', this)">🛒 Торгівля</button>
-    <button class="cat-btn" onclick="filterCat('Інше', this)">📁 Інше</button>
-</div>
-
-<div class="container">
-    <div class="promo-container" id="promoList">
-        <div class="promo-item">📢 <b>РЕКЛАМА №1:</b> Найкращі кав'ярні міста!</div>
+      </div>
     </div>
 
-<div id="promoSection" style="display:none; margin-bottom: 5px;">
-    <div style="padding:0 15px; margin-bottom:10px;">
-        <span style="font-weight:bold; color:#888; font-size:12px; letter-spacing:1px;">🔥 НАШІ ПАРТНЕРИ</span>
+    <div class="slider-wrapper drag-scroll" id="catList">
+      <button class="cat-btn active" onclick="filterCat('Усі', this)">
+        Усі вакансії
+      </button>
+      <button
+        class="cat-btn"
+        onclick="filterCat('Автобізнес - Сервісне обслуговування', this)"
+      >
+        🚗 Автобізнес
+      </button>
+      <button class="cat-btn" onclick="filterCat('Банки, Фінанси', this)">
+        💰 Банки / Фінанси
+      </button>
+      <button
+        class="cat-btn"
+        onclick="filterCat('Медицина, фармацевтика', this)"
+      >
+        💊 Медицина
+      </button>
+      <button class="cat-btn" onclick="filterCat('Нерухомість', this)">
+        🏠 Нерухомість
+      </button>
+      <button
+        class="cat-btn"
+        onclick="filterCat('IT, комп\'ютери, інтернет', this)"
+      >
+        💻 IT / Інтернет
+      </button>
+      <button class="cat-btn" onclick="filterCat('Охорона - Безпека', this)">
+        🛡️ Охорона
+      </button>
+      <button class="cat-btn" onclick="filterCat('Клінінг', this)">
+        🧹 Клінінг
+      </button>
+      <button class="cat-btn" onclick="filterCat('Ресторани - Кафе', this)">
+        🍕 Ресторани / Кафе
+      </button>
+      <button class="cat-btn" onclick="filterCat('Ремонт', this)">
+        🛠️ Ремонт
+      </button>
+      <button class="cat-btn" onclick="filterCat('Торгівля', this)">
+        🛒 Торгівля
+      </button>
+      <button class="cat-btn" onclick="filterCat('Інше', this)">📁 Інше</button>
     </div>
-    <div id="promoList" style="display:flex; overflow-x:auto; gap:12px; padding:0 15px; scrollbar-width:none;">
+
+    <div class="container">
+      <div class="promo-container" id="promoList">
+        <div class="promo-item">
+          📢 <b>РЕКЛАМА №1:</b> Найкращі кав'ярні міста!
         </div>
-</div>
+      </div>
 
+      <div id="promoSection" style="display: none; margin-bottom: 5px">
+        <div style="padding: 0 15px; margin-bottom: 10px">
+          <span
+            style="
+              font-weight: bold;
+              color: #888;
+              font-size: 12px;
+              letter-spacing: 1px;
+            "
+            >🔥 НАШІ ПАРТНЕРИ</span
+          >
+        </div>
+        <div
+          id="promoList"
+          style="
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 0 15px;
+            scrollbar-width: none;
+          "
+        ></div>
+      </div>
 
-
-    <div class="vip-panel" id="vipSection" style="display:none;">
-        <div style="padding:0 15px 0px; font-weight:bold; color:var(--gold); font-size:14px;">⭐ ТОП ПРОПОЗИЦІЇ</div>
+      <div class="vip-panel" id="vipSection" style="display: none">
+        <div
+          style="
+            padding: 0 15px 0px;
+            font-weight: bold;
+            color: var(--gold);
+            font-size: 14px;
+          "
+        >
+          ⭐ ТОП ПРОПОЗИЦІЇ
+        </div>
         <div class="slider-wrapper drag-scroll" id="vipList"></div>
+      </div>
+
+      <h3 style="font-size: 18px; margin: 20px 0 10px 5px">
+        Останні оголошення
+      </h3>
+      <div id="adsList"></div>
     </div>
 
-    <h3 style="font-size:18px; margin: 20px 0 10px 5px;">Останні оголошення</h3>
-    <div id="adsList"></div>
-</div>
+    <div class="bottom-nav">
+      <a href="javascript:void(0)" class="nav-link" onclick="openHelp()"
+        ><span>❓</span><br />Інфо</a
+      >
+      <a href="create.html" class="nav-link add-btn">➕ ПОДАТИ</a>
+      <a href="https://t.me/odessa_smart_job_bot" class="nav-link"
+        ><span>👤</span><br />Адмін</a
+      >
+    </div>
 
-<div class="bottom-nav">
-    <a href="javascript:void(0)" class="nav-link" onclick="openHelp()"><span>❓</span><br>Інфо</a>
-    <a href="create.html" class="nav-link add-btn">➕ ПОДАТИ</a>
-    <a href="https://t.me/odessa_smart_job_bot" class="nav-link"><span>👤</span><br>Адмін</a>
-</div>
- 
-<div id="modalOverlay" class="modal" onclick="closeModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <span onclick="closeModal()" style="position:absolute; top:20px; right:25px; font-size:30px; color:#bbb; cursor:pointer;">&times;</span>
+    <div id="modalOverlay" class="modal" onclick="closeModal()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <span
+          onclick="closeModal()"
+          style="
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 30px;
+            color: #bbb;
+            cursor: pointer;
+          "
+          >&times;</span
+        >
         <div id="modalBody"></div>
+      </div>
     </div>
-</div>
 
-
-
-<script>
-function openHelp() {
-    document.getElementById('modalOverlay').innerHTML = `
+    <script>
+      function openHelp() {
+        document.getElementById("modalOverlay").innerHTML = `
         <div class="help-modal-content">
-            <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver1.1</h3>
+            <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver1.2</h3>
             
             <div style="background: #eef7ff; padding: 12px; border-radius: 15px; border-left: 4px solid #007bff; margin-bottom: 15px; font-size: 14px;">
                 🌍 <b>Ми всюди!</b> Оголошення доступні не тільки в Telegram: <a href="https://t.me/rabota_odessa_smart" target="_blank" style="color:#007bff; font-weight:bold;">rabota_odessa_smart</a>, а й за прямою адресою: 
@@ -240,123 +489,138 @@ function openHelp() {
             <button onclick="closeModal()" style="width:100%; margin-top:15px; padding:16px; border-radius:15px; border:none; background:var(--main); color:#fff; font-weight:bold; cursor:pointer;">Зрозуміло!</button>
         </div>
     `;
-    document.getElementById('modalOverlay').style.display = 'flex';
-}
+        document.getElementById("modalOverlay").style.display = "flex";
+      }
 
+      function helpOn() {
+        document.getElementById("payModal").style.left = "0px";
+      }
 
+      //  «Секретный переход» в admin.html 5 раз тапнут за 3 сек.
+      let adminTaps = 0;
+      function checkAdminTaps() {
+        adminTaps++;
+        if (adminTaps === 5) {
+          window.location.href = "admin.html";
+          adminTaps = 0;
+        }
+        setTimeout(() => (adminTaps = 0), 2000); // Сброс, если нажатия слишком медленные
+      }
 
-function helpOn() {
-     document.getElementById('payModal').style.left = '0px';
-}
+      let allAds = [];
 
-
-//  «Секретный переход» в admin.html 5 раз тапнут за 3 сек.
-let adminTaps = 0;
-function checkAdminTaps() {
-    adminTaps++;
-    if (adminTaps === 5) {
-        window.location.href = 'admin.html';
-        adminTaps = 0;
-    }
-    setTimeout(() => adminTaps = 0, 2000); // Сброс, если нажатия слишком медленные
-}
-
-    let allAds = [];
-
-    function initDragScroll() {
-        const sliders = document.querySelectorAll('.drag-scroll');
-        sliders.forEach(slider => {
-            let isDown = false; let startX; let scrollLeft;
-            slider.addEventListener('mousedown', (e) => {
-                isDown = true; slider.style.cursor = 'grabbing';
-                startX = e.pageX - slider.offsetLeft;
-                scrollLeft = slider.scrollLeft;
-            });
-            slider.addEventListener('mouseleave', () => { isDown = false; });
-            slider.addEventListener('mouseup', () => { isDown = false; });
-            slider.addEventListener('mousemove', (e) => {
-                if(!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - slider.offsetLeft;
-                const walk = (x - startX) * 2;
-                slider.scrollLeft = scrollLeft - walk;
-            });
+      function initDragScroll() {
+        const sliders = document.querySelectorAll(".drag-scroll");
+        sliders.forEach((slider) => {
+          let isDown = false;
+          let startX;
+          let scrollLeft;
+          slider.addEventListener("mousedown", (e) => {
+            isDown = true;
+            slider.style.cursor = "grabbing";
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+          });
+          slider.addEventListener("mouseleave", () => {
+            isDown = false;
+          });
+          slider.addEventListener("mouseup", () => {
+            isDown = false;
+          });
+          slider.addEventListener("mousemove", (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2;
+            slider.scrollLeft = scrollLeft - walk;
+          });
         });
-    }
+      }
 
-    async function loadAds() {
-        await loadBanners(); 
-        const header = document.querySelector('.logo-text');
+      async function loadAds() {
+        await loadBanners();
+        const header = document.querySelector(".logo-text");
         header.innerText = "⚓ ЗАВАНТАЖЕННЯ... ⚓";
         try {
-            const res = await fetch('/api/ads');
-            allAds = await res.json();
-            header.innerText = "⚓ РОБОТА ОДЕСА ⚓";
-            renderAds(allAds);
+          const res = await fetch("/api/ads");
+          allAds = await res.json();
+          header.innerText = "⚓ РОБОТА ОДЕСА ⚓";
+          renderAds(allAds);
         } catch (e) {
-            header.innerText = "⚠️ ПОМИЛКА МЕРЕЖІ";
-            console.error(e);
+          header.innerText = "⚠️ ПОМИЛКА МЕРЕЖІ";
+          console.error(e);
         }
         initDragScroll();
-    }
+      }
 
-    async function loadBanners() {
+      async function loadBanners() {
         try {
-            const res = await fetch('/api/banners');
-            let banners = await res.json();
-            if (banners.length === 0) {
-                banners = [{
-                    title: "⚓ Ваша реклама тут",
-                    content: "Бажаєте залучити клієнтів? Тисніть для зв'язку з адміном!",
-                    link: "https://t.me/odessa_smart_job_bot" 
-                }];
-            }
-            banners.sort(() => Math.random() - 0.5);
-            const list = document.getElementById('promoList');
-            list.innerHTML = banners.map(b => `
+          const res = await fetch("/api/banners");
+          let banners = await res.json();
+          if (banners.length === 0) {
+            banners = [
+              {
+                title: "⚓ Ваша реклама тут",
+                content:
+                  "Бажаєте залучити клієнтів? Тисніть для зв'язку з адміном!",
+                link: "https://t.me/odessa_smart_job_bot",
+              },
+            ];
+          }
+          banners.sort(() => Math.random() - 0.5);
+          const list = document.getElementById("promoList");
+          list.innerHTML = banners
+            .map(
+              (b) => `
                 <div class="promo-card" onclick="window.open('${b.link}', '_blank')" 
                      style="background: white; padding:18px; border-radius:20px; border:1px solid #bbdefb; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor:pointer;">
                     <div style="font-size:9px; color:#1976d2; font-weight:bold; margin-bottom:8px; opacity:0.7;">📢 РЕКЛАМНА ПРОПОЗИЦІЯ</div>
                     <div style="font-weight:bold; font-size:17px; color:#0d47a1; margin-bottom:6px;">${b.title}</div>
                     <div style="font-size:13px; color:#444; line-height:1.4;">${b.content}</div>
                 </div>
-            `).join('');
-            document.getElementById('promoSection').style.display = 'block';
-        } catch (e) { console.log("Ошибка рекламы", e); }
-    }
+            `,
+            )
+            .join("");
+          document.getElementById("promoSection").style.display = "block";
+        } catch (e) {
+          console.log("Ошибка рекламы", e);
+        }
+      }
 
-    // ВОТ ЭТУ ФУНКЦИЮ МЫ ВОЗВРАЩАЕМ:
-    function renderAds(ads) {
-    const list = document.getElementById('adsList');
-    const vipList = document.getElementById('vipList');
-    const vipSection = document.getElementById('vipSection');
-    let mainHtml = ''; let vipHtml = '';
+      // ВОТ ЭТУ ФУНКЦИЮ МЫ ВОЗВРАЩАЕМ:
+      function renderAds(ads) {
+        const list = document.getElementById("adsList");
+        const vipList = document.getElementById("vipList");
+        const vipSection = document.getElementById("vipSection");
+        let mainHtml = "";
+        let vipHtml = "";
 
-    if (!ads || ads.length === 0) {
-        list.innerHTML = '<p style="text-align:center; padding:20px;">Вакансій не знайдено</p>';
-        if(vipSection) vipSection.style.display = 'none';
-        return;
-    }
+        if (!ads || ads.length === 0) {
+          list.innerHTML =
+            '<p style="text-align:center; padding:20px;">Вакансій не знайдено</p>';
+          if (vipSection) vipSection.style.display = "none";
+          return;
+        }
 
-    ads.forEach(ad => {
-    const isPending = ad.status === 'pending';
-    const isVip = ad.isVip === true || String(ad.isVip) === 'true';
+        ads.forEach((ad) => {
+          const isPending = ad.status === "pending";
+          const isVip = ad.isVip === true || String(ad.isVip) === "true";
 
-    // 1. Заголовок (Вакансия или Резюме), который мы починили в базе
-    // Если вдруг в старых записях его нет, ставим заглушку "ВАКАНСІЯ"
-    const headerText = ad.vacancyInOut || "НОВА ВАКАНСІЯ";
+          // 1. Заголовок (Вакансия или Резюме), который мы починили в базе
+          // Если вдруг в старых записях его нет, ставим заглушку "ВАКАНСІЯ"
+          const headerText = ad.vacancyInOut || "НОВА ВАКАНСІЯ";
 
-    // 2. Улучшенная плашка статуса (сделаем её чуть заметнее рамкой)
-    const statusLabel = isPending 
-        ? `<div style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; margin-bottom: 8px; border: 1px solid #ffeeba; display: inline-block;">⏳ ОЧІКУЄ ОПЛАТИ</div>` 
-        : '';
+          // 2. Улучшенная плашка статуса (сделаем её чуть заметнее рамкой)
+          const statusLabel = isPending
+            ? `<div style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; margin-bottom: 8px; border: 1px solid #ffeeba; display: inline-block;">⏳ ОЧІКУЄ ОПЛАТИ</div>`
+            : "";
 
-    const html = `
-        <div class="${isVip ? 'vip-card' : 'simple-vacancy'}" 
+          const html = `
+        <div class="${isVip ? "vip-card" : "simple-vacancy"}" 
              onclick="openAd('${ad.id}')" 
-             style="cursor:pointer; position: relative; ${isPending ? 'border-left: 4px solid #ffc107; opacity: 0.9;' : ''}">
+             style="cursor:pointer; position: relative; ${isPending ? "border-left: 4px solid #ffc107; opacity: 0.9;" : ""}">
             
-            ${isVip ? '<span class="vip-tag">VIP</span>' : ''}
+            ${isVip ? '<span class="vip-tag">VIP</span>' : ""}
             
             <div style="font-size: 11px; color: #007bff; font-weight: 800; margin-bottom: 4px; text-transform: uppercase;">
                 ${headerText}
@@ -370,33 +634,36 @@ function checkAdminTaps() {
             <div style="font-size:13px; color:#777;">📍 ${ad.city}</div>
         </div>`;
 
-    if (isVip) vipHtml += html; else mainHtml += html;
-});
+          if (isVip) vipHtml += html;
+          else mainHtml += html;
+        });
 
-    list.innerHTML = mainHtml;
-    if (vipList) {
-        vipList.innerHTML = vipHtml;
-        if (vipHtml) {
+        list.innerHTML = mainHtml;
+        if (vipList) {
+          vipList.innerHTML = vipHtml;
+          if (vipHtml) {
             startVipRotation(); // ЗАПУСК РОТАТОРА
             initVipInteraction(); // ВКЛЮЧЕНИЕ ПАУЗЫ
+          }
         }
-    }
-    if (vipSection) vipSection.style.display = vipHtml ? 'block' : 'none';
-}
+        if (vipSection) vipSection.style.display = vipHtml ? "block" : "none";
+      }
 
-    function openAd(id) {
-    const ad = allAds.find(a => String(a.id) === String(id));
-    if(!ad) return;
+      function openAd(id) {
+        const ad = allAds.find((a) => String(a.id) === String(id));
+        if (!ad) return;
 
-    // ОТПРАВКА ПРОСМОТРА НА СЕРВЕР
-    fetch(`/api/ads/view/${id}`, { method: 'POST' }).catch(err => console.log('View count error'));
+        // ОТПРАВКА ПРОСМОТРА НА СЕРВЕР
+        fetch(`/api/ads/view/${id}`, { method: "POST" }).catch((err) =>
+          console.log("View count error"),
+        );
 
-    const isPending = ad.status === 'pending';
-    
-    // Подхватываем наш динамический заголовок (Вакансия / Шукаю роботу)
-    const headerText = ad.vacancyInOut || "ОГОЛОШЕННЯ";
+        const isPending = ad.status === "pending";
 
-    document.getElementById('modalBody').innerHTML = `
+        // Подхватываем наш динамический заголовок (Вакансия / Шукаю роботу)
+        const headerText = ad.vacancyInOut || "ОГОЛОШЕННЯ";
+
+        document.getElementById("modalBody").innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
             <div style="font-size: 11px; color: #007bff; font-weight: 800; text-transform: uppercase;">${headerText}</div>
             <div style="font-size: 11px; color: #999; font-weight: bold;">${ad.category}</div>
@@ -412,20 +679,41 @@ function checkAdminTaps() {
             <div style="font-size:14px;">🏠 <b>Район:</b> ${ad.address}</div>
         </div>
 
-        <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:20px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'}; transition: 0.3s;">
-            ${isPending 
+        <div style="background:${isPending ? "#fff3cd" : "#e7f3ff"}; padding:20px; border-radius:15px; border:1px solid ${isPending ? "#ffeeba" : "#b8daff"}; transition: 0.3s;">
+            ${
+              isPending
                 ? `
                 <div style="text-align:center;">
                     <p style="margin:0 0 5px 0; font-weight:bold; color:#856404; font-size: 16px;">⌛ Очікує оплати</p>
                     <p style="margin:0; font-size: 12px; color: #856404; opacity: 0.8;">Контакти з'являться одразу після підтвердження адміном</p>
                 </div>
-                ` 
+                `
                 : `
                 <p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:#007bff; font-weight:bold; text-decoration: none;">${ad.phone}</a></p>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    ${ad.telegram ? `<a href="https://t.me/${ad.telegram.replace('@','')}" target="_blank" style="background:#0088cc; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;">Telegram</a>` : ''}
-                    ${ad.viber ? `<a href="viber://chat?number=${ad.viber.replace('+','')}" style="background:#7360f2; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;">Viber</a>` : ''}
-                </div>
+               
+                // Внутри openAd, в блоке где !isPending
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+    ${
+      ad.telegram
+        ? `
+        <a href="https://t.me/${ad.telegram.replace(/[@\s]/g, "")}" 
+           target="_blank" 
+           style="background:#0088cc; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">
+           Telegram
+        </a>`
+        : ""
+    }
+    ${
+      ad.viber
+        ? `
+        <a href="https://viber.click/${ad.viber.replace(/[^0-9]/g, "")}" 
+           target="_blank" 
+           style="background:#7360f2; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">
+           Viber
+        </a>`
+        : ""
+    }
+</div>
                 <p style="margin:10px 0 0; color:#555; font-size: 14px;">👤 <b>Контакт:</b> ${ad.person}</p>
                 `
             }
@@ -433,60 +721,73 @@ function checkAdminTaps() {
 
         <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:#f0f0f0; font-weight: bold; color: #666; cursor: pointer;">Закрити</button>
     `;
-    document.getElementById('modalOverlay').style.display = 'flex';
-}
+        document.getElementById("modalOverlay").style.display = "flex";
+      }
 
-    function filterCat(cat, btn) {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filtered = cat === 'Усі' ? allAds : allAds.filter(a => a.category === cat);
+      function filterCat(cat, btn) {
+        document
+          .querySelectorAll(".cat-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const filtered =
+          cat === "Усі" ? allAds : allAds.filter((a) => a.category === cat);
         renderAds(filtered);
-    }
+      }
 
-    function searchAds() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        renderAds(allAds.filter(a => a.vacancy.toLowerCase().includes(q) || a.city.toLowerCase().includes(q)));
-    }
+      function searchAds() {
+        const q = document.getElementById("searchInput").value.toLowerCase();
+        renderAds(
+          allAds.filter(
+            (a) =>
+              a.vacancy.toLowerCase().includes(q) ||
+              a.city.toLowerCase().includes(q),
+          ),
+        );
+      }
 
-    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+      function closeModal() {
+        document.getElementById("modalOverlay").style.display = "none";
+      }
 
-    loadAds();
+      loadAds();
 
-    // Добавляем логику Ротатора (VIP-панель)
-    let vipRotation;
+      // Добавляем логику Ротатора (VIP-панель)
+      let vipRotation;
 
-function startVipRotation() {
-    const container = document.getElementById('vipList');
-    if (!container || container.children.length < 2) return;
+      function startVipRotation() {
+        const container = document.getElementById("vipList");
+        if (!container || container.children.length < 2) return;
 
-    clearInterval(vipRotation);
-    vipRotation = setInterval(() => {
-        const card = container.querySelector('.vip-card');
-        const cardWidth = card ? card.offsetWidth + 12 : 250; // Ширина карты + gap
+        clearInterval(vipRotation);
+        vipRotation = setInterval(() => {
+          const card = container.querySelector(".vip-card");
+          const cardWidth = card ? card.offsetWidth + 12 : 250; // Ширина карты + gap
 
-        // Если доскроллили до конца — в начало, иначе +1 карточка
-        if (container.scrollLeft + container.offsetWidth >= container.scrollWidth - 5) {
-            container.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-            container.scrollBy({ left: cardWidth, behavior: 'smooth' });
-        }
-    }, 5000); // Крутим каждые 5 секунд
-}
+          // Если доскроллили до конца — в начало, иначе +1 карточка
+          if (
+            container.scrollLeft + container.offsetWidth >=
+            container.scrollWidth - 5
+          ) {
+            container.scrollTo({ left: 0, behavior: "smooth" });
+          } else {
+            container.scrollBy({ left: cardWidth, behavior: "smooth" });
+          }
+        }, 5000); // Крутим каждые 5 секунд
+      }
 
-// Пауза при взаимодействии (чтобы не уезжало из-под пальца)
-function initVipInteraction() {
-    const container = document.getElementById('vipList');
-    if (!container) return;
+      // Пауза при взаимодействии (чтобы не уезжало из-под пальца)
+      function initVipInteraction() {
+        const container = document.getElementById("vipList");
+        if (!container) return;
 
-    const stop = () => clearInterval(vipRotation);
-    const resume = () => startVipRotation();
+        const stop = () => clearInterval(vipRotation);
+        const resume = () => startVipRotation();
 
-    container.addEventListener('mouseenter', stop);
-    container.addEventListener('mouseleave', resume);
-    container.addEventListener('touchstart', stop);
-    container.addEventListener('touchend', () => setTimeout(resume, 3000));
-}
-
-</script>
-</body>
+        container.addEventListener("mouseenter", stop);
+        container.addEventListener("mouseleave", resume);
+        container.addEventListener("touchstart", stop);
+        container.addEventListener("touchend", () => setTimeout(resume, 3000));
+      }
+    </script>
+  </body>
 </html>
