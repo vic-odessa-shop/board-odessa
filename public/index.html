@@ -466,9 +466,12 @@
 
     <script>
       function openHelp() {
-        document.getElementById("modalOverlay").innerHTML = `
-        <div class="help-modal-content">
-            <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver1.4</h3>
+const body = document.getElementById("modalBody");
+const overlay = document.getElementById("modalOverlay");
+
+body.innerHTML = `
+<div class="help-modal-content">
+            <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver1.5</h3>
             
             <div style="background: #eef7ff; padding: 12px; border-radius: 15px; border-left: 4px solid #007bff; margin-bottom: 15px; font-size: 14px;">
                 🌍 <b>Ми всюди!</b> Оголошення доступні не тільки в Telegram: <a href="https://t.me/rabota_odessa_smart" target="_blank" style="color:#007bff; font-weight:bold;">rabota_odessa_smart</a>, а й за прямою адресою: 
