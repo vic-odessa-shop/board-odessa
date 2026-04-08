@@ -649,21 +649,17 @@
         if (vipSection) vipSection.style.display = vipHtml ? "block" : "none";
       }
 
-      function openAd(id) {
-        const ad = allAds.find((a) => String(a.id) === String(id));
-        if (!ad) return;
+  function openAd(id) {
+    const ad = allAds.find(a => String(a.id) === String(id));
+    if(!ad) return;
 
-        // ОТПРАВКА ПРОСМОТРА НА СЕРВЕР
-        fetch(`/api/ads/view/${id}`, { method: "POST" }).catch((err) =>
-          console.log("View count error"),
-        );
+    // ОТПРАВКА ПРОСМОТРА НА СЕРВЕР
+    fetch(`/api/ads/view/${id}`, { method: 'POST' }).catch(err => console.log('View count error'));
 
-        const isPending = ad.status === "pending";
+    const isPending = ad.status === 'pending';
+    const headerText = ad.vacancyInOut || "ОГОЛОШЕННЯ";
 
-        // Подхватываем наш динамический заголовок (Вакансия / Шукаю роботу)
-        const headerText = ad.vacancyInOut || "ОГОЛОШЕННЯ";
-
-        document.getElementById("modalBody").innerHTML = `
+    document.getElementById('modalBody').innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
             <div style="font-size: 11px; color: #007bff; font-weight: 800; text-transform: uppercase;">${headerText}</div>
             <div style="font-size: 11px; color: #999; font-weight: bold;">${ad.category}</div>
@@ -679,40 +675,20 @@
             <div style="font-size:14px;">🏠 <b>Район:</b> ${ad.address}</div>
         </div>
 
-        <div style="background:${isPending ? "#fff3cd" : "#e7f3ff"}; padding:20px; border-radius:15px; border:1px solid ${isPending ? "#ffeeba" : "#b8daff"}; transition: 0.3s;">
-            ${
-              isPending
+        <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:20px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'}; transition: 0.3s;">
+            ${isPending 
                 ? `
                 <div style="text-align:center;">
                     <p style="margin:0 0 5px 0; font-weight:bold; color:#856404; font-size: 16px;">⌛ Очікує оплати</p>
                     <p style="margin:0; font-size: 12px; color: #856404; opacity: 0.8;">Контакти з'являться одразу після підтвердження адміном</p>
                 </div>
-                `
+                ` 
                 : `
                 <p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:#007bff; font-weight:bold; text-decoration: none;">${ad.phone}</a></p>
-
-          <div style="display: flex; gap: 10px; margin-top: 10px;">
-    ${
-      ad.telegram
-        ? `
-        <a href="https://t.me/${ad.telegram.replace(/[@\s]/g, "")}" 
-           target="_blank" 
-           style="background:#0088cc; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">
-           Telegram
-        </a>`
-        : ""
-    }
-    ${
-      ad.viber
-        ? `
-        <a href="https://viber.click/${ad.viber.replace(/[^0-9]/g, "")}" 
-           target="_blank" 
-           style="background:#7360f2; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">
-           Viber
-        </a>`
-        : ""
-    }
-</div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    ${ad.telegram ? `<a href="https://t.me/${ad.telegram.replace(/[@\s]/g, '')}" target="_blank" style="background:#0088cc; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">Telegram</a>` : ''}
+                    ${ad.viber ? `<a href="https://viber.click/${ad.viber.replace(/[^0-9]/g, '')}" target="_blank" style="background:#7360f2; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">Viber</a>` : ''}
+                </div>
                 <p style="margin:10px 0 0; color:#555; font-size: 14px;">👤 <b>Контакт:</b> ${ad.person}</p>
                 `
             }
@@ -720,8 +696,9 @@
 
         <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:#f0f0f0; font-weight: bold; color: #666; cursor: pointer;">Закрити</button>
     `;
-        document.getElementById("modalOverlay").style.display = "flex";
-      }
+    document.getElementById('modalOverlay').style.display = 'flex';
+}
+
 
       function filterCat(cat, btn) {
         document
