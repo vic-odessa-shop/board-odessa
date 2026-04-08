@@ -708,7 +708,7 @@ body.innerHTML = `
                 <p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:#007bff; font-weight:bold; text-decoration: none;">${ad.phone}</a></p>
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     ${ad.telegram ? `<a href="https://t.me/${ad.telegram.replace(/[@\s]/g, '')}" target="_blank" style="background:#0088cc; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">Telegram</a>` : ''}
-         ${ad.viber ? `
+         
    ${ad.viber ? `
     <a href="https://viber.click/${ad.viber.replace(/[^0-9]/g, '')}" 
        target="_blank" 
