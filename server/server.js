@@ -296,22 +296,50 @@ app.post('/api/admin/update/:id', async (req, res) => {
 
 async function sendToTelegram(ad) {
     try {
-        const text = `⚓ *${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : `${ ad.vacancyInOut }`}* ⚓\n\n` +
+        // 1. Очистка ника Telegram (убираем @ и пробелы)
+        const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '') : '';
+        // 2. Очистка номера Viber (только цифры)
+        const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '') : '';
+
+        const text = `⚓ *${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : `${ad.vacancyInOut}`}* ⚓\n\n` +
             `👤 *Посада:* ${ad.vacancy}\n` +
             `📝 *Опис:* ${ad.duties}\n\n` +
             `🕘 *Графік:* ${ad.schedule}\n\n` +
             `💰 *Зарплата:* ${ad.salary}\n` +
             `📍 *Місто/Район:* ${ad.city}, ${ad.address}\n` +
-            `📞 *Контакти:* ${ad.phone} (${ad.person})\n\n` +
-            `🚀 [Відкрити в Mini App](https://board-odessa.onrender.com)\n\n`;
+            `📞 *Контакти:* ${ad.phone} (${ad.person})\n\n`;
 
-        await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { parse_mode: 'Markdown' });
+        // Создаем массив кнопок
+        const buttons = [];
+        
+        // Кнопка Телеграм (если заполнено)
+        if (tgContact) {
+            buttons.push(Markup.button.url('💬 Написати в TG', `https://t.me/${tgContact}`));
+        }
+        
+        // Кнопка Viber (если заполнено) - используем стабильный редирект
+        if (viberContact) {
+            buttons.push(Markup.button.url('🟣 Viber', `https://viber.click/${viberContact}`));
+        }
+
+        // Кнопка сайта (всегда)
+        const webButton = [Markup.button.url('🚀 Відкрити Одеса-Борд', 'https://board-odessa.onrender.com')];
+
+        // Группируем кнопки: Контакты в один ряд, кнопка сайта под ними
+        const keyboard = Markup.inlineKeyboard([buttons, webButton]);
+
+        await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { 
+            parse_mode: 'Markdown',
+            ...keyboard 
+        });
+        
         return true;
     } catch (e) {
         console.error("Ошибка отправки в канал:", e);
         return false;
     }
 }
+
 
 // КНОПКИ В БОТЕ (Оплачено / Удалить)
 bot.on('callback_query', async (ctx) => {
