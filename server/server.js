@@ -216,13 +216,35 @@ app.post('/api/ads/create', async (req, res) => {
 // Новый маршрут (API), чтобы сайт знал, что показывать
 app.get('/api/active-pay-methods', async (req, res) => {
     try {
-        // Ищем все активные реквизиты и вынимаем из них уникальные названия (Картка, Телефон и т.д.)
-        const activeMethods = await Payment.distinct('label', { isActive: true });
-        res.json(activeMethods);
+        // 1. Берем ВСЕ активные реквизиты, сортируем по количеству использований (меньшие — выше)
+        const allActive = await Payment.find({ isActive: true }).sort({ usageCount: 1 });
+
+        const rotated = {};
+        
+        allActive.forEach(item => {
+            // Определяем "чистый" тип, убирая цифры и лишние слова
+            // Это позволит сгруппировать "Картка 1" и "Картка 2" в одну группу "картка"
+            let type = 'інше';
+            const labelLower = item.label.toLowerCase();
+            
+            if (labelLower.includes('карт')) type = 'картка';
+            else if (labelLower.includes('тел') || labelLower.includes('viber')) type = 'телефон';
+            else if (labelLower.includes('iban')) type = 'iban';
+
+            // Если в этой группе еще нет кандидата — берем этот (он будет самым "свежим" из-за сортировки)
+            if (!rotated[type]) {
+                rotated[type] = item.label;
+            }
+        });
+
+        // Отправляем массив из 2-3 уникальных названий (по одному на тип)
+        res.json(Object.values(rotated));
     } catch (e) {
+        console.error("Ошибка ротатора в API:", e);
         res.json([]);
     }
 });
+
 
 // --- АДМИН-API: ТАРИФЫ И РЕКВИЗИТЫ ---
 
