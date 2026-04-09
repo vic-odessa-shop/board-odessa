@@ -706,41 +706,26 @@ body.innerHTML = `
                 ` 
                 : `
                 <p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:#007bff; font-weight:bold; text-decoration: none;">${ad.phone}</a></p>
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    ${ad.telegram ? `<a href="https://t.me/${ad.telegram.replace(/[@\s]/g, '')}" target="_blank" style="background:#0088cc; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">Telegram</a>` : ''}
+                  <div style="display: flex; gap: 8px; margin-top: 12px; width: 100%;">
+    ${ad.telegram ? `
+      <a href="https://t.me/${ad.telegram.replace(/[@\s]/g, '')}" 
+         target="_blank" 
+         style="flex: 1; background: #0088cc; color: white; padding: 10px 5px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center;">
+         💬 Telegram
+      </a>` : ''}
          
-  ${ad.viber ? (() => {
-    // Проверка: открыто ли в WebView Telegram
-    const isTelegram = navigator.userAgent.includes('Telegram');
-    const cleanViber = ad.viber.replace(/[^0-9]/g, '');
+    ${ad.viber ? `
+      <a href="https://board-odessa.onrender.com/viber/${ad.viber.replace(/[^0-9]/g, '')}" 
+         target="_blank" 
+         style="flex: 1; background: #7360f2; color: white; padding: 10px 5px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center;">
+         🟣 Viber
+      </a>` : ''}
+  </div>
 
-    if (isTelegram) {
-        // Если в Телеге — просто текст с номером (чтобы не было ошибок)
-        return `
-            <div style="margin-top: 10px; padding: 8px; background: #f1f0ff; border-radius: 8px; border: 1px dashed #7360f2;">
-                <span style="font-size: 12px; color: #7360f2; font-weight: bold;">🟣 Viber:</span>
-                <span style="font-size: 13px; font-weight: bold; color: #333; margin-left: 5px;">+${cleanViber}</span>
-            </div>`;
-    } else {
-        // Если в обычном браузере — рабочая кнопка
-        return `
-            <div style="margin-top: 10px;">
-                <a href="viber://chat?number=%2B${cleanViber}" 
-                   style="background:#7360f2; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold; display: inline-block;">
-                   Написати у Viber
-                </a>
-            </div>`;
-    }
-})() : ''}
+  <p style="margin: 15px 0 0; color: #555; font-size: 14px;">
+    👤 <b>Контакт:</b> ${ad.person}
+  </p>
 
-
-
-
-
-
-                </div>
-                <p style="margin:10px 0 0; color:#555; font-size: 14px;">👤 <b>Контакт:</b> ${ad.person}</p>
-                `
             }
         </div>
 
