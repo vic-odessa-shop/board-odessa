@@ -377,74 +377,38 @@ bot.on('callback_query', async (ctx) => {
 
 
 // Запуск сервера
-app.use(express.static(path.join(__dirname, '..', 'public')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
+// --- МАРШРУТЫ ДЛЯ СТАТИКИ И РЕДИРЕКТОВ ---
 
-// ФУНКЦИЯ ПРОВЕРКИ ОЧЕРЕДИ (АВТОПИЛОТ)
-async function checkScheduledReposts() {
-    const now = new Date();
-    try {
-        const ads = await Ad.find({
-            status: 'active',
-            repostsRemaining: { $gt: 0 },
-            repostIntervalHrs: { $gt: 0 }
-        });
-
-        for (let ad of ads) {
-            const lastPost = new Date(ad.lastRepostDate);
-            const diffInMs = now - lastPost;
-            const intervalInMs = ad.repostIntervalHrs * 60 * 60 * 1000;
-
-            if (diffInMs >= intervalInMs) {
-                console.log(`[AUTO] Время репоста для ${ad.id}`);
-                
-                // Вызов твоей функции отправки в ТГ
-                const result = await sendToTelegram(ad); 
-                
-                if (result) {
-                    ad.repostsRemaining -= 1;
-                    ad.lastRepostDate = now;
-                    // save() обновит updatedAt, и карточка всплывет на сайте
-                    await ad.save(); 
-                }
-            }
-        }
-    } catch (e) {
-        console.error("Ошибка автопостинга:", e);
-    }
-}
-
-// Запускаем проверку каждые 30 минут
-setInterval(checkScheduledReposts, 30 * 60 * 1000);
-
-
-// Маршрут-прокладка: ловит запрос и открывает Viber
+// 1. Редирект для Viber (ДОЛЖЕН БЫТЬ ВЫШЕ СТАТИКИ И '*')
 app.get('/viber/:number', (req, res) => {
     const phone = req.params.number;
+    console.log(`[Viber Redirect] Открываем чат для: ${phone}`);
+    // Перенаправляем на протокол viber. Знак '?' здесь нужен для самого Viber.
     res.redirect(`viber://chat?number=%2B${phone}`);
 });
 
+// 2. Раздача статических файлов (твои HTML, CSS, JS в папке public)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
-app.listen(process.env.PORT || 3000, () => {
-    bot.launch().catch(err => console.error("TG Error:", err));
+// 3. Обработка всех остальных запросов (чтобы работал роутинг внутри сайта)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
+// --- ЗАПУСК СЕРВЕРА ---
 
-// Улучшенная проверка на номера телефонов (UA-коды)
-function containsForbiddenContact(text) {
-    if (!text) return false;
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Сервер запущен на порту ${PORT}`);
+    // Запуск бота
+    bot.launch()
+        .then(() => console.log("🤖 Telegram Bot запущен"))
+        .catch(err => console.error("❌ Ошибка запуска бота:", err));
+});
 
-    // 1. Поиск украинских мобильных и городских кодов (067, 050, 093, 048 и т.д.)
-    // Ищет комбинации: код + 7 цифр в разных форматах (+380..., 067..., 80...)
-    const phoneRegex = /(?:0|380|\+380|8)\s?\(?(?:50|66|95|99|67|68|96|97|98|63|73|93|44|48)\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/g;
+// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
-    // 2. Поиск ссылок (http, https, www, .com, .ua, .net и т.д.)
-    // Если решишь запретить ссылки, это выражение их поймает
-    const linkRegex = /(https?:\/\/|www\.|[\w.-]+\.(?:com|ua|net|org|biz|info|me|io))/gi;
-
-    return phoneRegex.test(text) || linkRegex.test(text);
-}
-
+// Функция очистки текста от спецсимволов HTML
 function escapeHTML(str) {
     if (!str) return '';
     return str.replace(/[&<>"']/g, (m) => ({
@@ -452,6 +416,7 @@ function escapeHTML(str) {
     }[m]));
 }
 
-
-// ANTI-SLEEP
-setInterval(() => { axios.get("https://board-odessa.onrender.com").catch(() => {}); }, 800000);
+// ANTI-SLEEP (чтобы Render не засыпал)
+setInterval(() => { 
+    axios.get("https://board-odessa.onrender.com").catch(() => {}); 
+}, 800000);
