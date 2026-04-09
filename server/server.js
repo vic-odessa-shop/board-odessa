@@ -296,28 +296,27 @@ app.post('/api/admin/update/:id', async (req, res) => {
 
 async function sendToTelegram(ad) {
     try {
-        // 1. Очистка данных
         const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '').trim() : '';
         const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '').trim() : '';
 
-        // 2. Используем HTML вместо Markdown для стабильности ссылок
-        const text = `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : (ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
-            `👤 <b>Посада:</b> ${ad.vacancy}\n` +
-            `📝 <b>Опис:</b> ${ad.duties}\n\n` +
-            `🕘 <b>Графік:</b> ${ad.schedule}\n\n` +
-            `💰 <b>Зарплата:</b> ${ad.salary}\n` +
-            `📍 <b>Місто/Район:</b> ${ad.city}, ${ad.address}\n` +
-            `📞 <b>Контакти:</b> ${ad.phone} (${ad.person})`;
+        // Чистим все поля от опасных символов HTML
+        const safeVacancy = escapeHTML(ad.vacancy);
+        const safeDuties = escapeHTML(ad.duties);
+        const safeSalary = escapeHTML(ad.salary);
+        const safePerson = escapeHTML(ad.person);
+        const safeAddress = escapeHTML(ad.address);
+
+        const text = `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut)}</b> ⚓\n\n` +
+            `👤 <b>Посада:</b> ${safeVacancy}\n` +
+            `📝 <b>Опис:</b> ${safeDuties}\n\n` +
+            `🕘 <b>Графік:</b> ${escapeHTML(ad.schedule)}\n\n` +
+            `💰 <b>Зарплата:</b> ${safeSalary}\n` +
+            `📍 <b>Місто/Район:</b> ${escapeHTML(ad.city)}, ${safeAddress}\n` +
+            `📞 <b>Контакти:</b> ${ad.phone} (${safePerson})`;
 
         const row1 = [];
-        if (tgContact) {
-            // Прямая ссылка без лишних знаков
-            row1.push(Markup.button.url('💬 Telegram', `https://t.me/${tgContact}`));
-        }
-        if (viberContact) {
-            // Прямой протокол - в кнопках канала он обычно разрешен
-            row1.push(Markup.button.url('🟣 Viber', `viber://chat?number=%2B${viberContact}`));
-        }
+        if (tgContact) row1.push(Markup.button.url('💬 Telegram', `https://t.me/${tgContact}`));
+        if (viberContact) row1.push(Markup.button.url('🟣 Viber', `viber://chat?number=%2B${viberContact}`));
 
         const keyboard = Markup.inlineKeyboard([
             row1, 
@@ -325,16 +324,17 @@ async function sendToTelegram(ad) {
         ]);
 
         await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { 
-            parse_mode: 'HTML', // Переключили на HTML
+            parse_mode: 'HTML',
             ...keyboard 
         });
         
         return true;
     } catch (e) {
-        console.error("Помилка відправки:", e);
+        console.error("Помилка відправки в канал:", e.message);
         return false;
     }
 }
+
 
 
 
@@ -350,18 +350,25 @@ bot.on('callback_query', async (ctx) => {
 
             const sent = await sendToTelegram(ad);
             if (sent) {
-                await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n✅ ОПУБЛІКОВАНО');
-
-                // Уведомляем клиента (если это не 'web' пользователь)
+                // Убираем кнопки и пишем статус
+                await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n✅ ОПУБЛІКОВАНО В КАНАЛ', { reply_markup: null });
+                
                 if (ad.userId && ad.userId !== 'web') {
-                    bot.telegram.sendMessage(ad.userId, `🎉 Ваше оголошення "${ad.vacancy}" активовано та опубліковано в каналі!`).catch(e => console.log("User notify error:", e));
+                    bot.telegram.sendMessage(ad.userId, `🎉 Ваше оголошення "${ad.vacancy}" опубліковано!`).catch(e => console.log("User notify error"));
                 }
+            } else {
+                await ctx.answerCbQuery("❌ Помилка при відправці в канал!", { show_alert: true });
             }
         }
 
+        if (action === 'del' && ad) {
+            await Ad.deleteOne({ id: adId });
+            await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n🗑 ВИДАЛЕНО', { reply_markup: null });
+        }
     }
-    catch (e) { console.log(e); }
+    catch (e) { console.log("Callback error:", e); }
 });
+
 
 
 // Запуск сервера
@@ -425,6 +432,14 @@ function containsForbiddenContact(text) {
 
     return phoneRegex.test(text) || linkRegex.test(text);
 }
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+}
+
 
 // ANTI-SLEEP
 setInterval(() => { axios.get("https://board-odessa.onrender.com").catch(() => {}); }, 800000);
