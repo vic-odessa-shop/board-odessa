@@ -299,36 +299,36 @@ async function sendToTelegram(ad) {
         const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '').trim() : '';
         const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '').trim() : '';
 
-        // Безопасный текст
-        const safeVacancy = escapeHTML(ad.vacancy);
-        const safeDuties = escapeHTML(ad.duties);
-        
-        // Формируем строку контактов с активной ссылкой на Viber прямо в тексте
-        let contactText = `📞 <b>Контакти:</b> ${ad.phone} (${escapeHTML(ad.person)})`;
-        if (viberContact) {
-            contactText += ` | <a href="viber://chat?number=%2B${viberContact}">🟣 Viber</a>`;
-        }
-
+        // Формируем чистый и безопасный текст
         const text = `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
-            `👤 <b>Посада:</b> ${safeVacancy}\n` +
-            `📝 <b>Опис:</b> ${safeDuties}\n\n` +
+            `👤 <b>Посада:</b> ${escapeHTML(ad.vacancy)}\n` +
+            `📝 <b>Опис:</b> ${escapeHTML(ad.duties)}\n\n` +
             `🕘 <b>Графік:</b> ${escapeHTML(ad.schedule || 'За домовленістю')}\n\n` +
             `💰 <b>Зарплата:</b> ${escapeHTML(ad.salary)}\n` +
             `📍 <b>Місто/Район:</b> ${escapeHTML(ad.city)}, ${escapeHTML(ad.address || 'Одеса')}\n` +
-            `${contactText}`;
+            `📞 <b>Контакти:</b> ${ad.phone} (${escapeHTML(ad.person)})`;
 
         const buttons = [];
-        // В кнопках оставляем только то, что Telegram разрешает (HTTP/HTTPS/TG)
+        const row1 = [];
+
         if (tgContact) {
-            buttons.push([Markup.button.url('💬 Написати в Telegram', `https://t.me/${tgContact}`)]);
+            row1.push(Markup.button.url('💬 Telegram', `https://t.me/${tgContact}`));
         }
+
+        if (viberContact) {
+            // Кнопка ведет на ТВОЙ сервер, который сделает редирект
+            row1.push(Markup.button.url('🟣 Viber', `https://board-odessa.onrender.com/viber/${viberContact}`));
+        }
+
+        if (row1.length > 0) buttons.push(row1);
+        
+        // Кнопка сайта всегда внизу
         buttons.push([Markup.button.url('🚀 Відкрити Одеса-Борд', 'https://board-odessa.onrender.com')]);
 
         const keyboard = Markup.inlineKeyboard(buttons);
 
         await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { 
             parse_mode: 'HTML',
-            disable_web_page_preview: true, // Чтобы не вылезало превью Viber
             ...keyboard 
         });
         
@@ -416,6 +416,13 @@ async function checkScheduledReposts() {
 
 // Запускаем проверку каждые 30 минут
 setInterval(checkScheduledReposts, 30 * 60 * 1000);
+
+
+// Маршрут-прокладка: ловит запрос и открывает Viber
+app.get('/viber/:number', (req, res) => {
+    const phone = req.params.number;
+    res.redirect(`viber://chat?number=%2B${phone}`);
+});
 
 
 app.listen(process.env.PORT || 3000, () => {
