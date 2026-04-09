@@ -296,49 +296,46 @@ app.post('/api/admin/update/:id', async (req, res) => {
 
 async function sendToTelegram(ad) {
     try {
-        // 1. Очистка ника Telegram (убираем @ и пробелы)
-        const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '') : '';
-        // 2. Очистка номера Viber (только цифры)
-        const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '') : '';
+        // 1. Очистка данных
+        const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '').trim() : '';
+        const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '').trim() : '';
 
-        const text = `⚓ *${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : `${ad.vacancyInOut}`}* ⚓\n\n` +
-            `👤 *Посада:* ${ad.vacancy}\n` +
-            `📝 *Опис:* ${ad.duties}\n\n` +
-            `🕘 *Графік:* ${ad.schedule}\n\n` +
-            `💰 *Зарплата:* ${ad.salary}\n` +
-            `📍 *Місто/Район:* ${ad.city}, ${ad.address}\n` +
-            `📞 *Контакти:* ${ad.phone} (${ad.person})\n\n`;
+        // 2. Используем HTML вместо Markdown для стабильности ссылок
+        const text = `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : (ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
+            `👤 <b>Посада:</b> ${ad.vacancy}\n` +
+            `📝 <b>Опис:</b> ${ad.duties}\n\n` +
+            `🕘 <b>Графік:</b> ${ad.schedule}\n\n` +
+            `💰 <b>Зарплата:</b> ${ad.salary}\n` +
+            `📍 <b>Місто/Район:</b> ${ad.city}, ${ad.address}\n` +
+            `📞 <b>Контакти:</b> ${ad.phone} (${ad.person})`;
 
-        // Создаем массив кнопок
-        const buttons = [];
-        
-        // Кнопка Телеграм (если заполнено)
+        const row1 = [];
         if (tgContact) {
-            buttons.push(Markup.button.url('💬 Написати в TG', `https://t.me/${tgContact}`));
+            // Прямая ссылка без лишних знаков
+            row1.push(Markup.button.url('💬 Telegram', `https://t.me/${tgContact}`));
         }
-        
-        // Кнопка Viber (если заполнено) - используем стабильный редирект
         if (viberContact) {
-            buttons.push(Markup.button.url('🟣 Viber', `https://viber.click/${viberContact}`));
+            // Прямой протокол - в кнопках канала он обычно разрешен
+            row1.push(Markup.button.url('🟣 Viber', `viber://chat?number=%2B${viberContact}`));
         }
 
-        // Кнопка сайта (всегда)
-        const webButton = [Markup.button.url('🚀 Відкрити Одеса-Борд', 'https://board-odessa.onrender.com')];
-
-        // Группируем кнопки: Контакты в один ряд, кнопка сайта под ними
-        const keyboard = Markup.inlineKeyboard([buttons, webButton]);
+        const keyboard = Markup.inlineKeyboard([
+            row1, 
+            [Markup.button.url('🚀 Відкрити Одеса-Борд', 'https://board-odessa.onrender.com')]
+        ]);
 
         await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { 
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML', // Переключили на HTML
             ...keyboard 
         });
         
         return true;
     } catch (e) {
-        console.error("Ошибка отправки в канал:", e);
+        console.error("Помилка відправки:", e);
         return false;
     }
 }
+
 
 
 // КНОПКИ В БОТЕ (Оплачено / Удалить)
