@@ -330,9 +330,12 @@ async function sendToTelegram(ad) {
         
         return true;
     } catch (e) {
-        console.error("Помилка відправки в канал:", e.message);
-        return false;
-    }
+    console.error("--- ОШИБКА ТЕЛЕГРАМА ---");
+    console.error("Причина:", e.description || e.message);
+    console.error("Данные ошибки:", e.response?.parameters);
+    return false;
+}
+
 }
 
 
