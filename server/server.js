@@ -299,44 +299,46 @@ async function sendToTelegram(ad) {
         const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '').trim() : '';
         const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '').trim() : '';
 
-        // Чистим все поля от опасных символов HTML
+        // Безопасный текст
         const safeVacancy = escapeHTML(ad.vacancy);
         const safeDuties = escapeHTML(ad.duties);
-        const safeSalary = escapeHTML(ad.salary);
-        const safePerson = escapeHTML(ad.person);
-        const safeAddress = escapeHTML(ad.address);
+        
+        // Формируем строку контактов с активной ссылкой на Viber прямо в тексте
+        let contactText = `📞 <b>Контакти:</b> ${ad.phone} (${escapeHTML(ad.person)})`;
+        if (viberContact) {
+            contactText += ` | <a href="viber://chat?number=%2B${viberContact}">🟣 Viber</a>`;
+        }
 
-        const text = `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut)}</b> ⚓\n\n` +
+        const text = `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
             `👤 <b>Посада:</b> ${safeVacancy}\n` +
             `📝 <b>Опис:</b> ${safeDuties}\n\n` +
-            `🕘 <b>Графік:</b> ${escapeHTML(ad.schedule)}\n\n` +
-            `💰 <b>Зарплата:</b> ${safeSalary}\n` +
-            `📍 <b>Місто/Район:</b> ${escapeHTML(ad.city)}, ${safeAddress}\n` +
-            `📞 <b>Контакти:</b> ${ad.phone} (${safePerson})`;
+            `🕘 <b>Графік:</b> ${escapeHTML(ad.schedule || 'За домовленістю')}\n\n` +
+            `💰 <b>Зарплата:</b> ${escapeHTML(ad.salary)}\n` +
+            `📍 <b>Місто/Район:</b> ${escapeHTML(ad.city)}, ${escapeHTML(ad.address || 'Одеса')}\n` +
+            `${contactText}`;
 
-        const row1 = [];
-        if (tgContact) row1.push(Markup.button.url('💬 Telegram', `https://t.me/${tgContact}`));
-        if (viberContact) row1.push(Markup.button.url('🟣 Viber', `viber://chat?number=%2B${viberContact}`));
+        const buttons = [];
+        // В кнопках оставляем только то, что Telegram разрешает (HTTP/HTTPS/TG)
+        if (tgContact) {
+            buttons.push([Markup.button.url('💬 Написати в Telegram', `https://t.me/${tgContact}`)]);
+        }
+        buttons.push([Markup.button.url('🚀 Відкрити Одеса-Борд', 'https://board-odessa.onrender.com')]);
 
-        const keyboard = Markup.inlineKeyboard([
-            row1, 
-            [Markup.button.url('🚀 Відкрити Одеса-Борд', 'https://board-odessa.onrender.com')]
-        ]);
+        const keyboard = Markup.inlineKeyboard(buttons);
 
         await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { 
             parse_mode: 'HTML',
+            disable_web_page_preview: true, // Чтобы не вылезало превью Viber
             ...keyboard 
         });
         
         return true;
     } catch (e) {
-    console.error("--- ОШИБКА ТЕЛЕГРАМА ---");
-    console.error("Причина:", e.description || e.message);
-    console.error("Данные ошибки:", e.response?.parameters);
-    return false;
+        console.error("ОШИБКА ОТПРАВКИ:", e.message);
+        return false;
+    }
 }
 
-}
 
 
 
