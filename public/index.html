@@ -696,7 +696,7 @@ body.innerHTML = `
             <div style="font-size:14px;">🏠 <b>Район:</b> ${ad.address}</div>
         </div>
 
-        <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:20px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'};">
+                <div style="background:${isPending ? '#fff3cd' : '#e7f3ff'}; padding:20px; border-radius:15px; border:1px solid ${isPending ? '#ffeeba' : '#b8daff'};">
             ${isPending 
                 ? `
                 <div style="text-align:center;">
@@ -706,32 +706,34 @@ body.innerHTML = `
                 ` 
                 : `
                 <p style="margin:0; font-size:18px;">📞 <b>Тел:</b> <a href="tel:${ad.phone}" style="color:#007bff; font-weight:bold; text-decoration: none;">${ad.phone}</a></p>
-                  <div style="display: flex; gap: 8px; margin-top: 12px; width: 100%;">
-    ${ad.telegram ? `
-      <a href="https://t.me/${ad.telegram.replace(/[@\s]/g, '')}" 
-         target="_blank" 
-         style="flex: 1; background: #0088cc; color: white; padding: 10px 5px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center;">
-         💬 Telegram
-      </a>` : ''}
-         
-    ${ad.viber ? `
-      <a href="https://board-odessa.onrender.com/viber/${ad.viber.replace(/[^0-9]/g, '')}" 
-         target="_blank" 
-         style="flex: 1; background: #7360f2; color: white; padding: 10px 5px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center;">
-         🟣 Viber
-      </a>` : ''}
-  </div>
+                
+                <div style="display: flex; gap: 8px; margin-top: 12px; width: 100%;">
+                    ${ad.telegram ? `
+                      <a href="https://t.me/${ad.telegram.replace(/[@\s]/g, '')}" 
+                         target="_blank" 
+                         style="flex: 1; background: #0088cc; color: white; padding: 10px 5px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center;">
+                         💬 Telegram
+                      </a>` : ''}
+                         
+                    ${ad.viber ? `
+                      <a href="https://board-odessa.onrender.com/viber/${ad.viber.replace(/[^0-9]/g, '')}" 
+                         target="_blank" 
+                         style="flex: 1; background: #7360f2; color: white; padding: 10px 5px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center;">
+                         🟣 Viber
+                      </a>` : ''}
+                </div>
 
-  <p style="margin: 15px 0 0; color: #555; font-size: 14px;">
-    👤 <b>Контакт:</b> ${ad.person}
-  </p>
-
-            
+                <p style="margin: 15px 0 0; color: #555; font-size: 14px;">
+                    👤 <b>Контакт:</b> ${ad.person}
+                </p>
+                ` 
+            }
         </div>
 
         <button onclick="closeModal()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:#f0f0f0; font-weight: bold; color: #666;">Закрити</button>
     `;
 }
+
 
 
       function filterCat(cat, btn) {
