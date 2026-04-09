@@ -416,6 +416,14 @@ function escapeHTML(str) {
     }[m]));
 }
 
+// Проверка на запрещенные слова в контактах
+function containsForbiddenContact(text) {
+    if (!text) return false;
+    const forbidden = ['@', 't.me', 'viber', 'http', 'https', 'www'];
+    return forbidden.some(item => text.toLowerCase().includes(item));
+}
+
+
 // ANTI-SLEEP (чтобы Render не засыпал)
 setInterval(() => { 
     axios.get("https://board-odessa.onrender.com").catch(() => {}); 
