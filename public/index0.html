@@ -9,7 +9,7 @@
   
     <title>Робота в  Одесі ⚓ Вакансії та оголошення | Одеса-Борд</title>
 <meta name="description" content="Свіжі вакансії та робота в Одесі сьогодні. Зручна дошка оголошень з авто-публікацією в Telegram. Знайди роботу або персонал швидко!">
-<meta name="keywords" content="робота одеса, вакансії одеса, знайти роботу одеса, робота в одесі сьогодні, дошка оголошень одеса, работа, вакансии, найти работу">
+<meta name="keywords" content="робота одеса, вакансії одеса, знайти роботу одеса, робота в одесі сьогодні, дошка оголошень одеса">
 
 <meta property="og:title" content="Одеса-Борд ⚓ Робота та вакансії в Одесі" />
 <meta property="og:description" content="Знайди роботу або персонал в Одесі швидко. Авто-публікація в Telegram та зручний пошук." />
@@ -299,16 +299,16 @@
         border-radius: 10px;
       }
 
-      #modalHelp {
+      #payModal {
         position: fixed;
-        top: 0px;
+        top: 0;
         left: 1200px;
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.8);
         justify-content: center;
         align-items: center;
-        z-index: 2000;
+        z-index: 3000;
         backdrop-filter: blur(5px);
       }
       .pay-content {
@@ -438,7 +438,7 @@
     </div>
 
     <div class="bottom-nav">
-      <a href="javascript:void(0)" class="nav-link" onclick="helpOn()"
+      <a href="javascript:void(0)" class="nav-link" onclick="openHelp()"
         ><span>❓</span><br />Інфо</a
       >
       <a href="create.html" class="nav-link add-btn">➕ ПОДАТИ</a>
@@ -464,32 +464,6 @@
         <div id="modalBody"></div>
       </div>
     </div>
-    
-    
-    
-        <div id="modalHelp" >
-      <div class="help-modal-content">
-        <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver2.2</h3>
-            
-        <div style="background: #eef7ff; padding: 12px; border-radius: 15px; border-left: 4px solid #007bff; margin-bottom: 15px; font-size: 14px;">
-          🌍 <b>Ми всюди!</b> Оголошення доступні не тільки в Telegram: <a href="https://t.me/rabota_odessa_smart" target="_blank" style="color:#007bff; font-weight:bold;">rabota_odessa_smart</a>, а й за прямою адресою: 
-          <br><a href="https://board-odessa.onrender.com" target="_blank" style="color:#007bff; font-weight:bold;">board-odessa.onrender.com</a> 
-          <br><i style="font-size: 12px; color: #555;">Це залучає тисячі користувачів з Google, які шукають роботу прямо зараз.</i>
-        </div>
-
-        <p style="font-size:14px;"><b>1. Як подати?</b> Тисніть "+", заповнюйте форму та обирайте зручний спосіб оплати.</p>
-            
-        <p style="font-size:14px;"><b>2. Що таке "Очікує оплати"?</b> Це статус вашого оголошення до моменту підтвердження адміном. Вакансію вже бачать на сайті, але контакти приховані.</p>
-
-        <p style="font-size:14px;"><b>3. Коли публікація в канал?</b> Одразу після вашої оплати та перевірки адміном оголошення стає активним і автоматично летить у наш Telegram-канал.</p>
-
-        <p style="font-size:14px;"><b>4. Авто-підйом:</b> Ваша вакансія не «тоне»! Система сама піднімає її вгору кожні 12 або 24 години (залежно від тарифу).</p>
-
-        <p style="font-size:14px;"><b>5. VIP-статус:</b> Бажаєте бути першим? Обирайте VIP, щоб закріпити вакансію над іншими оголошеннями.</p>
-        <p></p>
-        <button onclick="helOffn()" style="width:100%; margin-top:15px; padding:16px; border-radius:15px; border:none; background:var(--main); color:#f8f6f6; font-weight:bold; cursor:pointer;">Зрозуміло!</button>
-      </div>
-    </div> 
 
     <script>
       function openHelp() {
@@ -522,14 +496,8 @@ body.innerHTML = `
         overlay.style.display = "flex";
       }
 
-    function helpOn() {
-       document.getElementById("modalHelp").style.display = "flex";
- 
-        document.getElementById("modalHelp").style.left = "0px";
-      }
-
-      function helOffn() {
-        document.getElementById("modalHelp").style.left = "1200px";
+      function helpOn() {
+        document.getElementById("payModal").style.left = "0px";
       }
 
       //  «Секретный переход» в admin.html 5 раз тапнут за 3 сек.
