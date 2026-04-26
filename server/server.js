@@ -256,7 +256,7 @@ app.get('/api/admin/tariffs', async (req, res) => {
 app.post('/api/admin/tariffs/save', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
     const { id, price, days, reposts } = req.body;
-    await Tariff.findOneAndUpdate({ id }, { price, days, reposts });
+    await Tariff.findOneAndUpdate({ id }, { price, days, reposts, repostIntervalHrs });
     res.json({ success: true });
 });
 
@@ -374,6 +374,45 @@ bot.on('callback_query', async (ctx) => {
     catch (e) { console.log("Callback error:", e); }
 });
 
+// --- ЛОГИКА АВТОМАТИЧЕСКОГО РЕПОСТА (BUMP) ---
+async function checkAndRunReposts() {
+    console.log("--- [BUMP] Проверка очереди репостов ---");
+    try {
+        const now = new Date();
+
+        // Ищем объявления: активные, с оставшимися репостами, 
+        // где текущее время больше, чем (дата последнего репоста + интервал)
+        const adsToRepost = await Ad.find({
+            status: 'active',
+            repostsRemaining: { $gt: 0 }
+        });
+
+        for (const ad of adsToRepost) {
+            const nextRepostTime = new Date(ad.lastRepostDate.getTime() + ad.repostIntervalHrs * 60 * 60 * 1000);
+            
+            if (now >= nextRepostTime) {
+                console.log(`[BUMP] Публикуем повторно: ${ad.vacancy} (${ad.id})`);
+                
+                const sent = await sendToTelegram(ad);
+                
+                if (sent) {
+                    ad.repostsRemaining -= 1;
+                    ad.lastRepostDate = now;
+                    // Обновляем updatedAt, чтобы вакансия поднялась в топ на сайте
+                    ad.updatedAt = now; 
+                    await ad.save();
+                    console.log(`[BUMP] Успешно. Осталось репостов: ${ad.repostsRemaining}`);
+                }
+            }
+        }
+    } catch (e) {
+        console.error("❌ Ошибка в цикле репостов:", e.message);
+    }
+}
+
+// Запускаем проверку каждые 15 минут (900 000 мс)
+// Этого достаточно, чтобы не нагружать сервер и вовремя делать посты
+setInterval(checkAndRunReposts, 900000);
 
 
 // Запуск сервера
