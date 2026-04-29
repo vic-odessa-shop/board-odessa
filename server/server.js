@@ -271,6 +271,13 @@ app.post('/api/admin/tariffs/add', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// 4. УДАЛЕНИЕ ТАРИФА 
+app.delete('/api/admin/tariffs/:id', async (req, res) => {
+    if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
+    await Tariff.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true });
+});
+
 
 app.get('/api/admin/payments', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
