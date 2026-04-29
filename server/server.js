@@ -248,6 +248,7 @@ app.get('/api/active-pay-methods', async (req, res) => {
 
 // --- АДМИН-API: ТАРИФЫ И РЕКВИЗИТЫ ---
 
+// 1. Получение всех тарифов
 app.get('/api/admin/tariffs', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
     res.json(await Tariff.find({}));
@@ -255,10 +256,21 @@ app.get('/api/admin/tariffs', async (req, res) => {
 
 app.post('/api/admin/tariffs/save', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
-    const { id, price, days, reposts } = req.body;
-    await Tariff.findOneAndUpdate({ id }, { price, days, reposts, repostIntervalHrs });
+    const { id, price, days, reposts, repostIntervalHrs, label } = req.body;
+    await Tariff.findOneAndUpdate({ id }, { price, days, repost, repostIntervalHrs, label });
     res.json({ success: true });
 });
+
+// 3. ДОБАВЛЕНИЕ НОВОГО ТАРИФА
+app.post('/api/admin/tariffs/add', async (req, res) => {
+    if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
+    try {
+        const newTariff = new Tariff(req.body);
+        await newTariff.save();
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 
 app.get('/api/admin/payments', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();

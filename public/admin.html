@@ -232,25 +232,20 @@
       <div id="stats-bar" class="stats-grid"></div>
 
       <div class="admin-section">
-        <div class="section-title">📊 Налаштування тарифів</div>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1fr 80px 80px 80px 45px;
-            gap: 8px;
-            font-size: 10px;
-            color: gray;
-            padding: 0 8px 5px;
-          "
-        >
-          <div>Назва</div>
-          <div>Ціна (₴)</div>
-          <div>Днів</div>
-          <div>Постів</div>
-          <div></div>
-        </div>
-        <div id="tariff-list"></div>
-      </div>
+  <div class="section-title">
+    📊 Налаштування тарифів
+    <button onclick="addNewTariffRow()" style="float:right; background:#4CAF50; color:white; border:none; border-radius:50%; width:25px; height:25px; cursor:pointer;">+</button>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 60px 50px 50px 60px 45px; gap: 8px; font-size: 10px; color: gray; padding: 0 8px 5px;">
+    <div>Назва</div>
+    <div>Ціна (₴)</div>
+    <div>Днів</div>
+    <div>Постів</div>
+    <div>Час (год)</div>
+    <div></div>
+  </div>
+  <div id="tariff-list"></div>
+</div>
 
       <div class="admin-section">
         <div class="section-title">💳 Реквізити (Ротатор)</div>
@@ -294,26 +289,82 @@
 
       // --- МОДУЛЬ ТАРИФОВ ---
       async function fetchTariffs() {
-        const res = await fetch("/api/admin/tariffs", {
-          headers: { "x-admin-key": adminKey },
-        });
-        const tariffs = await res.json();
-        const container = document.getElementById("tariff-list");
+    const res = await fetch("/api/admin/tariffs", {
+        headers: { "x-admin-key": adminKey },
+    });
+    const tariffs = await res.json();
+    const container = document.getElementById("tariff-list");
 
-        container.innerHTML = tariffs
-          .map(
-            (t) => `
-            <div class="tariff-row">
-                <div style="font-weight:bold; font-size:13px;">${t.label}</div>
-                <input type="number" id="t-price-${t.id}" value="${t.price}">
-                <input type="number" id="t-days-${t.id}" value="${t.days}">
-                <input type="number" id="t-reposts-${t.id}" value="${t.reposts}">
-                <button class="btn-save" onclick="saveTariff('${t.id}')">💾</button>
-            </div>
-        `,
-          )
-          .join("");
-      }
+    container.innerHTML = tariffs.map(t => `
+        <div class="tariff-row" style="display: grid; grid-template-columns: 1fr 60px 50px 50px 60px 45px; gap: 8px; align-items: center; margin-bottom: 5px;">
+            <input type="text" id="t-label-${t.id}" value="${t.label}" style="font-size:12px; width:100%">
+            <input type="number" id="t-price-${t.id}" value="${t.price}">
+            <input type="number" id="t-days-${t.id}" value="${t.days}">
+            <input type="number" id="t-reposts-${t.id}" value="${t.reposts}">
+            <input type="number" id="t-interval-${t.id}" value="${t.repostIntervalHrs || 24}">
+            <button class="btn-save" onclick="saveTariff('${t.id}')">💾</button>
+        </div>
+    `).join("");
+}
+
+// Функция для создания пустой строки (нового тарифа) в конце списка
+function addNewTariffRow() {
+    const container = document.getElementById("tariff-list");
+    const newId = 't' + Date.now(); // Временный ID для полей ввода
+    const newRow = document.createElement('div');
+    newRow.className = 'tariff-row';
+    newRow.style = "display: grid; grid-template-columns: 1fr 60px 50px 50px 60px 45px; gap: 8px; align-items: center; margin-bottom: 5px; background: #e8f5e9; padding: 5px; border-radius: 4px;";
+    newRow.innerHTML = `
+        <input type="text" id="t-label-${newId}" placeholder="Назва" style="font-size:12px; width:100%">
+        <input type="number" id="t-price-${newId}" value="0">
+        <input type="number" id="t-days-${newId}" value="1">
+        <input type="number" id="t-reposts-${newId}" value="1">
+        <input type="number" id="t-interval-${newId}" value="24">
+        <button class="btn-save" onclick="createTariff('${newId}')" style="background:#4CAF50">➕</button>
+    `;
+    container.appendChild(newRow);
+}
+
+// Функция отправки НОВОГО тарифа на сервер
+async function createTariff(tempId) {
+    const data = {
+        id: document.getElementById(`t-price-${tempId}`).value, // Используем цену как ID или сделай prompt для ID
+        label: document.getElementById(`t-label-${tempId}`).value,
+        price: Number(document.getElementById(`t-price-${tempId}`).value),
+        days: Number(document.getElementById(`t-days-${tempId}`).value),
+        reposts: Number(document.getElementById(`t-reposts-${tempId}`).value),
+        repostIntervalHrs: Number(document.getElementById(`t-interval-${tempId}`).value),
+        isVip: false
+    };
+
+    const res = await fetch("/api/admin/tariffs/add", { // Маршрут, который мы обсудили ранее
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+        body: JSON.stringify(data),
+    });
+    if (res.ok) {
+        alert("Новий тариф додано!");
+        fetchTariffs();
+    }
+}
+
+async function saveTariff(id) {
+    const data = {
+        id: id,
+        label: document.getElementById(`t-label-${id}`).value,
+        price: document.getElementById(`t-price-${id}`).value,
+        days: document.getElementById(`t-days-${id}`).value,
+        reposts: document.getElementById(`t-reposts-${id}`).value,
+        repostIntervalHrs: document.getElementById(`t-interval-${id}`).value,
+    };
+    await fetch("/api/admin/tariffs/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+        body: JSON.stringify(data),
+    });
+    alert("Тариф оновлено!");
+}
+
 
       async function saveTariff(id) {
         const data = {
