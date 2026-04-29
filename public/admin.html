@@ -300,7 +300,8 @@
 
     // В функции fetchTariffs замени строку стиля в макете:
 container.innerHTML = tariffs.map(t => `
-    <div class="tariff-row" style="display: grid; grid-template-columns: 2fr 70px 60px 60px 70px 45px; gap: 10px; align-items: center; margin-bottom: 8px; background: #fff; padding: 5px; border-radius: 5px; border: 1px solid #eee;">
+    <div class="tariff-row" style="display: grid; grid-template-columns: minmax(120px, 1fr) 60px 50px 50px 60px 45px; gap: 5px; align-items: center; margin-bottom: 8px;">
+
         <input type="text" id="t-label-${t.id}" value="${t.label}" style="font-size:13px; width:100%; padding: 4px; border: 1px solid #ccc; border-radius: 3px;">
         <input type="number" id="t-price-${t.id}" value="${t.price}" style="width:100%; padding: 4px;">
         <input type="number" id="t-days-${t.id}" value="${t.days}" style="width:100%; padding: 4px;">
