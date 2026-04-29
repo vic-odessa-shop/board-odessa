@@ -183,7 +183,7 @@ app.post('/api/ads/create', async (req, res) => {
             isVip: finalIsVip, // Используем итоговый статус
             status: 'pending',
             repostsRemaining: t.reposts,
-            repostIntervalHrs: t.id === '800' ? 12 : 24,
+            repostIntervalHrs: t.repostIntervalHrs || 24,
             expireAt: new Date(Date.now() + t.days * 24 * 60 * 60 * 1000)
         });
         await newAd.save();
