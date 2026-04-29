@@ -254,12 +254,32 @@ app.get('/api/admin/tariffs', async (req, res) => {
     res.json(await Tariff.find({}));
 });
 
+// СОХРАНЕНИЕ ТАРИФА 
 app.post('/api/admin/tariffs/save', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
+    
+    // 1. Извлекаем данные (проверь, чтобы названия совпадали с админкой)
     const { id, price, days, reposts, repostIntervalHrs, label } = req.body;
-    await Tariff.findOneAndUpdate({ id }, { price, days, repost, repostIntervalHrs, label });
-    res.json({ success: true });
+    
+    try {
+        // 2. Обновляем в базе. ВАЖНО: используем reposts (с 's' на конце)
+        await Tariff.findOneAndUpdate(
+            { id: id }, 
+            { 
+                price: Number(price), 
+                days: Number(days), 
+                reposts: Number(reposts), 
+                repostIntervalHrs: Number(repostIntervalHrs), 
+                label: label 
+            }
+        );
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Ошибка сохранения тарифа:", e);
+        res.status(500).json({ error: e.message });
+    }
 });
+
 
 // 3. ДОБАВЛЕНИЕ НОВОГО ТАРИФА
 app.post('/api/admin/tariffs/add', async (req, res) => {
