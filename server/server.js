@@ -434,6 +434,47 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
+// --- МАРШРУТ ДЛЯ МАСОВОГО РЕПОСТУ (Кнопка "В КАНАЛ") ---
+app.post('/api/admin/repost-batch', async (req, res) => {
+    // 1. Перевірка пароля адміна
+    if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
+
+    try {
+        const { ids } = req.body; // Отримуємо масив ID (напр. ['v123', 'v456'])
+        
+        if (!ids || !Array.isArray(ids)) {
+            return res.status(400).json({ error: "Невірний формат даних" });
+        }
+
+        console.log(`[ADMIN] Початок масового репосту для ${ids.length} оголошень`);
+
+        // Проходимо по кожному ID з масиву
+        for (const adId of ids) {
+            const ad = await Ad.findOne({ id: adId });
+            
+            if (ad) {
+                // Відправляємо в Телеграм
+                const sent = await sendToTelegram(ad);
+                
+                if (sent) {
+                    // Оновлюємо дату, щоб вакансія піднялася вгору на сайті
+                    ad.updatedAt = new Date();
+                    // Оновлюємо статус на active, якщо він був іншим
+                    ad.status = 'active';
+                    await ad.save();
+                    console.log(`[ADMIN] Успішно відправлено: ${adId}`);
+                }
+            }
+        }
+
+        res.json({ success: true, message: "Оголошення відправлені в чергу" });
+    } catch (e) {
+        console.error("Помилка масового репосту:", e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+
 // --- ЗАПУСК СЕРВЕРА ---
 
 const PORT = process.env.PORT || 3000;
