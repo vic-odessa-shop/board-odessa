@@ -92,9 +92,7 @@
         <div class="form-group">
             <label>Тариф</label>
             <select id="tariff" onchange="calcPrice()">
-                <option value="150">Пробний (7 днів) - 150 грн</option>
-                <option value="400" selected>Стандарт (30 днів) - 400 грн</option>
-                <option value="800">Турбо (30 днів) - 800 грн</option>
+
             </select>
         </div>
 
@@ -122,6 +120,32 @@
 </div>
 
 <script>
+// Загрузка тарифов 
+async function loadTariffs() {
+    try {
+        const res = await fetch('/api/admin/tariffs'); // Мы используем этот путь, так как он уже есть
+        const tariffs = await res.json();
+        const select = document.getElementById('tariff');
+
+        // Генерируем опции на лету
+        select.innerHTML = tariffs.map(t => `
+            <option value="${t.id}" ${t.id === '400' ? 'selected' : ''}>
+                ${t.label} (${t.days} днів) - ${t.price} грн
+            </option>
+        `).join('');
+
+        // Обновляем итоговую цену сразу после загрузки
+        calcPrice();
+    } catch (e) {
+        console.error("Помилка завантаження тарифів:", e);
+    }
+}
+
+// Вызови её в самом конце своего скрипта или после объявления всех функций
+loadTariffs();
+
+
+
 // Улучшенная проверка на номера телефонов (UA-коды)
 function containsForbiddenContact(text) {
     if (!text) return false;
@@ -177,10 +201,13 @@ function updateFormLabels(type) {
 
     const tg = window.Telegram?.WebApp;
     function calcPrice() {
-        const base = parseInt(document.getElementById('tariff').value);
-        const vip = document.getElementById('isVip').checked ? 150 : 0;
-        document.getElementById('totalSum').innerText = base + vip;
-    }
+    const select = document.getElementById('tariff');
+    // Если id тарифа в базе равен его цене (например "150"), то parseInt сработает
+    const base = parseInt(select.value) || 0; 
+    const vip = document.getElementById('isVip').checked ? 150 : 0;
+    document.getElementById('totalSum').innerText = base + vip;
+}
+
 
     document.getElementById('addForm').onsubmit = async (e) => {
         e.preventDefault();

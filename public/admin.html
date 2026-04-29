@@ -295,16 +295,18 @@
     const tariffs = await res.json();
     const container = document.getElementById("tariff-list");
 
-    container.innerHTML = tariffs.map(t => `
-        <div class="tariff-row" style="display: grid; grid-template-columns: 1fr 60px 50px 50px 60px 45px; gap: 8px; align-items: center; margin-bottom: 5px;">
-            <input type="text" id="t-label-${t.id}" value="${t.label}" style="font-size:12px; width:100%">
-            <input type="number" id="t-price-${t.id}" value="${t.price}">
-            <input type="number" id="t-days-${t.id}" value="${t.days}">
-            <input type="number" id="t-reposts-${t.id}" value="${t.reposts}">
-            <input type="number" id="t-interval-${t.id}" value="${t.repostIntervalHrs || 24}">
-            <button class="btn-save" onclick="saveTariff('${t.id}')">💾</button>
-        </div>
-    `).join("");
+    // В функции fetchTariffs замени строку стиля в макете:
+container.innerHTML = tariffs.map(t => `
+    <div class="tariff-row" style="display: grid; grid-template-columns: 2fr 70px 60px 60px 70px 45px; gap: 10px; align-items: center; margin-bottom: 8px; background: #fff; padding: 5px; border-radius: 5px; border: 1px solid #eee;">
+        <input type="text" id="t-label-${t.id}" value="${t.label}" style="font-size:13px; width:100%; padding: 4px; border: 1px solid #ccc; border-radius: 3px;">
+        <input type="number" id="t-price-${t.id}" value="${t.price}" style="width:100%; padding: 4px;">
+        <input type="number" id="t-days-${t.id}" value="${t.days}" style="width:100%; padding: 4px;">
+        <input type="number" id="t-reposts-${t.id}" value="${t.reposts}" style="width:100%; padding: 4px;">
+        <input type="number" id="t-interval-${t.id}" value="${t.repostIntervalHrs || 24}" style="width:100%; padding: 4px;">
+        <button class="btn-save" onclick="saveTariff('${t.id}')" style="padding: 5px;">💾</button>
+    </div>
+`).join("");
+
 }
 
 // Функция для создания пустой строки (нового тарифа) в конце списка
