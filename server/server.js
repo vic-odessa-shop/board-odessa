@@ -594,7 +594,7 @@ app.delete('/api/admin/delete/:id', async (req, res) => {
     try {
         // Проверка ключа админа (если ты его используешь)
         const key = req.headers['x-admin-key'];
-        if (key !== process.env.ADMIN_KEY) { 
+        if (key !== process.env.ADMIN_PASS) { 
             return res.status(403).json({ error: "Доступ запрещен" });
         }
 
