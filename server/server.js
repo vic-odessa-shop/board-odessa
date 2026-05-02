@@ -589,6 +589,31 @@ app.post('/api/admin/repost-batch', async (req, res) => {
     }
 });
 
+// Маршрут для удаления конкретного объявления из админки
+app.delete('/api/admin/delete/:id', async (req, res) => {
+    try {
+        // Проверка ключа админа (если ты его используешь)
+        const key = req.headers['x-admin-key'];
+        if (key !== process.env.ADMIN_KEY) { 
+            return res.status(403).json({ error: "Доступ запрещен" });
+        }
+
+        const adId = req.params.id;
+        const result = await Ad.findByIdAndDelete(adId);
+
+        if (result) {
+            console.log(`Объявление ${adId} успешно удалено`);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: "Объявление не найдено" });
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении объявления:', error);
+        res.status(500).json({ error: "Ошибка сервера при удалении" });
+    }
+});
+
+
 
 // --- ЗАПУСК СЕРВЕРА ---
 
