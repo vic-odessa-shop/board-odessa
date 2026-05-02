@@ -49,7 +49,8 @@ const tariffSchema = new mongoose.Schema({
     days: Number, // Сколько дней висит на сайте
     reposts: Number, // Сколько раз летит в канал
     label: String, // Название (Пробний, Стандарт...)
-    isVip: Boolean // Дает ли статус VIP автоматически
+    isVip: Boolean, // Дает ли статус VIP автоматически
+    repostIntervalHrs: { type: Number, default: 24 } // Интервал вывода в канал 
 });
 const Tariff = mongoose.model('Tariff', tariffSchema);
 
@@ -261,21 +262,26 @@ app.post('/api/admin/tariffs/save', async (req, res) => {
     // 1. Извлекаем данные (проверь, чтобы названия совпадали с админкой)
     const { id, price, days, reposts, repostIntervalHrs, label } = req.body;
     
+    // ЛОГ ДЛЯ ПРОВЕРКИ (увидишь в терминале)
+    console.log(`[SAVE TARIFF] ID: ${id}, Interval: ${repostIntervalHrs}`);
+    
     try {
         // 2. Обновляем в базе. ВАЖНО: используем reposts (с 's' на конце)
-        await Tariff.findOneAndUpdate(
+        const updated = await Tariff.findOneAndUpdate(
             { id: id }, 
             { 
-                price: Number(price), 
-                days: Number(days), 
-                reposts: Number(reposts), 
-                repostIntervalHrs: Number(repostIntervalHrs), 
-                label: label 
-            }
+                $set: { // Используем $set для принудительного обновления
+                    price: Number(price), 
+                    days: Number(days), 
+                    reposts: Number(reposts), 
+                    repostIntervalHrs: Number(repostIntervalHrs),
+                    label: label 
+                }
+            },
+            { new: true, upsert: true } // Создаст поле, если его нет
         );
-        res.json({ success: true });
+        res.json({ success: true, data: updated });
     } catch (e) {
-        console.error("Ошибка сохранения тарифа:", e);
         res.status(500).json({ error: e.message });
     }
 });
