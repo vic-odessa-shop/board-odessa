@@ -12,7 +12,7 @@ const app = express();
 app.get('/seo-catalog', async (req, res) => {
     try {
         // Загружаем только оплаченные и актуальные объявления
-        const ads = await Ad.find({ isPaid: true }).sort({ createdAt: -1 });
+        const ads = await Ad.find({}).sort({ createdAt: -1 });
         
         let html = `
 <!DOCTYPE html>
