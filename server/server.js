@@ -7,6 +7,58 @@ const { type } = require('os');
 require('dotenv').config();
 
 const app = express();
+
+// Маршрут для индексации объявлений поисковиками
+app.get('/seo-catalog', async (req, res) => {
+    try {
+        // Загружаем только оплаченные и актуальные объявления
+        const ads = await Ad.find({ isPaid: true }).sort({ createdAt: -1 });
+        
+        let html = `
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Дошка оголошень Одеса | Архів актуальних пропозицій</title>
+    <meta name="description" content="Перегляд актуальних оголошень Одеси: робота, послуги, нерухомість.">
+    <meta name="robots" content="index, follow">
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
+        .ad-item { border-bottom: 1px solid #eee; padding: 15px 0; }
+        h1 { color: #2c3e50; }
+        h2 { margin-bottom: 5px; color: #007bff; }
+        .date { font-size: 0.8em; color: #888; }
+        .desc { margin: 10px 0; }
+        .link { font-weight: bold; color: #28a745; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>Актуальні оголошення м. Одеса</h1>
+    <p>Тут зібрані всі активні пропозиції нашого сервісу. Для зв'язку з автором перейдіть за посиланням.</p>
+    <hr>`;
+
+        ads.forEach(ad => {
+            const date = ad.createdAt ? new Date(ad.createdAt).toLocaleDateString('uk-UA') : '';
+            html += `
+    <div class="ad-item">
+        <h2>${ad.title}</h2>
+        <div class="date">Опубліковано: ${date}</div>
+        <p class="desc">${ad.description}</p>
+        <a class="link" href="https://${req.get('host')}/?id=${ad._id}">Переглянути контакти та деталі →</a>
+    </div>`;
+        });
+
+        html += `
+</body>
+</html>`;
+        
+        res.send(html);
+    } catch (error) {
+        console.error('SEO Catalog Error:', error);
+        res.status(500).send('Помилка завантаження каталогу');
+    }
+});
+
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 app.use(express.json());
@@ -487,57 +539,6 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 // 3. Обработка всех остальных запросов (чтобы работал роутинг внутри сайта)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
-
-// Маршрут для индексации объявлений поисковиками
-app.get('/seo-catalog', async (req, res) => {
-    try {
-        // Загружаем только оплаченные и актуальные объявления
-        const ads = await Ad.find({ isPaid: true }).sort({ createdAt: -1 });
-        
-        let html = `
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Дошка оголошень Одеса | Архів актуальних пропозицій</title>
-    <meta name="description" content="Перегляд актуальних оголошень Одеси: робота, послуги, нерухомість.">
-    <meta name="robots" content="index, follow">
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
-        .ad-item { border-bottom: 1px solid #eee; padding: 15px 0; }
-        h1 { color: #2c3e50; }
-        h2 { margin-bottom: 5px; color: #007bff; }
-        .date { font-size: 0.8em; color: #888; }
-        .desc { margin: 10px 0; }
-        .link { font-weight: bold; color: #28a745; text-decoration: none; }
-    </style>
-</head>
-<body>
-    <h1>Актуальні оголошення м. Одеса</h1>
-    <p>Тут зібрані всі активні пропозиції нашого сервісу. Для зв'язку з автором перейдіть за посиланням.</p>
-    <hr>`;
-
-        ads.forEach(ad => {
-            const date = ad.createdAt ? new Date(ad.createdAt).toLocaleDateString('uk-UA') : '';
-            html += `
-    <div class="ad-item">
-        <h2>${ad.title}</h2>
-        <div class="date">Опубліковано: ${date}</div>
-        <p class="desc">${ad.description}</p>
-        <a class="link" href="https://${req.get('host')}/?id=${ad._id}">Переглянути контакти та деталі →</a>
-    </div>`;
-        });
-
-        html += `
-</body>
-</html>`;
-        
-        res.send(html);
-    } catch (error) {
-        console.error('SEO Catalog Error:', error);
-        res.status(500).send('Помилка завантаження каталогу');
-    }
 });
 
 
