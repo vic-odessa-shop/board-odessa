@@ -255,6 +255,16 @@ app.get('/api/admin/tariffs', async (req, res) => {
     res.json(await Tariff.find({}));
 });
 
+// Маршрут для страницы создания (доступен всем)
+app.get('/api/pub/tariffs', async (req, res) => {
+    try {
+        const tariffs = await Tariff.find({});
+        res.json(tariffs);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
 // СОХРАНЕНИЕ ТАРИФА 
 app.post('/api/admin/tariffs/save', async (req, res) => {
     if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
