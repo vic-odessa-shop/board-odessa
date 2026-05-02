@@ -12,12 +12,9 @@ const app = express();
 app.get('/seo-catalog', async (req, res) => {
     try {
         // Загружаем только оплаченные и актуальные объявления
-        const ads = await Ad.find({ 
-    $or: [
-        { isPaid: true }, 
-        { isPaid: "true" } 
-    ] 
-}).sort({ createdAt: -1 });
+        const ads = await Ad.find({ isPaid: true });
+console.log('Найдено объявлений для SEO:', ads.length); // Это появится в логах Render
+
 
         
         let html = `
