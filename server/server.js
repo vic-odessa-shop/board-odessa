@@ -46,21 +46,24 @@ const Ad = mongoose.model('Ad', adSchema);
 
 // Маршрут для удаления объявления (СТРОГО ПО ТВОЕМУ КОДУ)
 app.delete('/api/admin/delete/:id', async (req, res) => {
-    console.log('--- ПОПЫТКА УДАЛЕНИЯ ---');
-    console.log('ID из запроса:', req.params.id);
-    console.log('Пароль из заголовка:', req.headers['x-admin-key']);
-    console.log('Пароль в системе (первые 3 символа):', process.env.ADMIN_PASS ? process.env.ADMIN_PASS.substring(0,3) : 'НЕ НАЙДЕН');
-
     try {
         const adminKey = req.headers['x-admin-key'];
         if (adminKey !== process.env.ADMIN_PASS) {
-            console.log('ОШИБКА: Пароли не совпали!');
             return res.status(403).json({ error: "Доступ запрещен" });
         }
 
-        const result = await Ad.findByIdAndDelete(req.params.id);
-        console.log('Результат БД:', result ? 'УСПЕХ' : 'ОБЪЕКТ НЕ НАЙДЕН');
-        res.json({ success: true });
+        const adId = req.params.id; // Это будет твой "v74914"
+        
+        // Используем deleteOne и ищем по полю id (твоему), а не по системному _id
+        const result = await Ad.deleteOne({ id: adId });
+
+        if (result.deletedCount > 0) {
+            console.log(`Объявление с кастомным ID ${adId} успешно удалено`);
+            res.json({ success: true });
+        } else {
+            console.log(`Объявление ${adId} не найдено в базе`);
+            res.status(404).json({ error: "Объявление не найдено" });
+        }
     } catch (error) {
         console.error("ОШИБКА СЕРВЕРА:", error.message);
         res.status(500).json({ error: error.message });
