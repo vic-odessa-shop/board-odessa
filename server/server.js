@@ -44,6 +44,32 @@ const adSchema = new mongoose.Schema({
 
 const Ad = mongoose.model('Ad', adSchema);
 
+// Маршрут для удаления объявления (СТРОГО ПО ТВОЕМУ КОДУ)
+app.delete('/api/admin/delete/:id', async (req, res) => {
+    try {
+        const adminKey = req.headers['x-admin-key'];
+        
+        // Используем именно твой ADMIN_PASS из .env
+        if (adminKey !== process.env.ADMIN_PASS) {
+            console.log('Попытка удаления: неверный пароль');
+            return res.status(403).json({ error: "Доступ запрещен" });
+        }
+
+        const adId = req.params.id;
+        const result = await Ad.findByIdAndDelete(adId);
+        
+        if (result) {
+            console.log(`Объявление ${adId} успешно удалено из базы`);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: "Объявление не найдено" });
+        }
+    } catch (error) {
+        console.error("Ошибка при удалении в server.js:", error);
+        res.status(500).json({ error: "Ошибка сервера" });
+    }
+});
+
 
 // Маршрут для индексации объявлений поисковиками
 app.get('/seo-catalog', async (req, res) => {
@@ -196,31 +222,6 @@ app.post('/api/ads/view/:id', async (req, res) => {
     } catch (err) {
         console.error('Ошибка счетчика:', err);
         res.status(500).json({ error: 'Ошибка сервера' });
-    }
-});
-
-
-// Маршрут для удаления конкретного объявления из админки
-app.delete('/api/admin/delete/:id', async (req, res) => {
-    try {
-        // Проверка ключа админа (если ты его используешь)
-        const key = req.headers['x-admin-key'];
-        if (key !== process.env.ADMIN_PASS) { 
-            return res.status(403).json({ error: "Доступ запрещен" });
-        }
-
-        const adId = req.params.id;
-        const result = await Ad.findByIdAndDelete(adId);
-
-        if (result) {
-            console.log(`Объявление ${adId} успешно удалено`);
-            res.json({ success: true });
-        } else {
-            res.status(404).json({ error: "Объявление не найдено" });
-        }
-    } catch (error) {
-        console.error('Ошибка при удалении объявления:', error);
-        res.status(500).json({ error: "Ошибка сервера при удалении" });
     }
 });
 
