@@ -70,6 +70,51 @@ app.delete('/api/admin/delete/:id', async (req, res) => {
     }
 });
 
+// Удаление рекламы
+app.delete('/api/admin/promo/delete/:id', async (req, res) => {
+    try {
+        const adminKey = req.headers['x-admin-key'];
+        if (adminKey !== process.env.ADMIN_PASS) return res.status(403).json({ error: "Доступ заборонено" });
+
+        // Удаляем по твоему кастомному id (строка типа "p123...")
+        const result = await Ad.deleteOne({ id: req.params.id });
+        
+        if (result.deletedCount > 0) {
+            console.log(`Реклама ${req.params.id} видалена`);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: "Рекламу не знайдено" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Редактирование рекламы (Режим "Изменить")
+app.put('/api/admin/promo/edit/:id', async (req, res) => {
+    try {
+        const adminKey = req.headers['x-admin-key'];
+        if (adminKey !== process.env.ADMIN_PASS) return res.status(403).json({ error: "Доступ заборонено" });
+
+        const updatedData = req.body;
+        
+        // Обновляем в базе по твоему id
+        const result = await Ad.findOneAndUpdate(
+            { id: req.params.id },
+            { $set: updatedData },
+            { new: true }
+        );
+
+        if (result) {
+            console.log(`Реклама ${req.params.id} оновлена`);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: "Об'єкт не знайдено" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 
 // Маршрут для индексации объявлений поисковиками
