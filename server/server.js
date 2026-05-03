@@ -70,51 +70,7 @@ app.delete('/api/admin/delete/:id', async (req, res) => {
     }
 });
 
-// Удаление рекламы
-app.delete('/api/admin/promo/delete/:id', async (req, res) => {
-    try {
-        const adminKey = req.headers['x-admin-key'];
-        if (adminKey !== process.env.ADMIN_PASS) return res.status(403).json({ error: "Доступ заборонено" });
 
-        // Удаляем по твоему кастомному id (строка типа "p123...")
-        const result = await Ad.deleteOne({ id: req.params.id });
-        
-        if (result.deletedCount > 0) {
-            console.log(`Реклама ${req.params.id} видалена`);
-            res.json({ success: true });
-        } else {
-            res.status(404).json({ error: "Рекламу не знайдено" });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Редактирование рекламы (Режим "Изменить")
-app.put('/api/admin/promo/edit/:id', async (req, res) => {
-    try {
-        const adminKey = req.headers['x-admin-key'];
-        if (adminKey !== process.env.ADMIN_PASS) return res.status(403).json({ error: "Доступ заборонено" });
-
-        const updatedData = req.body;
-        
-        // Обновляем в базе по твоему id
-        const result = await Ad.findOneAndUpdate(
-            { id: req.params.id },
-            { $set: updatedData },
-            { new: true }
-        );
-
-        if (result) {
-            console.log(`Реклама ${req.params.id} оновлена`);
-            res.json({ success: true });
-        } else {
-            res.status(404).json({ error: "Об'єкт не знайдено" });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 
 // Маршрут для индексации объявлений поисковиками
@@ -202,6 +158,59 @@ const bannerSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: true }
 });
 const Banner = mongoose.model('Banner', bannerSchema);
+
+
+// 1. СОЗДАНИЕ И РЕДАКТИРОВАНИЕ БАННЕРОВ (ОДИН ПУТЬ)
+app.post('/api/admin/banners/save', async (req, res) => {
+    try {
+        const adminKey = req.headers['x-admin-key'];
+        if (adminKey !== process.env.ADMIN_PASS) return res.status(403).send("No");
+
+        const { id, title, content, link, isActive } = req.body;
+
+        if (id) {
+            // Если есть id, значит редактируем существующий по системному _id
+            await Banner.findByIdAndUpdate(id, { title, content, link, isActive });
+            console.log(`Реклама ${id} обновлена`);
+        } else {
+            // Если id нет, создаем новый
+            const newBanner = new Banner({ 
+                title, 
+                content, 
+                link, 
+                isActive: isActive !== undefined ? isActive : true 
+            });
+            await newBanner.save();
+            console.log("Создана новая рекламная карточка");
+        }
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Ошибка при сохранении баннера:", e);
+        res.status(500).send(e.message);
+    }
+});
+
+// 2. УДАЛЕНИЕ БАННЕРА (СТРОГО ПО ТВОЕМУ FETCH)
+app.delete('/api/admin/banners/:id', async (req, res) => {
+    try {
+        const adminKey = req.headers['x-admin-key'];
+        if (adminKey !== process.env.ADMIN_PASS) return res.status(403).send("No");
+
+        const result = await Banner.findByIdAndDelete(req.params.id);
+        
+        if (result) {
+            console.log(`Реклама ${req.params.id} успешно удалена`);
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: "Баннер не найден" });
+        }
+    } catch (e) {
+        console.error("Ошибка при удалении баннера:", e);
+        res.status(500).send(e.message);
+    }
+});
+
+
 
 // --- ЛОГИКА РОТАТОРА ---
 // Выбирает реквизит, который использовался МЕНЬШЕ всего раз
