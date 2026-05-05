@@ -469,29 +469,53 @@
     
     
     
-        <div id="modalHelp" >
-      <div class="help-modal-content">
-        <h3 style="margin-top:0; color:var(--main);">⚓ Одеса-Борд: Довідка Ver2.2</h3>
-            
-        <div style="background: #eef7ff; padding: 12px; border-radius: 15px; border-left: 4px solid #007bff; margin-bottom: 15px; font-size: 14px;">
-          🌍 <b>Ми всюди!</b> Оголошення доступні не тільки в Telegram: <a href="https://t.me/rabota_odessa_smart" target="_blank" style="color:#007bff; font-weight:bold;">rabota_odessa_smart</a>, а й за прямою адресою: 
-          <br><a href="https://board-odessa.onrender.com" target="_blank" style="color:#007bff; font-weight:bold;">board-odessa.onrender.com</a> 
-          <br><i style="font-size: 12px; color: #555;">Це залучає тисячі користувачів з Google, які шукають роботу прямо зараз.</i>
+        <div id="modalHelp">
+  <div class="help-modal-content" style="max-height: 80vh; overflow-y: auto;">
+    <h3 style="margin-top:0; color:var(--main); display: flex; align-items: center; gap: 8px;">
+      ⚓ Одеса-Борд: Довідка Ver2.3
+    </h3>
+
+    <div style="background: #eef7ff; padding: 15px; border-radius: 15px; border-left: 4px solid #007bff; margin-bottom: 20px;">
+      <p style="margin: 0 0 10px 0; font-size: 15px;"><b>🌍 Ми всюди! Оголошення доступні:</b></p>
+      
+      <div style="font-size: 14px; line-height: 1.6;">
+        <div style="margin-bottom: 8px;">
+          📱 <b>У Telegram:</b> <a href="https://t.me/odessa_smart_job_bot" target="_blank" style="color:#007bff; text-decoration:none;">@odessa_smart_job_bot</a> — зручний доступ не виходячи з месенджера.
         </div>
-
-        <p style="font-size:14px;"><b>1. Як подати?</b> Тисніть "+", заповнюйте форму та обирайте зручний спосіб оплати.</p>
-            
-        <p style="font-size:14px;"><b>2. Що таке "Очікує оплати"?</b> Це статус вашого оголошення до моменту підтвердження адміном. Вакансію вже бачать на сайті, але контакти приховані.</p>
-
-        <p style="font-size:14px;"><b>3. Коли публікація в канал?</b> Одразу після вашої оплати та перевірки адміном оголошення стає активним і автоматично летить у наш Telegram-канал.</p>
-
-        <p style="font-size:14px;"><b>4. Авто-підйом:</b> Ваша вакансія не «тоне»! Система сама піднімає її вгору кожні 12 або 24 години (залежно від тарифу).</p>
-
-        <p style="font-size:14px;"><b>5. VIP-статус:</b> Бажаєте бути першим? Обирайте VIP, щоб закріпити вакансію над іншими оголошеннями.</p>
-        <p></p>
-        <button onclick="helOffn()" style="width:100%; margin-top:15px; padding:16px; border-radius:15px; border:none; background:var(--main); color:#f8f6f6; font-weight:bold; cursor:pointer;">Зрозуміло!</button>
+        <div style="margin-bottom: 8px;">
+          📢 <b>Наш канал:</b> <a href="https://t.me/rabota_odessa_smart" target="_blank" style="color:#007bff; text-decoration:none;">@rabota_odessa_smart</a> — свіжі вакансії у вашій стрічці.
+        </div>
+        <div style="margin-bottom: 5px;">
+          🌐 <b>У браузері:</b> <a href="https://board-odessa.onrender.com" target="_blank" style="color:#007bff; text-decoration:none; font-weight:bold;">board-odessa.onrender.com</a>
+        </div>
+        <i style="font-size: 12.5px; color: #555; display: block; padding-left: 22px;">
+          Це залучає тисячі користувачів з Google, які шукають роботу прямо зараз та не мають Telegram.
+        </i>
       </div>
-    </div> 
+    </div>
+
+    <div style="font-size:14px; line-height: 1.4;">
+      <p><b>1. Як подати?</b> Тисніть "+", заповнюйте форму та обирайте зручний спосіб оплати.</p>
+      
+      <p><b>2. Що таке "Очікує оплати"?</b> Це статус до моменту підтвердження адміном. Вакансію вже бачать на сайті, але контакти приховані.</p>
+
+      <p><b>3. Коли публікація в канал?</b> Одразу після оплати та перевірки оголошення автоматично летить у наш Telegram-канал.</p>
+
+      <p><b>4. Авто-підйом:</b> Вакансія не «тоне»! Система піднімає її вгору кожні 12 або 24 години (згідно з тарифом).</p>
+
+      <p><b>5. VIP-статус:</b> Обирайте VIP, щоб закріпити вакансію над іншими оголошеннями.</p>
+    </div>
+
+    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; font-size: 14px;">
+      <b>👤 Зв'язок з адміном:</b> 
+      <a href="https://t.me/Vic_K_Odessa" target="_blank" style="color:#007bff; text-decoration:none; font-weight:bold;">@Vic_K_Odessa</a>
+      <div style="font-size: 12px; color: #888;">З питань реклами та техпідтримки</div>
+    </div>
+
+    <button onclick="helOffn()" style="width:100%; margin-top:20px; padding:16px; border-radius:15px; border:none; background:var(--main); color:#fff; font-weight:bold; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">Зрозуміло!</button>
+  </div>
+</div>
+
 
     <script>
       function openHelp() {
@@ -601,7 +625,7 @@ body.innerHTML = `
                 title: "⚓ Ваша реклама тут",
                 content:
                   "Бажаєте залучити клієнтів? Тисніть для зв'язку з адміном!",
-                link: "https://t.me/odessa_smart_job_bot",
+                link: "https://t.me/Vic_K_Odessa",
               },
             ];
           }
