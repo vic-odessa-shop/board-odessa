@@ -7,6 +7,10 @@
 
     <title>Подати оголошення V.2.2⚓</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
+
     <style>
         :root { --main: #007bff; --bg: #f4f6f9; --text: #222; --gold: #ffc107; }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 15px; margin: 0;}
@@ -265,13 +269,13 @@ function updateFormLabels(type) {
 //            details += "-------------------------\n\n";
 //            details += `⚠️ ВАЖЛИВО: Будь ласка, вкажіть повне призначення: \n"Благодійна допомога проєкту ${result.id}"`;
     
-    let details = `✅ Публікація: Оголошення з'являється на сайті миттєво після натискання кнопки.\n`;
+    let details = `✅ Публікація: Оголошення з'являється на сайті миттєво після натискання кнопки.\n\n`;
     
-    details += `🛡️ Модерація: Адмін перевіряє текст на відповідність правилам.\n`;
+    details += `🛡️ Модерація: Адмін перевіряє текст на відповідність правилам.\n\n`;
     
     details += `📲 Telegram-канал: Одразу після перевірки вакансія публікується у @rabota_odessa_smart.\n\n`;
     
-    details += `🔓 Контакти: Одразу стають доступними для всіх пошукачів.\n`;
+    details += `🔓 Контакти: Одразу стають доступними для всіх пошукачів.\n\n`;
     
     details += `🎁 Зараз діє акція: розміщення БЕЗКОШТОВНЕ!\n`;
     
