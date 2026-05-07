@@ -115,7 +115,7 @@
     <div class="pay-content">
         <h3>💳 Оплата</h3>
         <div id="payDetails" style="background:#f8f9fa; padding:15px; border-radius:12px; margin:15px 0; font-family:monospace; text-align:left; white-space:pre-wrap;"></div>
-        <button onclick="location.href='/'" style="width:100%; padding:15px; background:var(--main); color:white; border:none; border-radius:12px;">Я оплатив</button>
+        <button onclick="location.href='/'" style="width:100%; padding:15px; background:var(--main); color:white; border:none; border-radius:12px;">Опублiковати</button>
     </div>
 </div>
 
@@ -258,12 +258,15 @@ function updateFormLabels(type) {
         });
         const result = await res.json();
         if(res.ok) {
-        let details = `📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту ${result.id}\n`;
-            details += `💰 СУМА: ${result.price} грн\n`;
-            details += "-------------------------\n";
-            details += `💳 РЕКВІЗИТИ: \n${result.payment}\n`;
-            details += "-------------------------\n\n";
-            details += `⚠️ ВАЖЛИВО: Будь ласка, вкажіть повне призначення: \n"Благодійна допомога проєкту ${result.id}"`;
+//        let details = `📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту ${result.id}\n`;
+//            details += `💰 СУМА: ${result.price} грн\n`;
+//            details += "-------------------------\n";
+//            details += `💳 РЕКВІЗИТИ: \n${result.payment}\n`;
+//            details += "-------------------------\n\n";
+//            details += `⚠️ ВАЖЛИВО: Будь ласка, вкажіть повне призначення: \n"Благодійна допомога проєкту ${result.id}"`;
+    let details = `  На сайтi оголошення з'вляется одразу пiсля натискання на "Опублiковати", але контакти приховані. /n`;
+    details += ` Публікація в канал одразу після перевірки адмiном i оголошення автоматично летить у наш Telegram-канал. Також стають доступнi контакти.`;
+
 
             document.getElementById('payDetails').innerText = details;
             document.getElementById('payModal').style.display = 'flex';
