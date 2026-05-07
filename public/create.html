@@ -107,13 +107,13 @@
         </select>
 </div>
 
-        <button type="submit" id="submitBtn">Опублікувати та уточнення</button>
+        <button type="submit" id="submitBtn">Опублікувати безкоштовно</button>
     </form>
 </div>
 
 <div id="payModal">
     <div class="pay-content">
-        <h3>💳 Оплата</h3>
+        <h3>📢 Як це працює?</h3>та</h3>
         <div id="payDetails" style="background:#f8f9fa; padding:15px; border-radius:12px; margin:15px 0; font-family:monospace; text-align:left; white-space:pre-wrap;"></div>
         <button onclick="location.href='/'" style="width:100%; padding:15px; background:var(--main); color:white; border:none; border-radius:12px;">Опублiковати</button>
     </div>
@@ -264,8 +264,15 @@ function updateFormLabels(type) {
 //            details += `💳 РЕКВІЗИТИ: \n${result.payment}\n`;
 //            details += "-------------------------\n\n";
 //            details += `⚠️ ВАЖЛИВО: Будь ласка, вкажіть повне призначення: \n"Благодійна допомога проєкту ${result.id}"`;
-    let details = `  На сайтi оголошення з'вляется одразу пiсля натискання на "Опублiкувати", але контакти приховані.\n`; 
-    details += ` Публікація в канал одразу після перевірки адмiном i оголошення автоматично летить у наш Telegram-канал. Також стають доступнi контакти.\n`;
+    
+    let details = `
+
+✅ Публікація: Оголошення з'являється на сайті миттєво після натискання кнопки.
+🛡️ Модерація: Адмін перевіряє текст на відповідність правилам.
+📲 Telegram-канал: Одразу після перевірки вакансія публікується у @rabota_odessa_smart.
+🔓 Контакти: Одразу стають доступними для всіх пошукачів.
+
+🎁 Зараз діє акція: розміщення БЕЗКОШТОВНЕ!`;
 
 
             document.getElementById('payDetails').innerText = details;
