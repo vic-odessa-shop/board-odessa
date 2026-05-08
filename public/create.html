@@ -128,51 +128,23 @@ async function loadTariffs() {
     try {
         const response = await fetch('/api/pub/tariffs');
         const allTariffs = await response.json();
-
-        // 1. Ищем VIP (проверяем title_ua)
-        const vipData = allTariffs.find(t => 
-            (t.title_ua && t.title_ua.toUpperCase() === 'VIP') || 
-            (t.name_ua && t.name_ua.toUpperCase() === 'VIP')
-        );
-        const vipPrice = vipData ? parseInt(vipData.price) : 150;
-
-        const vipCheckbox = document.getElementById('isVip');
-        if (vipCheckbox) {
-            vipCheckbox.setAttribute('data-price', vipPrice);
-            vipCheckbox.onchange = calcPrice;
-        }
-
-        // 2. Остальные тарифы (фильтруем VIP)
-        const regularTariffs = allTariffs.filter(t => {
-            const n = (t.title_ua || t.name_ua || t.name || '').toUpperCase();
-            return n !== 'VIP';
-        }).sort((a, b) => (parseInt(a.price) || 0) - (parseInt(b.price) || 0));
-
         const select = document.getElementById('tariff');
         if (!select) return;
         select.innerHTML = '';
-        select.onchange = calcPrice;
 
-        regularTariffs.forEach((tariff, index) => {
+        allTariffs.forEach(tariff => {
             const option = document.createElement('option');
             
-            // ВАЖНО: берем title_ua (основное поле в твоей БД)
-            const realName = tariff.title_ua || tariff.name_ua || tariff.name || 'Безкоштовно';
-            const realPrice = tariff.price || 0;
+            // Этот код выведет ВСЕ ключи объекта, чтобы мы их увидели
+            const keys = Object.keys(tariff).join(', ');
             
-            option.value = realName; // Отправляем серверу правильное имя
-            option.setAttribute('data-price', realPrice); // Для расчетов
-            
-            option.textContent = realName + ' - ' + realPrice + ' грн';
-            if (index === 0) option.selected = true;
+            // Мы временно запишем ключи в название тарифа
+            option.textContent = "Ключи в базе: " + keys;
             select.appendChild(option);
         });
-
-        calcPrice();
-    } catch (error) {
-        console.error('Помилка завантаження тарифів:', error);
-    }
+    } catch (e) { alert(e); }
 }
+
 
 
 
