@@ -148,20 +148,21 @@ async function loadTariffs() {
         select.innerHTML = '';
         select.onchange = calcPrice;
 
-        regularTariffs.forEach((tariff, index) => {
+                regularTariffs.forEach((tariff, index) => {
             const option = document.createElement('option');
             
-            // Используем твои ключи: label и price
-            const name = tariff.label || 'Безкоштовно';
+            // Берем название и СРАЗУ обрезаем лишние пробелы
+            const name = (tariff.label || 'Безкоштовно').trim(); 
             const price = tariff.price || 0;
             
-            option.value = name; // Теперь сервер получит точное имя из базы
+            option.value = name; // Теперь улетит "АКЦИЯ" без пробела на конце
             option.setAttribute('data-price', price);
             
             option.textContent = name + ' - ' + price + ' грн';
             if (index === 0) option.selected = true;
             select.appendChild(option);
         });
+
 
         calcPrice();
     } catch (error) {
