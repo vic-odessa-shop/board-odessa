@@ -126,7 +126,7 @@
 // Загрузка тарифов 
 async function loadTariffs() {
     try {
-        const response = await fetch(`${/api/pub}/tariffs`);
+        const response = await fetch('/api/pub/tariffs');
         const allTariffs = await response.json();
 
         // 1. Отсеиваем VIP и сортируем остальные по цене (акция 0 будет первой)
