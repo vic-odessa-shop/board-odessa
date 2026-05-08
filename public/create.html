@@ -148,20 +148,22 @@ async function loadTariffs() {
         select.innerHTML = '';
         select.onchange = calcPrice;
 
-                regularTariffs.forEach((tariff, index) => {
+                        regularTariffs.forEach((tariff, index) => {
             const option = document.createElement('option');
             
-            // Берем название и СРАЗУ обрезаем лишние пробелы
-            const name = (tariff.label || 'Безкоштовно').trim(); 
+            // ВАЖНО: берем именно tariff.id (сервер ждет его)
+            const tariffId = tariff.id; 
+            const name = tariff.label || 'Безкоштовно';
             const price = tariff.price || 0;
             
-            option.value = name; // Теперь улетит "АКЦИЯ" без пробела на конце
+            option.value = tariffId; // Теперь улетит то, что хочет findOne({ id: ... })
             option.setAttribute('data-price', price);
             
             option.textContent = name + ' - ' + price + ' грн';
             if (index === 0) option.selected = true;
             select.appendChild(option);
         });
+
 
 
         calcPrice();
