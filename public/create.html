@@ -129,38 +129,43 @@ async function loadTariffs() {
         const response = await fetch('/api/pub/tariffs');
         const allTariffs = await response.json();
 
-        // 1. Отсеиваем VIP и сортируем остальные по цене (акция 0 будет первой)
-        const vipData = allTariffs.find(t => t.name === 'VIP');
-        const vipPrice = vipData ? vipData.price : 0;
-        const regularTariffs = allTariffs.filter(t => t.name !== 'VIP')
-                                         .sort((a, b) => a.price - b.price);
+        // Фильтруем VIP (используем name_ua, так как в базе у тебя так)
+        const vipData = allTariffs.find(t => t.name_ua === 'VIP' || t.name === 'VIP');
+        const vipPrice = vipData ? parseInt(vipData.price) : 150;
 
-        // 2. Записываем цену VIP в чекбокс (чтобы calcPrice её подхватил)
         const vipCheckbox = document.getElementById('isVip');
         if (vipCheckbox) {
             vipCheckbox.setAttribute('data-price', vipPrice);
+            // Привязываем пересчет при клике на чекбокс
+            vipCheckbox.onchange = calcPrice;
         }
 
-        // В твоем файле ID именно 'tariff'
+        // Берем остальные тарифы и сортируем от 0
+        const regularTariffs = allTariffs.filter(t => t.name_ua !== 'VIP' && t.name !== 'VIP')
+                                         .sort((a, b) => a.price - b.price);
+
         const select = document.getElementById('tariff');
         if (!select) return;
         select.innerHTML = '';
+        
+        // Привязываем пересчет при выборе тарифа
+        select.onchange = calcPrice;
 
-        // 3. Рендерим отсортированные тарифы
-       // Выводим тарифы (самый дешевый будет первым и selected)
         regularTariffs.forEach((tariff, index) => {
             const option = document.createElement('option');
             option.value = tariff.price;
-            option.textContent = `${tariff.name} - ${tariff.price} грн`;
+            // Используем name_ua, как в твоем JSON из базы
+            option.textContent = (tariff.name_ua || tariff.name) + ' - ' + tariff.price + ' грн';
             if (index === 0) option.selected = true;
             select.appendChild(option);
-            });
+        });
 
-        calcPrice(); 
+        calcPrice();
     } catch (error) {
-        console.error('Ошибка загрузки тарифов:', error);
-        }
+        console.error('Ошибка:', error);
+    }
 }
+
 
 /*
 
@@ -254,12 +259,10 @@ function calcPrice() {
     const select = document.getElementById('tariff');
     const totalSumElement = document.getElementById('totalSum');
     const vipCheckbox = document.getElementById('isVip');
-    // В твоем коде у кнопки нет ID, находим её по типу submit
     const submitBtn = document.querySelector('button[type="submit"]');
 
     if (!totalSumElement || !select || !vipCheckbox) return;
 
-// Берем базу из селекта и VIP из атрибута, который мы заполнили в loadTariffs
     const base = parseInt(select.value) || 0;
     const vPrice = parseInt(vipCheckbox.getAttribute('data-price')) || 0;
     const vip = vipCheckbox.checked ? vPrice : 0;
@@ -267,11 +270,15 @@ function calcPrice() {
     const total = base + vip;
     totalSumElement.innerText = total;
 
-// Меняем надпись на кнопке
     if (submitBtn) {
-        submitBtn.innerText = total === 0 ? "Опублікувати безкоштовно" : `Оплатити та опублікувати (${total} грн)`;
+        if (total === 0) {
+            submitBtn.innerText = 'Опублікувати безкоштовно';
+        } else {
+            submitBtn.innerText = 'Оплатити та опублікувати (' + total + ' грн)';
+        }
     }
 }
+
     /*
     function calcPrice() {
     const select = document.getElementById('tariff');
@@ -329,32 +336,27 @@ function calcPrice() {
         
         const result = await res.json();
 
-        if(res.ok) {
+                if (res.ok) {
             const currentTotal = parseInt(document.getElementById('totalSum').innerText) || 0;
             
             if (currentTotal === 0) {
-                // ЛОГИКА ДЛЯ БЕСПЛАТНОГО ТАРИФА
-                let details_0 = `✅ ВАШЕ ОГОЛОШЕННЯ ПРИЙНЯТО!\n\n`;
-                details_0 += `🛡️ Воно з'явиться в каналі та на сайті після перевірки модератором.\n`;
-                details_0 += `🚀 Дякуємо, що користуєтесь нашим сервісом!`;
-
+                let details_0 = "✅ ВАШЕ ОГОЛОШЕННЯ ПРИЙНЯТО!\n\n";
+                details_0 += "🛡️ Воно з'явиться в каналі та на сайті після перевірки модератором.\n";
+                details_0 += "🚀 Дякуємо, що ви з нами!";
                 document.getElementById('payDetails').innerText = details_0;
-                // Можно даже скрыть заголовок "Оплата", если он у тебя там есть в HTML
             } else {
-                // ЛОГИКА ДЛЯ ПЛАТНОГО ТАРИФА (твой оригинальный код)
-                let details = `📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту ${result.id}\n`;
-                details += `💰 СУМА: ${result.price} грн\n`;
+                let details = "📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту " + result.id + "\n";
+                details += "💰 СУМА: " + result.price + " грн\n";
                 details += "-------------------------\n";
-                details += `💳 РЕКВІЗИТИ: \n${result.payment}\n`;
+                details += "💳 РЕКВІЗИТИ: \n" + result.payment + "\n";
                 details += "-------------------------\n\n";
-                details += `⚠️ ВАЖЛИВО: Будь ласка, вкажіть повне призначення: \n"Благодійна допомога проєкту ${result.id}"`;
-
+                details += '⚠️ ВАЖЛИВО: Вкажіть призначення: "Благодійна помощь проєкту ' + result.id + '"';
                 document.getElementById('payDetails').innerText = details;
             }
 
-            // Показываем модалку (в обоих случаях)
             document.getElementById('payModal').style.display = 'flex';
-        } 
+        }
+
         // Если хочешь добавить обработку ошибок, можешь дописать здесь:
         // else { tg.showAlert("Ошибка при создании"); }
         else { alert("Ошибка при создании"); }
