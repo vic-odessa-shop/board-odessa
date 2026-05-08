@@ -7,6 +7,10 @@
 
     <title>Подати оголошення V.2.2⚓</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
+
     <style>
         :root { --main: #007bff; --bg: #f4f6f9; --text: #222; --gold: #ffc107; }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 15px; margin: 0;}
@@ -98,7 +102,7 @@
 
         <div class="price-block">
             <input type="checkbox" id="isVip" onchange="calcPrice()" style="width:20px; height:20px;"> 💎 VIP (+150 грн)
-            <div style="font-size:18px; font-weight:800; margin-top:10px;">До сплати: <span id="totalSum">400</span> грн</div>
+            <div style="font-size:18px; font-weight:800; margin-top:10px;">До сплати: 0 грн</div>
         </div>
 
 <div class="form-group" id="payMethodGroup" style="display:none; margin-bottom: 15px;">
@@ -107,60 +111,20 @@
         </select>
 </div>
 
-        <button type="submit" id="submitBtn">Опублікувати та до оплати</button>
+        <button type="submit" id="submitBtn">Опублікувати безкоштовно</button>
     </form>
 </div>
 
 <div id="payModal">
     <div class="pay-content">
-        <h3>💳 Оплата</h3>
-        <div id="payDetails" style="background:#f8f9fa; padding:15px; border-radius:12px; margin:15px 0; font-family:monospace; text-align:left; white-space:pre-по цене;"></div>
-        <button onclick="location.href='/'" style="width:100%; padding:15px; background:var(--main); color:white; border:none; border-radius:12px;">Я оплатив</button>
+        <h3>📢 Як це працює?</h3>
+        <div id="payDetails" style="background:#f8f9fa; padding:15px; border-radius:12px; margin:15px 0; font-family:monospace; text-align:left; white-space:pre-wrap;"></div>
+        <button onclick="location.href='/'" style="width:100%; padding:15px; background:var(--main); color:white; border:none; border-radius:12px;">Опублiковати</button>
     </div>
 </div>
 
 <script>
 // Загрузка тарифов 
-async function loadTariffs() {
-    try {
-        const response = await fetch(`${/api/pub}/tariffs`);
-        const allTariffs = await response.json();
-
-        // 1. Отсеиваем VIP и сортируем остальные по цене (акция 0 будет первой)
-        const vipData = allTariffs.find(t => t.name === 'VIP');
-        const vipPrice = vipData ? vipData.price : 0;
-        const regularTariffs = allTariffs.filter(t => t.name !== 'VIP')
-                                         .sort((a, b) => a.price - b.price);
-
-        // 2. Записываем цену VIP в чекбокс (чтобы calcPrice её подхватил)
-        const vipCheckbox = document.getElementById('isVip');
-        if (vipCheckbox) {
-            vipCheckbox.setAttribute('data-price', vipPrice);
-        }
-
-        // В твоем файле ID именно 'tariff'
-        const select = document.getElementById('tariff');
-        if (!select) return;
-        select.innerHTML = '';
-
-        // 3. Рендерим отсортированные тарифы
-       // Выводим тарифы (самый дешевый будет первым и selected)
-        regularTariffs.forEach((tariff, index) => {
-            const option = document.createElement('option');
-            option.value = tariff.price;
-            option.textContent = `${tariff.name} - ${tariff.price} грн`;
-            if (index === 0) option.selected = true;
-            select.appendChild(option);
-            });
-
-        calcPrice(); 
-    } catch (error) {
-        console.error('Ошибка загрузки тарифов:', error);
-        }
-}
-
-/*
-
 async function loadTariffs() {
     try {
         const res = await fetch('/api/pub/tariffs')
@@ -172,15 +136,19 @@ async function loadTariffs() {
             `<option value="${t.id}">${t.label} — ${t.price} грн</option>`
         ).join('');
     });
-    
-
+        // Генерируем опции на лету
+    /*    select.innerHTML = tariffs.map(t => `
+            <option value="${t.id}" ${t.id === '400' ? 'selected' : ''}>
+                ${t.label} (${t.days} днів) - ${t.price} грн
+            </option>
+        `).join('');
+*/
         // Обновляем итоговую цену сразу после загрузки
         calcPrice();
     } catch (e) {
         console.error("Помилка завантаження тарифів:", e);
     }
 }
-*/
 
 // Вызови её в самом конце своего скрипта или после объявления всех функций
 loadTariffs();
@@ -241,35 +209,6 @@ function updateFormLabels(type) {
 
 
     const tg = window.Telegram?.WebApp;
-    
-    // Твои переменные с текстами (вставь их выше calcPrice)
-const details_0 = `✅ Ваше оголошення безкоштовне! Воно буде опубліковано після модерації.`;
-const details_pay = `💳 Для публікації за платним тарифом надішліть оплату за реквізитами: [Тут реквизиты].`;
-
-// Вычисление цены 
-function calcPrice() {
-    const select = document.getElementById('tariff');
-    const totalSumElement = document.getElementById('totalSum');
-    const vipCheckbox = document.getElementById('isVip');
-    // В твоем коде у кнопки нет ID, находим её по типу submit
-    const submitBtn = document.querySelector('button[type="submit"]');
-
-    if (!totalSumElement || !select || !vipCheckbox) return;
-
-// Берем базу из селекта и VIP из атрибута, который мы заполнили в loadTariffs
-    const base = parseInt(select.value) || 0;
-    const vPrice = parseInt(vipCheckbox.getAttribute('data-price')) || 0;
-    const vip = vipCheckbox.checked ? vPrice : 0;
-
-    const total = base + vip;
-    totalSumElement.innerText = total;
-
-// Меняем надпись на кнопке
-    if (submitBtn) {
-        submitBtn.innerText = total === 0 ? "Опублікувати безкоштовно" : `Оплатити та опублікувати (${total} грн)`;
-    }
-}
-    /*
     function calcPrice() {
     const select = document.getElementById('tariff');
     // Если id тарифа в базе равен его цене (например "150"), то parseInt сработает
@@ -277,8 +216,6 @@ function calcPrice() {
     const vip = document.getElementById('isVip').checked ? 150 : 0;
     document.getElementById('totalSum').innerText = base + vip;
 }
-*/
-
 
 
     document.getElementById('addForm').onsubmit = async (e) => {
@@ -295,7 +232,7 @@ function calcPrice() {
         return; 
     }
 
-     // --- 3. Если проверка пройдена, блокируем кнопку и идем дальше ---
+    // --- 3. Если проверка пройдена, блокируем кнопку и идем дальше ---
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
 
@@ -318,43 +255,42 @@ function calcPrice() {
             userId: tg?.initDataUnsafe?.user?.id || 'web'
         };
 
-                const res = await fetch('/api/ads/create', {
+        const res = await fetch('/api/ads/create', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         });
-        
         const result = await res.json();
-
         if(res.ok) {
-            const currentTotal = parseInt(document.getElementById('totalSum').innerText) || 0;
-            
-            if (currentTotal === 0) {
-                // ЛОГИКА ДЛЯ БЕСПЛАТНОГО ТАРИФА
-                let details_0 = `✅ ВАШЕ ОГОЛОШЕННЯ ПРИЙНЯТО!\n\n`;
-                details_0 += `🛡️ Воно з'явиться в каналі та на сайті після перевірки модератором.\n`;
-                details_0 += `🚀 Дякуємо, що користуєтесь нашим сервісом!`;
+//        let details = `📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту ${result.id}\n`;
+//            details += `💰 СУМА: ${result.price} грн\n`;
+//            details += "-------------------------\n";
+//            details += `💳 РЕКВІЗИТИ: \n${result.payment}\n`;
+//            details += "-------------------------\n\n";
+//            details += `⚠️ ВАЖЛИВО: Будь ласка, вкажіть повне призначення: \n"Благодійна допомога проєкту ${result.id}"`;
+    
+    let details = `✅ Публікація: Оголошення з'являється на сайті миттєво після натискання кнопки.\n\n`;
+    
+    details += `🛡️ Модерація: Адмін перевіряє текст на відповідність правилам.\n\n`;
+    
+    details += `📲 Telegram-канал: Одразу після перевірки вакансія публікується у @rabota_odessa_smart.\n\n`;
+    
+    details += `🔓 Контакти: Одразу стають доступними для всіх пошукачів.\n\n`;
+    
+    details += `🎁 Зараз діє акція: розміщення БЕЗКОШТОВНЕ!\n`;
+    
+ /*   let details = `✅ Публікація: Оголошення з'являється на сайті миттєво після натискання кнопки.
+🛡️ Модерація: Адмін перевіряє текст на відповідність правилам.
+📲 Telegram-канал: Одразу після перевірки вакансія публікується у @rabota_odessa_smart.
+🔓 Контакти: Одразу стають доступними для всіх пошукачів.
 
-                document.getElementById('payDetails').innerText = details_0;
-                // Можно даже скрыть заголовок "Оплата", если он у тебя там есть в HTML
-            } else {
-                // ЛОГИКА ДЛЯ ПЛАТНОГО ТАРИФА (твой оригинальный код)
-                let details = `📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту ${result.id}\n`;
-                details += `💰 СУМА: ${result.price} грн\n`;
-                details += "-------------------------\n";
-                details += `💳 РЕКВІЗИТИ: \n${result.payment}\n`;
-                details += "-------------------------\n\n";
-                details += `⚠️ ВАЖЛИВО: Будь ласка, вкажіть повне призначення: \n"Благодійна допомога проєкту ${result.id}"`;
+🎁 Зараз діє акція: розміщення БЕЗКОШТОВНЕ!`;
+*/
 
-                document.getElementById('payDetails').innerText = details;
-            }
-
-            // Показываем модалку (в обоих случаях)
+            document.getElementById('payDetails').innerText = details;
             document.getElementById('payModal').style.display = 'flex';
-        } 
-        // Если хочешь добавить обработку ошибок, можешь дописать здесь:
-        // else { tg.showAlert("Ошибка при создании"); }
-        else { alert("Ошибка при создании"); }
+
+        }
     };
 </script>
 </body>
