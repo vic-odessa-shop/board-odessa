@@ -128,22 +128,47 @@ async function loadTariffs() {
     try {
         const response = await fetch('/api/pub/tariffs');
         const allTariffs = await response.json();
+
+        // 1. Ищем VIP (теперь ищем по ключу label или isVip)
+        const vipData = allTariffs.find(t => t.isVip === true || t.label === 'VIP');
+        const vipPrice = vipData ? parseInt(vipData.price) : 150;
+
+        const vipCheckbox = document.getElementById('isVip');
+        if (vipCheckbox) {
+            vipCheckbox.setAttribute('data-price', vipPrice);
+            vipCheckbox.onchange = calcPrice;
+        }
+
+        // 2. Остальные тарифы (исключаем VIP)
+        const regularTariffs = allTariffs.filter(t => !t.isVip && t.label !== 'VIP')
+                                         .sort((a, b) => (parseInt(a.price) || 0) - (parseInt(b.price) || 0));
+
         const select = document.getElementById('tariff');
         if (!select) return;
         select.innerHTML = '';
+        select.onchange = calcPrice;
 
-        allTariffs.forEach(tariff => {
+        regularTariffs.forEach((tariff, index) => {
             const option = document.createElement('option');
             
-            // Этот код выведет ВСЕ ключи объекта, чтобы мы их увидели
-            const keys = Object.keys(tariff).join(', ');
+            // Используем твои ключи: label и price
+            const name = tariff.label || 'Безкоштовно';
+            const price = tariff.price || 0;
             
-            // Мы временно запишем ключи в название тарифа
-            option.textContent = "Ключи в базе: " + keys;
+            option.value = name; // Теперь сервер получит точное имя из базы
+            option.setAttribute('data-price', price);
+            
+            option.textContent = name + ' - ' + price + ' грн';
+            if (index === 0) option.selected = true;
             select.appendChild(option);
         });
-    } catch (e) { alert(e); }
+
+        calcPrice();
+    } catch (error) {
+        console.error('Помилка:', error);
+    }
 }
+
 
 
 
@@ -240,23 +265,24 @@ function calcPrice() {
     const select = document.getElementById('tariff');
     const totalSumElement = document.getElementById('totalSum');
     const vipCheckbox = document.getElementById('isVip');
+    const submitBtn = document.querySelector('button[type="submit"]');
 
     if (!totalSumElement || !select || !vipCheckbox) return;
 
     const selectedOption = select.options[select.selectedIndex];
-    // Берем цену из атрибута data-price, который мы только что создали
     const base = selectedOption ? (parseInt(selectedOption.getAttribute('data-price')) || 0) : 0;
+    
     const vPrice = parseInt(vipCheckbox.getAttribute('data-price')) || 0;
     const vip = vipCheckbox.checked ? vPrice : 0;
 
-    totalSumElement.innerText = base + vip;
-    
-    const submitBtn = document.querySelector('button[type="submit"]');
+    const total = base + vip;
+    totalSumElement.innerText = total;
+
     if (submitBtn) {
-        const total = base + vip;
-        submitBtn.innerText = total === 0 ? 'Опублікувати безкоштовно' : 'Оплатити (' + total + ' грн)';
+        submitBtn.innerText = total === 0 ? 'Опублікувати безкоштовно' : 'Оплатити та опублікувати (' + total + ' грн)';
     }
 }
+
 
 
     /*
