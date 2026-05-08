@@ -151,14 +151,22 @@ async function loadTariffs() {
         // Привязываем пересчет при выборе тарифа
         select.onchange = calcPrice;
 
-        regularTariffs.forEach((tariff, index) => {
+                regularTariffs.forEach((tariff, index) => {
             const option = document.createElement('option');
-            option.value = tariff.price;
-            // Используем name_ua, как в твоем JSON из базы
-            option.textContent = (tariff.name_ua || tariff.name) + ' - ' + tariff.price + ' грн';
+            
+            const name = tariff.name_ua || tariff.name || 'Тариф';
+            const price = tariff.price || 0;
+            
+            // ВАЖНО: в value кладем имя (чтобы сервер его узнал)
+            option.value = name; 
+            // В специальный атрибут кладем цену (для функции calcPrice)
+            option.setAttribute('data-price', price);
+            
+            option.textContent = name + ' - ' + price + ' грн';
             if (index === 0) option.selected = true;
             select.appendChild(option);
         });
+
 
         calcPrice();
     } catch (error) {
@@ -259,16 +267,22 @@ function calcPrice() {
     const select = document.getElementById('tariff');
     const totalSumElement = document.getElementById('totalSum');
     const vipCheckbox = document.getElementById('isVip');
-    const submitBtn = document.querySelector('button[type="submit"]');
 
     if (!totalSumElement || !select || !vipCheckbox) return;
 
-    const base = parseInt(select.value) || 0;
+    // Раньше было select.value, теперь берем атрибут у выбранного option
+    const selectedOption = select.options[select.selectedIndex];
+    const base = selectedOption ? (parseInt(selectedOption.getAttribute('data-price')) || 0) : 0;
+    
     const vPrice = parseInt(vipCheckbox.getAttribute('data-price')) || 0;
     const vip = vipCheckbox.checked ? vPrice : 0;
 
     const total = base + vip;
     totalSumElement.innerText = total;
+    
+    // ... остальной код кнопки ...
+}
+
 
     if (submitBtn) {
         if (total === 0) {
