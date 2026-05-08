@@ -129,50 +129,51 @@ async function loadTariffs() {
         const response = await fetch('/api/pub/tariffs');
         const allTariffs = await response.json();
 
-        // Фильтруем VIP (используем name_ua, так как в базе у тебя так)
-        const vipData = allTariffs.find(t => t.name_ua === 'VIP' || t.name === 'VIP');
+        // 1. Ищем VIP (проверяем title_ua)
+        const vipData = allTariffs.find(t => 
+            (t.title_ua && t.title_ua.toUpperCase() === 'VIP') || 
+            (t.name_ua && t.name_ua.toUpperCase() === 'VIP')
+        );
         const vipPrice = vipData ? parseInt(vipData.price) : 150;
 
         const vipCheckbox = document.getElementById('isVip');
         if (vipCheckbox) {
             vipCheckbox.setAttribute('data-price', vipPrice);
-            // Привязываем пересчет при клике на чекбокс
             vipCheckbox.onchange = calcPrice;
         }
 
-        // Берем остальные тарифы и сортируем от 0
-        const regularTariffs = allTariffs.filter(t => t.name_ua !== 'VIP' && t.name !== 'VIP')
-                                         .sort((a, b) => a.price - b.price);
+        // 2. Остальные тарифы (фильтруем VIP)
+        const regularTariffs = allTariffs.filter(t => {
+            const n = (t.title_ua || t.name_ua || t.name || '').toUpperCase();
+            return n !== 'VIP';
+        }).sort((a, b) => (parseInt(a.price) || 0) - (parseInt(b.price) || 0));
 
         const select = document.getElementById('tariff');
         if (!select) return;
         select.innerHTML = '';
-        
-        // Привязываем пересчет при выборе тарифа
         select.onchange = calcPrice;
 
-                regularTariffs.forEach((tariff, index) => {
+        regularTariffs.forEach((tariff, index) => {
             const option = document.createElement('option');
             
-            const name = tariff.name_ua || tariff.name || 'Тариф';
-            const price = tariff.price || 0;
+            // ВАЖНО: берем title_ua (основное поле в твоей БД)
+            const realName = tariff.title_ua || tariff.name_ua || tariff.name || 'Безкоштовно';
+            const realPrice = tariff.price || 0;
             
-            // ВАЖНО: в value кладем имя (чтобы сервер его узнал)
-            option.value = name; 
-            // В специальный атрибут кладем цену (для функции calcPrice)
-            option.setAttribute('data-price', price);
+            option.value = realName; // Отправляем серверу правильное имя
+            option.setAttribute('data-price', realPrice); // Для расчетов
             
-            option.textContent = name + ' - ' + price + ' грн';
+            option.textContent = realName + ' - ' + realPrice + ' грн';
             if (index === 0) option.selected = true;
             select.appendChild(option);
         });
 
-
         calcPrice();
     } catch (error) {
-        console.error('Ошибка:', error);
+        console.error('Помилка завантаження тарифів:', error);
     }
 }
+
 
 
 /*
@@ -270,25 +271,21 @@ function calcPrice() {
 
     if (!totalSumElement || !select || !vipCheckbox) return;
 
-    // Раньше было select.value, теперь берем атрибут у выбранного option
     const selectedOption = select.options[select.selectedIndex];
+    // Берем цену из атрибута data-price, который мы только что создали
     const base = selectedOption ? (parseInt(selectedOption.getAttribute('data-price')) || 0) : 0;
-    
     const vPrice = parseInt(vipCheckbox.getAttribute('data-price')) || 0;
     const vip = vipCheckbox.checked ? vPrice : 0;
 
-    const total = base + vip;
-    totalSumElement.innerText = total;
+    totalSumElement.innerText = base + vip;
     
-
+    const submitBtn = document.querySelector('button[type="submit"]');
     if (submitBtn) {
-        if (total === 0) {
-            submitBtn.innerText = 'Опублікувати безкоштовно';
-        } else {
-            submitBtn.innerText = 'Оплатити та опублікувати (' + total + ' грн)';
-        }
+        const total = base + vip;
+        submitBtn.innerText = total === 0 ? 'Опублікувати безкоштовно' : 'Оплатити (' + total + ' грн)';
     }
 }
+
 
     /*
     function calcPrice() {
