@@ -302,60 +302,86 @@ function calcPrice() {
 document.getElementById('addForm').onsubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
+    // --- 1. Спочатку беремо значення для перевірки ---
+    const vacancy = document.getElementById('vacancy').value;
+    const duties = document.getElementById('duties').value;
 
-    // --- БЕЗОПАСНЫЙ userId (чтобы не падало в браузере) ---
-    let tgUserId = "web";
-    try {
-        if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
-            tgUserId = window.Telegram.WebApp.initDataUnsafe.user.id;
+    // --- 2. Перевірка на заборонені контакти ---
+    if (typeof containsForbiddenContact === "function") {
+        if (containsForbiddenContact(vacancy) || containsForbiddenContact(duties)) {
+            alert("❌ Помилка! В описі або заголовку знайдено номер телефону або посилання. Будь ласка, вказуйте контакти ТІЛЬКИ у відповідних полях.");
+            return; 
         }
-    } catch (err) { }
-    data.userId = tgUserId;
+    }
 
-    // --- СБОР ТАРИФА И VIP ---
-    data.tariff = document.getElementById('tariff').value;
-    data.isVip = document.getElementById('isVip').checked;
+    // --- 3. Блокуємо кнопку ---
+    const btn = document.getElementById('submitBtn');
+    if (btn) btn.disabled = true;
+
+    // --- 4. Збір даних (з виправленням userId для браузера) ---
+    const data = {
+        // Якщо vacancyInOut не визначена глобально, беремо її зі значення поля або за замовчуванням
+        vacancyInOut: typeof vacancyInOut !== 'undefined' ? vacancyInOut : "input", 
+        payMethod: document.getElementById('payMethod').value,
+        category: document.getElementById('category').value,
+        vacancy: vacancy,
+        duties: duties,
+        schedule: document.getElementById('schedule').value || "За домовленістю",
+        salary: document.getElementById('salary').value,
+        city: document.getElementById('city').value || "Одеса",
+        address: document.getElementById('address').value || "Уточнюйте",
+        phone: document.getElementById('phone').value,
+        telegram: document.getElementById('tg_user').value,
+        viber: document.getElementById('viber_user').value,
+        person: document.getElementById('person').value,
+        tariff: document.getElementById('tariff').value,
+        isVip: document.getElementById('isVip').checked,
+        // ВИПРАВЛЕННЯ: Безпечний збір ID користувача
+        userId: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'web'
+    };
 
     try {
-        const response = await fetch('/api/ads/create', {
+        const res = await fetch('/api/ads/create', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         });
+        
+        const result = await res.json();
 
-        const result = await response.json();
+        if (res.ok) {
+            const currentTotal = parseInt(document.getElementById('totalSum').innerText) || 0;
+            
+            if (currentTotal === 0) {
+                let details_0 = "✅ ВАШЕ ОГОЛОШЕННЯ ПРИЙНЯТО!\n\n";
+                details_0 += "🛡️ Воно з'явиться в каналі та на сайті після перевірки модератором.\n";
+                details_0 += "🚀 Дякуємо, що ви з нами!";
+                document.getElementById('payDetails').innerText = details_0;
+            } else {
+                // ВИПРАВЛЕННЯ: Використовуємо result.id та result.payment від сервера
+                let details = "📝 ПРИЗНАЧЕННЯ: Благодійна допомога проєкту " + (result.id || "---") + "\n";
+                details += "💰 СУМА: " + (result.price || currentTotal) + " грн\n";
+                details += "-------------------------\n";
+                details += "💳 РЕКВІЗИТИ: \n" + (result.payment || "Очікуйте реквізити") + "\n";
+                details += "-------------------------\n\n";
+                details += '⚠️ ВАЖЛИВО: Вкажіть призначення: "Благодійна допомога проєкту ' + (result.id || "") + '"';
+                document.getElementById('payDetails').innerText = details;
+            }
 
-        if (response.ok) {
-            // --- ТВОЯ ЛОГИКА ЗАПОЛНЕНИЯ КАРТОЧКИ (СОХРАНЕНА) ---
-            // Эти ID элементов (checkId, checkSum и т.д.) должны быть в твоем HTML
-            if (document.getElementById('checkId')) 
-                document.getElementById('checkId').innerText = result.id || '---';
-            
-            if (document.getElementById('checkSum')) 
-                document.getElementById('checkSum').innerText = (result.totalPrice || document.getElementById('totalSum').innerText) + ' грн';
-            
-            if (document.getElementById('checkMethod')) 
-                document.getElementById('checkMethod').innerText = data.payMethod || '---';
-            
-            if (document.getElementById('checkCard')) 
-                document.getElementById('checkCard').innerText = result.payment || 'Очікуйте реквізити';
-
-            // Открываем модальное окно (как у тебя было в коде)
-            const modal = document.getElementById('paymentModal');
+            // Відкриваємо модалку (перевір ID: payModal чи paymentModal)
+            const modal = document.getElementById('payModal');
             if (modal) modal.style.display = 'flex';
-
         } else {
-            alert("Помилка: " + (result.error || "Невірний тариф"));
+            alert("Помилка при створенні: " + (result.error || "Невідома помилка"));
+            if (btn) btn.disabled = false; // Розблокуємо кнопку при помилці
         }
-    } catch (error) {alert("ОШИБКА: " + error.name + " | " + error.message);
-    console.error(error);
-    
-        console.error("Критическая ошибка:", error);
-        alert("Помилка з'єднання. Перевірте консоль.");
+    } catch (err) {
+        console.error("Fetch error:", err);
+        alert("Помилка з'єднання з сервером.");
+        if (btn) btn.disabled = false;
     }
 };
+
 
 /*
     document.getElementById('addForm').onsubmit = async (e) => {
