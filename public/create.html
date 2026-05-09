@@ -8,8 +8,8 @@
     <title>Подати оголошення V.2.2⚓</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
+     
+<script>//eruda.init();</script>
     <style>
         :root { --main: #007bff; --bg: #f4f6f9; --text: #222; --gold: #ffc107; }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 15px; margin: 0;}
@@ -349,7 +349,9 @@ document.getElementById('addForm').onsubmit = async (e) => {
         } else {
             alert("Помилка: " + (result.error || "Невірний тариф"));
         }
-    } catch (error) {
+    } catch (error) {alert("ОШИБКА: " + error.name + " | " + error.message);
+    console.error(error);
+    
         console.error("Критическая ошибка:", error);
         alert("Помилка з'єднання. Перевірте консоль.");
     }
