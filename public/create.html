@@ -352,10 +352,21 @@ document.getElementById('addForm').onsubmit = async (e) => {
         if (res.ok) {
             const currentTotal = parseInt(document.getElementById('totalSum').innerText) || 0;
             
-            if (currentTotal === 0) {
+            if (currentTotal === 0) {let details_0 = `✅ Публікація: Оголошення з'являється на сайті миттєво після натискання кнопки.\n\n`;
+    
+                details_0 += `🛡️ Модерація: Адмін перевіряє текст на відповідність правилам.\n\n`;
+    
+                details_0 += `📲 Telegram-канал: Одразу після перевірки вакансія публікується у @rabota_odessa_smart.\n\n`;
+    
+                details_0 += `🔓 Контакти: Одразу стають доступними для всіх пошукачів.\n\n`;
+    
+                details_0 += `🎁 Зараз діє акція: розміщення БЕЗКОШТОВНЕ!\n`;
+    
+               /* 
                 let details_0 = "✅ ВАШЕ ОГОЛОШЕННЯ ПРИЙНЯТО!\n\n";
                 details_0 += "🛡️ Воно з'явиться в каналі та на сайті після перевірки модератором.\n";
                 details_0 += "🚀 Дякуємо, що ви з нами!";
+         */       
                 document.getElementById('payDetails').innerText = details_0;
             } else {
                 // ВИПРАВЛЕННЯ: Використовуємо result.id та result.payment від сервера
