@@ -332,7 +332,7 @@ app.post('/api/ads/create', async (req, res) => {
         // 3. Уведомление админу (теперь с правильной ценой)
         if (process.env.ADMIN_ID) {
             bot.telegram.sendMessage(process.env.ADMIN_ID,
-                `🆕 ЗАМОВЛЕННЯ: ${adId}\n💎 VIP: ${finalIsVip ? 'ТАК' : 'НІ'}\n💰 До сплати: ${finalPrice} грн\n💳 Спосіб: ${d.payMethod}\n📍 Реквізити: ${paymentDetail}`, {
+                `🆕 ЗАМОВЛЕННЯ: ${adId}\n${ad.vacancy}\n💎 VIP: ${finalIsVip ? 'ТАК' : 'НІ'}\n💰 До сплати: ${finalPrice} грн\n💳 Спосіб: ${d.payMethod}\n📍 Реквізити: ${paymentDetail}`, {
                 ...Markup.inlineKeyboard([
                     [Markup.button.callback('✅ Оплачено', `paid_${adId}`)],
                     [Markup.button.callback('🗑 Видалити', `del_${adId}`)]
