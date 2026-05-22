@@ -254,7 +254,7 @@ bot.start((ctx) => {
 });
 
 // --- API ДЛЯ САЙТА ---
-app.get('/api/ads', async (req, res) => {
+app.get('/api/outdata', async (req, res) => {
     try {
         // status: 'active' гарантирует, что мы не тянем черновики
         // Теперь тянем и активные, и те, что ждут оплаты
@@ -269,7 +269,7 @@ app.get('/api/ads', async (req, res) => {
 
 
 // Вставь это после получения списка объявлений
-app.post('/api/ads/view/:id', async (req, res) => {
+app.post('/api/outdata/view/:id', async (req, res) => {
     try {
         const adId = req.params.id;
         await Ad.findOneAndUpdate({ id: adId }, { $inc: { views: 1 } });
@@ -286,7 +286,7 @@ app.get('/api/banners', async (req, res) => {
 });
 
 // СОЗДАНИЕ ОБЪЯВЛЕНИЯ (С ротатором и динамическим тарифом)
-app.post('/api/ads/create', async (req, res) => {
+app.post('/api/outdata/create', async (req, res) => {
     try {
         const d = req.body;
 

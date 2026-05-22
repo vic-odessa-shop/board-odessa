@@ -341,7 +341,7 @@ document.getElementById('addForm').onsubmit = async (e) => {
     };
 
     try {
-        const res = await fetch('/api/ads/create', {
+        const res = await fetch('/api/outdata/create', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
@@ -432,7 +432,7 @@ document.getElementById('addForm').onsubmit = async (e) => {
             userId: tg?.initDataUnsafe?.user?.id || 'web'
         };
 
-                const res = await fetch('/api/ads/create', {
+                const res = await fetch('/api/outdata/create', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)

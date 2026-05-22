@@ -608,7 +608,7 @@ body.innerHTML = `
         const header = document.querySelector(".logo-text");
         header.innerText = "⚓ ЗАВАНТАЖЕННЯ... ⚓";
         try {
-          const res = await fetch("/api/ads");
+          const res = await fetch("/api/outdata");
           allAds = await res.json();
           header.innerText = "⚓ РОБОТА ОДЕСА ⚓";
           renderAds(allAds);
@@ -737,7 +737,7 @@ body.innerHTML = `
     overlay.style.display = 'flex';
 
     // 5. Отправляем просмотр
-    fetch(`/api/ads/view/${id}`, { method: 'POST' }).catch(err => {});
+    fetch(`/api/outdata/view/${id}`, { method: 'POST' }).catch(err => {});
 
     const isPending = ad.status === 'pending';
     const headerText = ad.vacancyInOut || "ОГОЛОШЕННЯ";
