@@ -518,7 +518,7 @@ async function sendToTelegram(ad) {
         if (row1.length > 0) buttons.push(row1);
         
         // Кнопка сайта всегда внизу
-        buttons.push([Markup.button.url(' ➕ Подати / Знайти оголошення', 'https://board-odessa.onrender.com')]);
+        buttons.push([Markup.button.url(' ➕📝 Подати / 🔍Знайти оголошення', 'https://board-odessa.onrender.com')]);
 
         const keyboard = Markup.inlineKeyboard(buttons);
 
