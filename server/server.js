@@ -494,9 +494,10 @@ async function sendToTelegram(ad) {
         const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '').trim() : '';
         const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '').trim() : '';
 
-        const textTop = `👇📝📝📝📢📢🔍🔍🔍👇\n\n`;
-        const textBottom = `👇📝📝📢📢🔍🔍🔍👇`;
-
+        const textTop = `👆👆👆📝📢🔍👆👆👆\n\n`;
+        
+        const textBottom = `👇👇👇📝🔍👇👇👇`;
+     
         // Базовый текст объявления
         let textMain = textTop + 
             `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
