@@ -494,8 +494,12 @@ async function sendToTelegram(ad) {
         const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '').trim() : '';
         const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '').trim() : '';
 
-        // Формируем чистый и безопасный текст
-        const text = `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
+        const textTop = `👇📝📝📝📢📢🔍🔍🔍👇\n\n`;
+        const textBottom = `👇📝📝📝📢📢🔍🔍🔍👇`;
+
+        // Базовый текст объявления
+        let textMain = textTop + 
+            `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
             `👤 <b>Посада:</b> ${escapeHTML(ad.vacancy)}\n` +
             `📝 <b>Опис:</b> ${escapeHTML(ad.duties)}\n\n` +
             `🕘 <b>Графік:</b> ${escapeHTML(ad.schedule || 'За домовленістю')}\n\n` +
@@ -503,29 +507,44 @@ async function sendToTelegram(ad) {
             `📍 <b>Місто/Район:</b> ${escapeHTML(ad.city)}, ${escapeHTML(ad.address || 'Одеса')}\n` +
             `📞 <b>Контакти:</b> ${ad.phone} (${escapeHTML(ad.person)})`;
 
-        const buttons = [];
-        const row1 = [];
-
+        const contactButtons = [];
         if (tgContact) {
-            row1.push(Markup.button.url('💬 Telegram', `https://t.me/${tgContact}`));
+            contactButtons.push(Markup.button.url('💬 Telegram', `https://t.me/${tgContact}`));
         }
-
         if (viberContact) {
-            // Кнопка ведет на ТВОЙ сервер, который сделает редирект
-            row1.push(Markup.button.url('🟣 Viber', `https://board-odessa.onrender.com/viber/${viberContact}`));
+            contactButtons.push(Markup.button.url('🟣 Viber', `https://board-odessa.onrender.com/viber/${viberContact}`));
         }
 
-        if (row1.length > 0) buttons.push(row1);
-        
-        // Кнопка сайта всегда внизу
-        buttons.push([Markup.button.url(' ❗📝 Подати / 🔍Знайти оголошення', 'https://board-odessa.onrender.com')]);
+        // Проверяем: есть ли хоть один контакт?
+        if (contactButtons.length > 0) {
+            // ВАРИАНТ С ДВУМЯ СООБЩЕНИЯМИ
 
-        const keyboard = Markup.inlineKeyboard(buttons);
+            // 1. Отправляем первое сообщение (Текст + Кнопки контактов)
+            await bot.telegram.sendMessage(process.env.CHANNEL_ID, textMain, { 
+                parse_mode: 'HTML',
+                ...Markup.inlineKeyboard([contactButtons])
+            });
 
-        await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { 
-            parse_mode: 'HTML',
-            ...keyboard 
-        });
+            // 2. Отправляем второе сообщение (Твой textBottom + Кнопка сайта)
+            await bot.telegram.sendMessage(process.env.CHANNEL_ID, textBottom, { 
+                parse_mode: 'HTML',
+                ...Markup.inlineKeyboard([[
+                    Markup.button.url(' ❗📝 Подати / 🔍Знайти оголошення', 'https://board-odessa.onrender.com')
+                ]])
+            });
+
+        } else {
+            // ВАРИАНТ С ОДНИМ СООБЩЕНИЕМ (если контактов нет)
+            // Дописываем textBottom прямо в конец текста
+            textMain += `\n\n${textBottom}`;
+
+            await bot.telegram.sendMessage(process.env.CHANNEL_ID, textMain, { 
+                parse_mode: 'HTML',
+                ...Markup.inlineKeyboard([[
+                    Markup.button.url(' ❗📝 Подати / 🔍Знайти оголошення', 'https://board-odessa.onrender.com')
+                ]])
+            });
+        }
         
         return true;
     } catch (e) {
