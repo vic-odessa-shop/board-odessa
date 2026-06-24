@@ -496,7 +496,7 @@ async function sendToTelegram(ad) {
 
         const textTop = `👆👆👆📝📢🔍👆👆👆\n\n`;
         
-        const textBottom = `👇👇👇📝🔍👇👇👇`;
+        const textBottom = `👇👇👇📝🔍👇👇`;
      
         // Базовый текст объявления
         let textMain = textTop + 
