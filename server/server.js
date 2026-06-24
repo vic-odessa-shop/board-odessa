@@ -495,7 +495,7 @@ async function sendToTelegram(ad) {
         const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '').trim() : '';
 
         const textTop = `👇📝📝📝📢📢🔍🔍🔍👇\n\n`;
-        const textBottom = `👇📝📝📝📢📢🔍🔍🔍👇`;
+        const textBottom = `👇📝📝📢📢🔍🔍🔍👇`;
 
         // Базовый текст объявления
         let textMain = textTop + 
