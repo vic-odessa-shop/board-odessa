@@ -493,13 +493,18 @@ async function sendToTelegram(ad) {
     try {
         const tgContact = ad.telegram ? ad.telegram.replace(/[@\s]/g, '').trim() : '';
         const viberContact = ad.viber ? ad.viber.replace(/[^0-9]/g, '').trim() : '';
-
-        const textTop = `👆👆👆📝📢🔍👆👆👆\n\n`;
         
-        const textBottom = `👇👇👇📝🔍👇👇`;
-     
-        // Базовый текст объявления
-        let textMain = textTop + 
+        // Твои константы разделителей
+        const textTop = `👆👆👆📝📢🔍👆👆👆\n\n`;
+        const textBottom = `👇👇👇📝🔍👇👇👇\n\n`;
+        
+        // Поясняющий текст для кнопок на сайт
+        const textExplanation = `<b>Виберіть зручний спосіб роботи з дошкою:</b>\n\n` +
+            `⚡ <b>В Телеграм</b> — відкриється прямо тут (безпечно, просто натисніть 'ОК' у вікні дозволу).\n` +
+            `🌐 <b>В браузері</b> — звичний спосіб через Chrome/Safari.`;
+        
+        // 1 + 2. Собираем первое сообщение (textTop + само объявление)
+        const textMain = textTop +
             `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
             `👤 <b>Посада:</b> ${escapeHTML(ad.vacancy)}\n` +
             `📝 <b>Опис:</b> ${escapeHTML(ad.duties)}\n\n` +
@@ -507,7 +512,8 @@ async function sendToTelegram(ad) {
             `💰 <b>Зарплата:</b> ${escapeHTML(ad.salary)}\n` +
             `📍 <b>Місто/Район:</b> ${escapeHTML(ad.city)}, ${escapeHTML(ad.address || 'Одеса')}\n` +
             `📞 <b>Контакти:</b> ${ad.phone} (${escapeHTML(ad.person)})`;
-
+        
+        // Формируем кнопки контактов (если они есть)
         const contactButtons = [];
         if (tgContact) {
             contactButtons.push(Markup.button.url('💬 Telegram', `https://t.me/${tgContact}`));
@@ -515,35 +521,38 @@ async function sendToTelegram(ad) {
         if (viberContact) {
             contactButtons.push(Markup.button.url('🟣 Viber', `https://board-odessa.onrender.com/viber/${viberContact}`));
         }
-
-        // Проверяем: есть ли хоть один контакт?
+        
+        // Кнопки для сайта (всегда две штуки)
+        const siteButtons = [
+            [Markup.button.url('⚡ Відкрити в Телеграм', 'https://t.me/odessa_smart_job_bot/app')],
+            [Markup.button.url('🌐 Відкрити в браузері', 'https://board-odessa.onrender.com')]
+        ];
+        
+        // Проверяем: есть ли контакты?
         if (contactButtons.length > 0) {
-            // ВАРИАНТ С ДВУМЯ СООБЩЕНИЯМИ
-
-            // 1. Отправляем первое сообщение (Текст + Кнопки контактов)
-            await bot.telegram.sendMessage(process.env.CHANNEL_ID, textMain, { 
+            // --- ВАРИАНТ С ДВУМЯ СООБЩЕНИЯМИ ---
+            
+            // 1. Выводим textTop + вакансию с кнопками контактов
+            await bot.telegram.sendMessage(process.env.CHANNEL_ID, textMain, {
                 parse_mode: 'HTML',
                 ...Markup.inlineKeyboard([contactButtons])
             });
-
-            // 2. Отправляем второе сообщение (Твой textBottom + Кнопка сайта)
-            await bot.telegram.sendMessage(process.env.CHANNEL_ID, textBottom, { 
+            
+            // 2. Выводим textBottom + текст о кнопках + сами кнопки
+            const secondMessageText = textBottom + textExplanation;
+            await bot.telegram.sendMessage(process.env.CHANNEL_ID, secondMessageText, {
                 parse_mode: 'HTML',
-                ...Markup.inlineKeyboard([[
-                    Markup.button.url(' ❗📝 Подати / 🔍Знайти оголошення', 'https://board-odessa.onrender.com')
-                ]])
+                ...Markup.inlineKeyboard(siteButtons)
             });
-
+            
         } else {
-            // ВАРИАНТ С ОДНИМ СООБЩЕНИЕМ (если контактов нет)
-            // Дописываем textBottom прямо в конец текста
-            textMain += `\n\n${textBottom}`;
-
-            await bot.telegram.sendMessage(process.env.CHANNEL_ID, textMain, { 
+            // --- ВАРИАНТ С ОДНИМ СООБЩЕНИЕМ (если контактов ТГ/Вайбер нет) ---
+            // Соединяем всё строго по цепочке: текст вакансии -> textBottom -> пояснение
+            const fullSingleText = textMain + `\n\n` + textBottom + textExplanation;
+            
+            await bot.telegram.sendMessage(process.env.CHANNEL_ID, fullSingleText, {
                 parse_mode: 'HTML',
-                ...Markup.inlineKeyboard([[
-                    Markup.button.url(' ❗📝 Подати / 🔍Знайти оголошення', 'https://board-odessa.onrender.com')
-                ]])
+                ...Markup.inlineKeyboard(siteButtons)
             });
         }
         
@@ -553,7 +562,6 @@ async function sendToTelegram(ad) {
         return false;
     }
 }
-
 
 
 
