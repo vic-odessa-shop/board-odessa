@@ -524,7 +524,7 @@ async function sendToTelegram(ad) {
         
         // Кнопки для сайта (всегда две штуки)
         const siteButtons = [
-            [Markup.button.url('⚡ Відкрити в Телеграм', 'https://t.me/odessa_smart_job_bot/app')],
+            [Markup.button.webApp('⚡ Відкрити в Телеграм', 'https://board-odessa.onrender.com')],
             [Markup.button.url('🌐 Відкрити в браузері', 'https://board-odessa.onrender.com')]
         ];
         
