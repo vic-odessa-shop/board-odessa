@@ -518,8 +518,8 @@ async function sendToTelegram(ad) {
             `🌐 <b>В браузері</b> — звичний спосіб через Chrome/Safari.`;
         
         // 1 + 2. Собираем первое сообщение (textTop + само объявление)
-        const textMain = textTop +
-            `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
+        const textMain = textTop + `\n\n✳️✳️✳️✳️✳️✳️✳️✳️✳️\n\n`
+            + `⚓ <b>${ad.isVip ? '⭐ ТОП ВАКАНСІЯ' : escapeHTML(ad.vacancyInOut || 'НОВА ВАКАНСІЯ')}</b> ⚓\n\n` +
             `👤 <b>Посада:</b> ${escapeHTML(ad.vacancy)}\n` +
             `📝 <b>Опис:</b> ${escapeHTML(ad.duties)}\n\n` +
             `🕘 <b>Графік:</b> ${escapeHTML(ad.schedule || 'За домовленістю')}\n\n` +
