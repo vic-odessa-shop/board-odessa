@@ -525,7 +525,7 @@ async function sendToTelegram(ad) {
             `🕘 <b>Графік:</b> ${escapeHTML(ad.schedule || 'За домовленістю')}\n\n` +
             `💰 <b>Зарплата:</b> ${escapeHTML(ad.salary)}\n` +
             `📍 <b>Місто/Район:</b> ${escapeHTML(ad.city)}, ${escapeHTML(ad.address || 'Одеса')}\n` +
-            `📞 <b>Контакти:</b> ${ad.phone} (${escapeHTML(ad.person)})`;
+            `📞 <b>Контакти:</b> ${ad.phone} (${escapeHTML(ad.person)})` + `\n✳️✳️✳️✳️✳️✳️✳️✳️✳️\n\n`;
         
         // Формируем кнопки контактов (если они есть)
         const contactButtons = [];
