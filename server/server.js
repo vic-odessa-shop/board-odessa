@@ -245,12 +245,26 @@ async function initTariffs() {
 initTariffs();
 
 // --- TG BOT: КОМАНДА START ---
-bot.start((ctx) => {
-    return ctx.reply('⚓ Вітаємо в Одеса-Борд!\nНатисніть кнопку нижче, щоб відкрити сайт:',
+bot.start(async (ctx) => {
+// Проверяем, пришел ли параметр "app" из ссылки
+    const startPayload = ctx.payload;
+ // telegraf автоматически вытаскивает то, что после ?start=
+
+    if (startPayload === 'app') {
+        // Если человек пришел по ссылке из канала, сразу предлагаем ему открыть шторку!
+
+        return await ctx.reply('👋 Ласкаво просимо! Натисніть кнопку нижче, щоб відкрити дошку оголошень:', 
+            Markup.inlineKeyboard([
+                [Markup.button.webApp('🚀 Відкрити дошку', 'https://board-odessa.onrender.com')]
+            ])
+        );
+    }
+
+    // Тут твой старый обычный код для тех, кто просто зашел в бота:
+    await ctx.reply('⚓ Привіт! Я бот дошки оголошень!\nНатисніть кнопку нижче, щоб відкрити сайт:',
         Markup.keyboard([
             [Markup.button.webApp('🌍 Відкрити Одеса-Борд', 'https://board-odessa.onrender.com')]
-        ]).resize().persistent()
-    );
+        ]).resize().persistent()');
 });
 
 // --- API ДЛЯ САЙТА ---
@@ -524,9 +538,9 @@ async function sendToTelegram(ad) {
         
         // Кнопки для сайта (всегда две штуки)
         const siteButtons = [
-            [Markup.button.webApp('⚡ Відкрити в Телеграм', 'https://board-odessa.onrender.com')],
-            [Markup.button.url('🌐 Відкрити в браузері', 'https://board-odessa.onrender.com')]
-        ];
+    [Markup.button.url('⚡ Відкрити в Телеграм', 'https://t.me/odessa_smart_job_bot?start=app')],
+    [Markup.button.url('🌐 Відкрити в браузері', 'https://board-odessa.onrender.com')]
+];
         
         // Проверяем: есть ли контакты?
         if (contactButtons.length > 0) {
