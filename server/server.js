@@ -246,13 +246,11 @@ initTariffs();
 
 // --- TG BOT: КОМАНДА START ---
 bot.start(async (ctx) => {
-// Проверяем, пришел ли параметр "app" из ссылки
-    const startPayload = ctx.payload;
- // telegraf автоматически вытаскивает то, что после ?start=
+    // Проверяем, пришел ли параметр "app" из ссылки
+    const startPayload = ctx.payload; 
 
     if (startPayload === 'app') {
         // Если человек пришел по ссылке из канала, сразу предлагаем ему открыть шторку!
-
         return await ctx.reply('👋 Ласкаво просимо! Натисніть кнопку нижче, щоб відкрити дошку оголошень:', 
             Markup.inlineKeyboard([
                 [Markup.button.webApp('🚀 Відкрити дошку', 'https://board-odessa.onrender.com')]
@@ -264,8 +262,10 @@ bot.start(async (ctx) => {
     await ctx.reply('⚓ Привіт! Я бот дошки оголошень!\nНатисніть кнопку нижче, щоб відкрити сайт:',
         Markup.keyboard([
             [Markup.button.webApp('🌍 Відкрити Одеса-Борд', 'https://board-odessa.onrender.com')]
-        ]).resize().persistent()');
+        ]).resize().persistent()
+    ); // <-- Вот тут мы закрыли скобку функции ctx.reply без лишних кавычек
 });
+
 
 // --- API ДЛЯ САЙТА ---
 app.get('/api/outdata', async (req, res) => {
