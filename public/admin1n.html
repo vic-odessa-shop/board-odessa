@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Адмін-панель ⚓</title>
+    <style>
+      :root {
+        --primary: #007bff;
+        --primary-hover: #0056b3;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --gray: #6c757d;
+        --light: #f8f9fa;
+        --dark: #343a40;
+      }
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        background: #f0f2f5; padding: 0; margin: 0; padding-bottom: 40px; color: var(--dark);
+      }
+      
+      /* Шапка */
+      .toolbar { 
+        position: sticky; top: 0; z-index: 100; 
+        background: var(--primary); color: white; 
+        padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; 
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
+      }
+      .toolbar-brand { font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+      .toolbar-actions { display: flex; gap: 8px; align-items: center; }
+      .btn-header { 
+        background: rgba(255,255,255,0.2); color: white; border: none; 
+        padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        font-size: 13px;
+      }
+      .btn-header:hover { background: rgba(255,255,255,0.3); }
+      #repostBtn { background: white; color: var(--primary); }
+      #repostBtn:hover { background: #e6f0fa; }
+
+      /* Статистика */
+      .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; max-width: 1200px; margin: 0 auto; }
+      .stat-item { background: white; padding: 12px 8px; border-radius: 12px; text-align: center; font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border-bottom: 4px solid #ccc; }
+      .stat-item b { font-size: 16px; display: block; margin-top: 4px; }
+      .stat-total { border-color: var(--primary); }
+      .stat-pending { border-color: var(--warning); background: #fffdf3; }
+      .stat-active { border-color: var(--success); background: #f4fbf6; }
+      .stat-banners { border-color: #ff9800; background: #fffaf4; }
+
+      /* Фильтры и вкладки */
+      .nav-container { background: white; border-bottom: 1px solid #dee2e6; position: sticky; top: 51px; z-index: 90; }
+      .nav-tabs { display: flex; overflow-x: auto; max-width: 1200px; margin: 0 auto; padding: 0 10px; scrollbar-width: none; }
+      .nav-tabs::-webkit-scrollbar { display: none; }
+      .nav-btn { 
+        padding: 14px 16px; border: none; background: none; font-size: 14px; font-weight: 600; 
+        color: var(--gray); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.15s;
+      }
+      .nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+      /* Панель управления списком */
+      .list-controls { 
+        max-width: 1200px; margin: 15px auto 0; padding: 0 15px; 
+        display: flex; justify-content: space-between; align-items: center; 
+      }
+      .sort-btn { 
+        background: white; border: 1px solid #ccc; padding: 6px 12px; border-radius: 20px; 
+        cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; 
+      }
+
+      /* Секции */
+      .admin-section { max-width: 1200px; margin: 15px auto; padding: 15px; background: #fff; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+      .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333; display: flex; align-items: center; justify-content: space-between; }
+
+      /* Сетка тарифов */
+      .tariff-row { 
+        display: grid; grid-template-columns: minmax(100px, 2fr) 60px 45px 45px 55px 80px; 
+        gap: 6px; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #eee;
+      }
+
+      /* Поля ввода глобальные */
+      input, select, textarea { 
+        width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px; 
+        text-align: left; direction: ltr; background: #fff; transition: border 0.2s;
+      }
+      input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; }
+
+      /* Компактные карточки объявлений */
+      .list-container { max-width: 1200px; margin: 0 auto; padding: 10px; }
+      .compact-card { 
+        background: white; padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; 
+        border-left: 6px solid #ccc; position: relative; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04); 
+        display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s;
+      }
+      .compact-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+      .compact-card.active { border-left-color: var(--success); }
+      .compact-card.pending { border-left-color: var(--warning); }
+      .compact-card.archived { border-left-color: var(--gray); opacity: 0.8; }
+      .compact-card.vip { background: #fffdf0; border-left-color: #d4af37; }
+
+      .card-main-info { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 0; }
+      .card-checkbox-wrapper { display: flex; align-items: center; height: 100%; padding-right: 5px; }
+      .card-checkbox { transform: scale(1.3); cursor: pointer; }
+      .card-text { min-width: 0; flex: 1; }
+      .card-title-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+      .card-id { font-size: 11px; color: var(--gray); font-weight: bold; }
+      .card-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #222; }
+      .card-meta { font-size: 12px; color: #666; display: flex; gap: 12px; flex-wrap: wrap; }
+      .card-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+      .badge-active { background: #e2f6e7; color: var(--success); }
+      .badge-pending { background: #fff3cd; color: #856404; }
+      .badge-archived { background: #e2e3e5; color: var(--gray); }
+      .badge-vip { background: #fff3cd; color: #b8860b; border: 1px solid #ffeeba; }
+
+      /* Кнопки действий */
+      .btn-save { background: var(--success); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; }
+      .btn-del { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+      .btn-add { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 10px; cursor: pointer; }
+
+      /* Модальное окно (Детали объявления) */
+      .modal-backdrop { 
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.5); z-index: 1000; display: none; 
+        align-items: center; justify-content: center; padding: 15px; 
+      }
+      .modal-content { 
+        background: white; width: 100%; max-width: 600px; max-height: 90vh; 
+        border-radius: 16px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        animation: slideUp 0.25s ease-out; position: relative;
+      }
+      @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      .modal-header { 
+        padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; 
+        justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 10;
+      }
+      .modal-header h3 { margin: 0; font-size: 18px; }
+      .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray); }
+      .modal-body { padding: 20px; }
+      .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end; position: sticky; bottom: 0; background: white; z-index: 10; }
+
+      /* Форма редактирования внутри модалки */
+      .form-group { margin-bottom: 15px; }
+      .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+      .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+      /* Кастомный переключатель рекламы */
+      .banner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+
+      /* Авторизация */
+      .auth-container { 
+        max-width: 360px; margin: 100px auto; padding: 30px; background: white; 
+        border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; 
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Шапка панели -->
+    <div class="toolbar" id="main-toolbar" style="display: none">
+      <div class="toolbar-brand">⚓ Адмін-панель <span id="counter" style="font-size:12px; opacity:0.8; font-weight:normal;"></span></div>
+      <div class="toolbar-actions">
+        <button onclick="repostSelected()" id="repostBtn" class="btn-header" style="display: none;">🚀 В КАНАЛ</button>
+        <button onclick="createNewBannerModal()" id="addBannerBtn" class="btn-header" style="background: #ff9800; display: none;">+ Додати рекламу</button>
+        <button onclick="localStorage.removeItem('admin_key'); location.reload();" class="btn-header" style="background: rgba(255,255,255,0.15)">Вихід</button>
+      </div>
+    </div>
+
+    <!-- Авторизация -->
+    <div id="auth" style="display: none;">
+      <div class="auth-container">
+        <h2 style="margin-top:0; margin-bottom:20px;">Вхід до кабінету</h2>
+        <input type="password" id="pw" placeholder="Введіть пароль" style="padding:12px; font-size:16px; text-align:center;" />
+        <button onclick="login()" class="btn-add" style="padding: 12px;">Увійти</button>
+      </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div id="main" style="display: none">
+      <!-- Блок статистики -->
+      <div id="stats-bar" class="stats-grid"></div>
+
+      <!-- Вкладки (Навигация) -->
+      <div class="nav-container">
+        <div class="nav-tabs">
+          <button class="nav-btn active" onclick="switchTab('all')">Усі оголошення</button>
+          <button class="nav-btn" onclick="switchTab('active')">Активні</button>
+          <button class="nav-btn" onclick="switchTab('pending')">Очікують</button>
+          <button class="nav-btn" onclick="switchTab('archived')">Архів</button>
+          <button class="nav-btn" onclick="switchTab('banners')">📢 Реклама</button>
+          <button class="nav-btn" onclick="switchTab('settings')">⚙️ Тарифи & Картки</button>
+        </div>
+      </div>
+
+      <!-- Фильтры и сортировка списка -->
+      <div class="list-controls" id="list-controls-panel">
+        <span style="font-size: 13px; color: var(--gray);" id="items-count-indicator">Знайдено: 0</span>
+        <button class="sort-btn" onclick="toggleSort()">
+          📅 Сортування: <span id="sort-order-text">Спочатку нові</span>
+        </button>
+      </div>
+
+      <!-- Контейнер для списков объявлений / баннеров -->
+      <div class="list-container" id="list"></div>
+
+      <!-- Вкладка Настроек (Тарифы и Реквизиты) -->
+      <div id="settings-section" class="list-container" style="display: none;">
+        <div class="admin-section">
+          <div class="section-title">
+            <span>📊 Тарифи</span>
+            <button onclick="addNewTariffRow()" style="background:#4CAF50; color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">+</button>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(100px, 2fr) 60px 45px 45px 55px 80px; gap: 6px; font-size: 9px; color: gray; padding: 0 5px 5px; text-align: center;">
+            <div style="text-align:left">Назва</div>
+            <div>Ціна</div>
+            <div>Дні</div>
+            <div>Пост</div>
+            <div>Год</div>
+            <div>Дія</div>
+          </div>
+          <div id="tariff-list"></div>
+        </div>
+
+        <div class="admin-section">
+          <div class="section-title">💳 Реквізити (Ротатор)</div>
+          <div id="payment-list"></div>
+          <button class="btn-add" onclick="addPayment()">+ Додати картку / IBAN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: Детали объявления / Редактирование -->
+    <div class="modal-backdrop" id="adModal" onclick="if(event.target===this) closeModal()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">Редагування оголошення</h3>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Наполнение генерируется динамически через JS -->
+        </div>
+        <div class="modal-footer" id="modalFooter">
+          <!-- Кнопки управления -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const adminKey = localStorage.getItem("admin_key");
+      let selectedIds = new Set();
+      let allAds = []; // Локальная копия объявлений
+      let allBanners = []; // Локальная копия баннеров
+      let currentTab = 'all'; // Текущая открытая вкладка
+      let sortDesc = true; // Сортировка по умолчанию (сначала новые)
+
+      // Оффлайн заглушки (на случай, если сервер недоступен при локальной разработке)
+      const offlineAds = [
+        { id: "101", category: "Робота", vacancy: "Адміністратор сайту", salary: "18 000 грн", status: "active", isVip: true, duties: "Керування контентом, оновлення бази даних.", views: 120, repostsRemaining: 5, repostIntervalHrs: 12, createdAt: new Date().toISOString(), phone: "+380670000001", tariff: "VIP" },
+        { id: "102", category: "Послуги", vacancy: "Ремонт комп'ютерів", salary: "Договірна", status: "pending", isVip: false, duties: "Виїзд на дім, чистка, встановлення ОС.", views: 42, repostsRemaining: 2, repostIntervalHrs: 24, createdAt: new Date(Date.now() - 86400000).toISOString(), phone: "+380670000002", tariff: "Стандарт" },
+        { id: "103", category: "Робота", vacancy: "Водій категорії B", salary: "25 000 грн", status: "archived", isVip: false, duties: "Доставка замовлень по місту на авто компанії.", views: 310, repostsRemaining: 0, repostIntervalHrs: 24, createdAt: new Date(Date.now() - 172800000).toISOString(), phone: "+380670000003", tariff: "Базовий" }
+      ];
+      const offlineStats = { total: 3, pending: 1, active: 1, banners: 1 };
+      const offlineTariffs = [
+        { id: "t1", label: "Базовий", price: 0, days: 7, reposts: 1, repostIntervalHrs: 24 },
+        { id: "t2", label: "VIP Старт", price: 150, days: 14, reposts: 3, repostIntervalHrs: 12 }
+      ];
+      const offlinePayments = [
+        { _id: "p1", label: "ПриватБанк", value: "4149 4999 9999 9999" }
+      ];
+      const offlineBanners = [
+        { _id: "b1", title: "Купуй авто в Одесі", content: "Найкращі пропозиції б/у автомобілів тільки у нас!", link: "https://example.com/cars" }
+      ];
+
+      // Старт
+      if (!adminKey) {
+        document.getElementById("auth").style.display = "block";
+      } else {
+        fetchAllData();
+      }
+
+      function login() {
+        localStorage.setItem("admin_key", document.getElementById("pw").value);
+        location.reload();
+      }
+
+      async function fetchAllData() {
+        document.getElementById("main-toolbar").style.display = "flex";
+        document.getElementById("main").style.display = "block";
+        
+        await fetchAds();
+        await fetchTariffs();
+        await fetchPayments();
+        await fetchBanners();
+        
+        renderCurrentTab();
+      }
+
+      // --- ПОЛУЧЕНИЕ ДАННЫХ (с обработкой оффлайн режима) ---
+      async function fetchAds() {
+        try {
+          const res = await fetch("/api/admin/all-ads", { headers: { "x-admin-key": adminKey } });
+          if (!res.ok) { 
+            // Если ключ не подошел на сервере, но мы работаем оффлайн — не сбрасываем принудительно
+            if (window.location.protocol === 'file:') {
+              console.warn("Помилка авторизації на сервері. Працюємо з оффлайн-даними.");
+              useOfflineAds();
+              return;
+            }
+            localStorage.removeItem("admin_key"); 
+            location.reload(); 
+            return; 
+          }
+          const { ads, stats } = await res.json();
+          allAds = ads;
+          renderStats(stats);
+        } catch (e) {
+          console.warn("Сервер оголошень недоступний. Використовуємо локальні тестові дані.", e);
+          useOfflineAds();
+        }
+      }
+
+      function useOfflineAds() {
+        allAds = offlineAds;
+        renderStats(offlineStats);
+      }
+
+      function renderStats(stats) {
+        document.getElementById("stats-bar").innerHTML = `
+            <div class="stat-item stat-total">📦 Всього<br><b>${stats.total}</b></div>
+            <div class="stat-item stat-pending">⏳ Чекають<br><b>${stats.pending}</b></div>
+            <div class="stat-item stat-active">✅ Активні<br><b>${stats.active}</b></div>
+            <div class="stat-item stat-banners">📢 Реклама<br><b>${stats.banners || allBanners.length}</b></div>
+        `;
+      }
+
+      // --- ЛОГИКА ТАРИФОВ ---
+      async function fetchTariffs() {
+        let tariffs = [];
+        try {
+          const res = await fetch("/api/admin/tariffs", { headers: { "x-admin-key": adminKey } });
+          tariffs = await res.json();
+        } catch (e) {
+          console.warn("Запит тарифів оффлайн");
+          tariffs = offlineTariffs;
+        }
+        
+        const container = document.getElementById("tariff-list");
+        container.innerHTML = tariffs.map(t => `
+          <div class="tariff-row">
+            <input type="text" id="t-label-${t.id}" value="${t.label || ''}" style="font-size:12px;">
+            <input type="number" id="t-price-${t.id}" value="${t.price}">
+            <input type="number" id="t-days-${t.id}" value="${t.days}">
+            <input type="number" id="t-reposts-${t.id}" value="${t.reposts}">
+            <input type="number" id="t-interval-${t.id}" value="${t.repostIntervalHrs || 24}">
+            <div style="display:flex; gap:4px;">
+              <button class="btn-save" onclick="saveTariff('${t.id}')" style="padding: 8px;">💾</button>
+              <button class="btn-del" onclick="deleteTariff('${t.id}')" style="padding: 8px;">🗑</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      async function createTariff(tempId) {
+        const data = {
+          id: document.getElementById(`t-price-${tempId}`).value + "_" + Date.now(),
+          label: document.getElementById(`t-label-${tempId}`).value,
+          price: Number(document.getElementById(`t-price-${tempId}`).value),
+          days: Number(document.getElementById(`t-days-${tempId}`).value),
+          reposts: Number(document.getElementById(`t-reposts-${tempId}`).value),
+          repostIntervalHrs: Number(document.getElementById(`t-interval-${tempId}`).value),
+          isVip: false
+        };
+        try {
+          const res = await fetch("/api/admin/tariffs/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+            body: JSON.stringify(data),
+          });
+          if (res.ok) { alert("Додано!"); fetchTariffs(); }
+        } catch (e) {
+          alert("Оффлайн: Тариф 'додано' локально!");
+          offlineTariffs.push(data);
+          fetchTariffs();
+        }
+      }
+
+      async function saveTariff(id) {
+        const data = {
+          id: id,
+          label: document.getElementById(`t-label-${id}`).value,
+          price: Number(document.getElementById(`t-price-${id}`).value),
+          days: Number(document.getElementById(`t-days-${id}`).value),
+          reposts: Number(document.getElementById(`t-reposts-${id}`).value),
+          repostIntervalHrs: Number(document.getElementById(`t-interval-${id}`).value),
+        };
+        try {
+          await fetch("/api/admin/tariffs/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+            body: JSON.stringify(data),
+          });
+          alert("Збережено!");
+        } catch (e) {
+          alert("Збережено локально (оффлайн)!");
+        }
+      }
+
+      async function deleteTariff(id) {
+        if (!confirm("Видалити тариф?")) return;
+        try {
+          await fetch("/api/admin/tariffs/" + id, {
+            method: "DELETE",
+            headers: { "x-admin-key": adminKey }
+          });
+        } catch (e) {
+          const idx = offlineTariffs.findIndex(t => t.id === id);
+          if (idx > -1) offlineTariffs.splice(idx, 1);
+        }
+        fetchTariffs();
+      }
+
+      function addNewTariffRow() {
+        const container = document.getElementById("tariff-list");
+        const newId = 't' + Date.now();
+        const newRow = document.createElement('div');
+        newRow.className = 'tariff-row';
+        newRow.style.background = "#e8f5e9";
+        newRow.innerHTML = `
+          <input type="text" id="t-label-${newId}" placeholder="Назва">
+          <input type="number" id="t-price-${newId}" value="0">
+          <input type="number" id="t-days-${newId}" value="7">
+          <input type="number" id="t-reposts-${newId}" value="1">
+          <input type="number" id="t-interval-${newId}" value="24">
+          <button class="btn-save" onclick="createTariff('${newId}')" style="background:#4CAF50; padding: 8px;">➕</button>
+        `;
+        container.appendChild(newRow);
+      }
+
+      // --- РЕКВИЗИТЫ ---
+      async function fetchPayments() {
+        let payments = [];
+        try {
+          const res = await fetch("/api/admin/payments", { headers: { "x-admin-key": adminKey } });
+          payments = await res.json();
+        } catch (e) {
+          payments = offlinePayments;
+        }
+        
+        const container = document.getElementById("payment-list");
+        container.innerHTML = payments.map(p => `
+          <div class="card" style="border-left-color: var(--success); margin: 8px 0; padding: 10px 15px;">
+            <div class="edit-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; margin-bottom: 8px;">
+              <input type="text" id="p-label-${p._id}" value="${p.label}">
+              <input type="text" id="p-val-${p._id}" value="${p.value}">
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn-save" style="flex:1; padding: 6px;" onclick="savePayment('${p._id}')">💾 Зберегти</button>
+              <button class="btn-del" style="padding: 6px;" onclick="deletePayment('${p._id}')">🗑</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      async function addPayment() {
+        const label = prompt("Банк:");
+        const value = prompt("Номер:");
+        if (label && value) {
+          try {
+            await fetch("/api/admin/payments/save", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+              body: JSON.stringify({ label, value }),
+            });
+          } catch (e) {
+            offlinePayments.push({ _id: 'p' + Date.now(), label, value });
+          }
+          fetchPayments();
+        }
+      }
+
+      async function savePayment(id) {
+        const data = { _id: id, label: document.getElementById(`p-label-${id}`).value, value: document.getElementById(`p-val-${id}`).value };
+        try {
+          await fetch("/api/admin/payments/save", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-key": adminKey }, body: JSON.stringify(data) });
+          alert("Збережено!");
+        } catch (e) {
+          alert("Збережено локально!");
+        }
+      }
+
+      async function deletePayment(id) {
+        if (!confirm("Видалити?")) return;
+        try {
+          await fetch("/api/admin/payments/" + id, { method: "DELETE", headers: { "x-admin-key": adminKey } });
+        } catch (e) {
+          const idx = offlinePayments.findIndex(p => p._id === id);
+          if (idx > -1) offlinePayments.splice(idx, 1);
+        }
+        fetchPayments();
+      }
+
+      // --- БАННЕРЫ ---
+      async function fetchBanners() {
+        try {
+          const res = await fetch("/api/banners");
+          allBanners = await res.json();
+        } catch (e) {
+          allBanners = offlineBanners;
+        }
+      }
+
+      // --- ВЫБОР ВКЛАДКИ ---
+      function switchTab(tabId) {
+        currentTab = tabId;
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        // Находим кнопку по тексту вкладки или индексу
+        event.target.classList.add('active');
+
+        // Управление показом дополнительных кнопок в шапке
+        document.getElementById("addBannerBtn").style.display = tabId === 'banners' ? "block" : "none";
+
+        renderCurrentTab();
+      }
+
+      function toggleSort() {
+        sortDesc = !sortDesc;
+        document.getElementById("sort-order-text").innerText = sortDesc ? "Спочатку нові" : "Спочатку старі";
+        renderCurrentTab();
+      }
+
+      // --- ОТРИСОВКА ВЫБРАННОЙ ВКЛАДКИ ---
+      function renderCurrentTab() {
+        const list = document.getElementById("list");
+        const settingsSection = document.getElementById("settings-section");
+        const listControls = document.getElementById("list-controls-panel");
+        
+        list.innerHTML = "";
+        selectedIds.clear();
+        updateSelectedCounter();
+
+        if (currentTab === 'settings') {
+          list.style.display = "none";
+          listControls.style.display = "none";
+          settingsSection.style.display = "block";
+          return;
+        }
+
+        list.style.display = "block";
+        listControls.style.display = "flex";
+        settingsSection.style.display = "none";
+
+        if (currentTab === 'banners') {
+          listControls.style.display = "none"; // Для баннеров сортировка по дате не нужна в такой форме
+          renderBannersList();
+        } else {
+          renderAdsList();
+        }
+      }
+
+      // Рендер объявлений компактным списком
+      function renderAdsList() {
+        const list = document.getElementById("list");
+        
+        // Фильтрация
+        let filteredAds = [...allAds];
+        if (currentTab !== 'all') {
+          filteredAds = allAds.filter(ad => ad.status === currentTab);
+        }
+
+        // Сортировка по дате (createdAt)
+        filteredAds.sort((a, b) => {
+          const dateA = new Date(a.createdAt);
+          const dateB = new Date(b.createdAt);
+          return sortDesc ? dateB - dateA : dateA - dateB;
+        });
+
+        document.getElementById("items-count-indicator").innerText = `Знайдено: ${filteredAds.length}`;
+
+        if (filteredAds.length === 0) {
+          list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--gray);">Нічого не знайдено в цій категорії</div>`;
+          return;
+        }
+
+        list.innerHTML = filteredAds.map(ad => {
+          const isVip = ad.isVip === true || String(ad.isVip) === "true";
+          const formattedDate = new Date(ad.createdAt).toLocaleDateString();
+          
+          let badgeStatus = 'badge-active';
+          let badgeLabel = 'Активне';
+          if (ad.status === 'pending') { badgeStatus = 'badge-pending'; badgeLabel = 'Очікує'; }
+          if (ad.status === 'archived') { badgeStatus = 'badge-archived'; badgeLabel = 'Архів'; }
+
+          return `
+            <div class="compact-card ${ad.status} ${isVip ? "vip" : ""}" id="card-${ad.id}" onclick="openAdModal('${ad.id}', event)">
+              <div class="card-main-info">
+                <div class="card-checkbox-wrapper" onclick="event.stopPropagation()">
+                  <input type="checkbox" class="card-checkbox" onchange="toggleSelect('${ad.id}', this.checked)" ${selectedIds.has(ad.id) ? 'checked' : ''}>
+                </div>
+                <div class="card-text">
+                  <div class="card-title-row">
+                    <span class="card-id">#${ad.id}</span>
+                    <span class="card-title">${ad.vacancy}</span>
+                    ${isVip ? `<span class="card-badge badge-vip">VIP ⭐</span>` : ''}
+                    <span class="card-badge ${badgeStatus}">${badgeLabel}</span>
+                  </div>
+                  <div class="card-meta">
+                    <span>📁 ${ad.category}</span>
+                    <span>💰 <b>${ad.salary}</b></span>
+                    <span>📅 ${formattedDate}</span>
+                  </div>
+                </div>
+              </div>
+              <div style="font-size: 20px; color: var(--gray); padding-left: 10px;">&rsaquo;</div>
+            </div>`;
+        }).join("");
+      }
+
+      // Рендер списка баннеров
+      function renderBannersList() {
+        const list = document.getElementById("list");
+        if (allBanners.length === 0) {
+          list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--gray);">Немає активних рекламних банерів</div>`;
+          return;
+        }
+
+        list.innerHTML = `<div class="banner-grid">` + allBanners.map(b => `
+          <div class="card" style="border-left: 6px solid #ff9800; margin: 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; cursor: pointer;" onclick="openBannerModal('${b._id}')">
+            <div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <b style="font-size: 15px; color: #333;">${b.title || "Без назви"}</b>
+                <span class="card-badge" style="background:#fff3e0; color:#e65100; border: 1px solid #ffe0b2;">Реклама</span>
+              </div>
+              <div style="font-size: 13px; color: #555; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 8px;">
+                ${b.content || "Немає контенту..."}
+              </div>
+            </div>
+            <div style="font-size: 11px; color: var(--primary); text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 8px; border-top: 1px solid #f5f5f5;">
+              🔗 ${b.link || "Немає посилання"}
+            </div>
+          </div>
+        `).join("") + `</div>`;
+      }
+
+      // --- ОПЕРАЦИИ ВЫБОРА (В КАНАЛ) ---
+      function toggleSelect(id, checked) {
+        if (checked) selectedIds.add(id); else selectedIds.delete(id);
+        updateSelectedCounter();
+      }
+
+      function updateSelectedCounter() {
+        const counter = document.getElementById("counter");
+        const btn = document.getElementById("repostBtn");
+        
+        if (selectedIds.size > 0) {
+          counter.innerText = `(Обрано: ${selectedIds.size})`;
+          btn.style.display = "block";
+        } else {
+          counter.innerText = "";
+          btn.style.display = "none";
+        }
+      }
+
+      async function repostSelected() {
+        if (!confirm(`Опублікувати обрані оголошення у кількості: ${selectedIds.size} шт.?`)) return;
+        try {
+          await fetch("/api/admin/repost-batch", { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json", "x-admin-key": adminKey }, 
+            body: JSON.stringify({ ids: Array.from(selectedIds) }) 
+          });
+          alert("🚀 Опубліковано!");
+          location.reload();
+        } catch (e) {
+          alert(`Оффлайн: Опубліковано пакетом у канал (${selectedIds.size} шт.)!`);
+          selectedIds.clear();
+          updateSelectedCounter();
+        }
+      }
+
+      // --- МОДАЛЬНОЕ ОКНО: ОТКРЫТИЕ И РЕДАКТИРОВАНИЕ ---
+      function openModal() { document.getElementById("adModal").style.display = "flex"; }
+      function closeModal() { document.getElementById("adModal").style.display = "none"; }
+
+      function openAdModal(id, event) {
+        // Защита: не открывать модалку при клике на сам чекбокс
+        if(event && event.target.classList.contains('card-checkbox')) return;
+
+        const ad = allAds.find(a => a.id === id);
+        if(!ad) return;
+
+        const isVip = ad.isVip === true || String(ad.isVip) === "true";
+        document.getElementById("modalTitle").innerText = `Оголошення #${ad.id}`;
+
+        const body = document.getElementById("modalBody");
+        body.innerHTML = `
+          <div class="form-group">
+            <label>Категорія</label>
+            <input type="text" id="m-cat-${ad.id}" value="${ad.category || ''}">
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Вакансія (Заголовок)</label>
+              <input type="text" id="m-vac-${ad.id}" value="${ad.vacancy || ''}">
+            </div>
+            <div class="form-group">
+              <label>Зарплата</label>
+              <input type="text" id="m-sal-${ad.id}" value="${ad.salary || ''}">
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label>Статус</label>
+              <select id="m-stat-${ad.id}">
+                <option value="active" ${ad.status === "active" ? "selected" : ""}>Active (Активне)</option>
+                <option value="pending" ${ad.status === "pending" ? "selected" : ""}>Pending (Очікує)</option>
+                <option value="archived" ${ad.status === "archived" ? "selected" : ""}>Archived (Архів)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Пріоритет</label>
+              <select id="m-vip-${ad.id}">
+                <option value="false" ${!isVip ? "selected" : ""}>Звичайне</option>
+                <option value="true" ${isVip ? "selected" : ""}>VIP ⭐</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Текст оголошення</label>
+            <textarea id="m-dut-${ad.id}" rows="5">${ad.duties || ""}</textarea>
+          </div>
+          <div class="form-row-2" style="background: var(--light); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ccc;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>🚀 Залишилось репостів</label>
+              <input type="number" id="m-reposts-${ad.id}" value="${ad.repostsRemaining || 0}">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>⏱ Інтервал автопосту (год)</label>
+              <input type="number" id="m-interval-${ad.id}" value="${ad.repostIntervalHrs || 24}">
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--gray); line-height: 1.5; background: #eee; padding: 10px; border-radius: 6px;">
+            👤 <b>Контакт:</b> ${ad.phone} | 💵 <b>Тариф:</b> ${ad.tariff || '—'} | 👁 <b>Переглядів:</b> ${ad.views || 0}
+          </div>
+        `;
+
+        const footer = document.getElementById("modalFooter");
+        footer.innerHTML = `
+          <button class="btn-del" onclick="deleteAd('${ad.id}')" style="margin-right: auto;">🗑 Видалити</button>
+          <button class="btn-save" style="background: var(--gray);" onclick="closeModal()">Скасувати</button>
+          <button class="btn-save" onclick="saveAd('${ad.id}')">💾 Зберегти зміни</button>
+        `;
+
+        openModal();
+      }
+
+      async function saveAd(id) {
+        const data = {
+          category: document.getElementById(`m-cat-${id}`).value,
+          vacancy: document.getElementById(`m-vac-${id}`).value,
+          salary: document.getElementById(`m-sal-${id}`).value,
+          status: document.getElementById(`m-stat-${id}`).value,
+          isVip: document.getElementById(`m-vip-${id}`).value === "true",
+          duties: document.getElementById(`m-dut-${id}`).value,
+          repostsRemaining: parseInt(document.getElementById(`m-reposts-${id}`).value) || 0,
+          repostIntervalHrs: parseInt(document.getElementById(`m-interval-${id}`).value) || 24
+        };
+        
+        try {
+          await fetch("/api/admin/update/" + id, { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json", "x-admin-key": adminKey }, 
+            body: JSON.stringify(data) 
+          });
+          alert("Збережено!");
+          location.reload();
+        } catch (e) {
+          // Локальный апдейт для оффлайна
+          const idx = allAds.findIndex(a => a.id === id);
+          if (idx > -1) {
+            allAds[idx] = { ...allAds[idx], ...data };
+            renderCurrentTab();
+          }
+          closeModal();
+          alert("Збережено локально (оффлайн режим)!");
+        }
+      }
+
+      async function deleteAd(id) {
+        if (!confirm("Видалити це оголошення?")) return;
+        try {
+          await fetch("/api/admin/delete/" + id, { method: "DELETE", headers: { "x-admin-key": adminKey } });
+          alert("Видалено!");
+          location.reload();
+        } catch (e) {
+          const idx = allAds.findIndex(a => a.id === id);
+          if (idx > -1) allAds.splice(idx, 1);
+          closeModal();
+          renderCurrentTab();
+          alert("Видалено локально (оффлайн)!");
+        }
+      }
+
+      // --- МОДАЛЬНОЕ ОКНО: БАННЕРЫ ---
+      function openBannerModal(id) {
+        const b = allBanners.find(x => x._id === id);
+        if(!b) return;
+
+        document.getElementById("modalTitle").innerText = `Редагування реклами`;
+        const body = document.getElementById("modalBody");
+        body.innerHTML = `
+          <div class="form-group">
+            <label>Назва компанії / Заголовок</label>
+            <input type="text" id="m-btitle-${b._id}" value="${b.title || ""}">
+          </div>
+          <div class="form-group">
+            <label>Посилання</label>
+            <input type="text" id="m-blink-${b._id}" value="${b.link || ""}">
+          </div>
+          <div class="form-group">
+            <label>Текст реклами</label>
+            <textarea id="m-bcont-${b._id}" rows="6">${b.content || ""}</textarea>
+          </div>
+        `;
+
+        const footer = document.getElementById("modalFooter");
+        footer.innerHTML = `
+          <button class="btn-del" onclick="deleteBanner('${b._id}')" style="margin-right: auto;">🗑 Видалити</button>
+          <button class="btn-save" style="background: var(--gray);" onclick="closeModal()">Скасувати</button>
+          <button class="btn-save" style="background: #ff9800;" onclick="updateBanner('${b._id}')">💾 Зберегти зміни</button>
+        `;
+
+        openModal();
+      }
+
+      async function updateBanner(id) {
+        const data = { 
+          _id: id, 
+          title: document.getElementById(`m-btitle-${id}`).value, 
+          content: document.getElementById(`m-bcont-${id}`).value, 
+          link: document.getElementById(`m-blink-${id}`).value 
+        };
+        try {
+          await fetch("/api/admin/banners/save", { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json", "x-admin-key": adminKey }, 
+            body: JSON.stringify(data) 
+          });
+          alert("Оновлено!");
+          location.reload();
+        } catch (e) {
+          const idx = allBanners.findIndex(b => b._id === id);
+          if (idx > -1) allBanners[idx] = data;
+          closeModal();
+          renderCurrentTab();
+          alert("Оновлено локально (оффлайн)!");
+        }
+      }
+
+      async function deleteBanner(id) {
+        if (!confirm("Видалити баннер?")) return;
+        try {
+          await fetch("/api/admin/banners/" + id, { method: "DELETE", headers: { "x-admin-key": adminKey } });
+          location.reload();
+        } catch (e) {
+          const idx = allBanners.findIndex(b => b._id === id);
+          if (idx > -1) allBanners.splice(idx, 1);
+          closeModal();
+          renderCurrentTab();
+          alert("Видалено локально!");
+        }
+      }
+
+      function createNewBannerModal() {
+        document.getElementById("modalTitle").innerText = `Створити рекламу`;
+        const body = document.getElementById("modalBody");
+        body.innerHTML = `
+          <div class="form-group">
+            <label>Назва компанії / Заголовок</label>
+            <input type="text" id="new-btitle" placeholder="Введіть назву реклами...">
+          </div>
+          <div class="form-group">
+            <label>Посилання</label>
+            <input type="text" id="new-blink" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>Текст реклами</label>
+            <textarea id="new-bcont" rows="6" placeholder="Введіть текст рекламного оголошення..."></textarea>
+          </div>
+        `;
+
+        const footer = document.getElementById("modalFooter");
+        footer.innerHTML = `
+          <button class="btn-save" style="background: var(--gray);" onclick="closeModal()">Скасувати</button>
+          <button class="btn-save" style="background: #ff9800;" onclick="saveNewBanner()">➕ Додати</button>
+        `;
+
+        openModal();
+      }
+
+      async function saveNewBanner() {
+        const title = document.getElementById("new-btitle").value;
+        const content = document.getElementById("new-bcont").value;
+        const link = document.getElementById("new-blink").value;
+        
+        if (!title) { alert("Вкажіть хоча б заголовок!"); return; }
+
+        const data = { title, content, link };
+
+        try {
+          await fetch("/api/admin/banners/save", { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json", "x-admin-key": adminKey }, 
+            body: JSON.stringify(data) 
+          });
+          location.reload();
+        } catch (e) {
+          offlineBanners.push({ _id: 'b' + Date.now(), ...data });
+          closeModal();
+          renderCurrentTab();
+          alert("Додано локально (оффлайн)!");
+        }
+      }
+    </script>
+  </body>
+</html>
