@@ -750,7 +750,8 @@
         openModal();
       }
 
-      async function saveAd(id) {
+            async function saveAd(id) {
+        // Зчитуємо дані з полів модального вікна за правильними ID (з префіксом m-)
         const data = {
           category: document.getElementById(`m-cat-${id}`).value,
           vacancy: document.getElementById(`m-vac-${id}`).value,
@@ -763,15 +764,26 @@
         };
         
         try {
-          await fetch("/api/admin/update/" + id, { 
+          const res = await fetch("/api/admin/update/" + id, { 
             method: "POST", 
             headers: { "Content-Type": "application/json", "x-admin-key": adminKey }, 
             body: JSON.stringify(data) 
           });
-          alert("Збережено!");
-          location.reload();
+          
+          if (res.ok) {
+            alert("Збережено!");
+            // Оновлюємо локальний масив перед тим, як закрити вікно та перемалювати список
+            const idx = allAds.findIndex(a => a.id === id);
+            if (idx > -1) {
+              allAds[idx] = { ...allAds[idx], ...data };
+            }
+            closeModal();
+            renderCurrentTab();
+          } else {
+            alert("Помилка збереження на сервері!");
+          }
         } catch (e) {
-          // Локальный апдейт для оффлайна
+          // Локальний апдейт для оффлайну (якщо працюємо локально без сервера)
           const idx = allAds.findIndex(a => a.id === id);
           if (idx > -1) {
             allAds[idx] = { ...allAds[idx], ...data };
@@ -781,6 +793,7 @@
           alert("Збережено локально (оффлайн режим)!");
         }
       }
+
 
       async function deleteAd(id) {
         if (!confirm("Видалити це оголошення?")) return;
