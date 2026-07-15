@@ -498,10 +498,49 @@ app.get('/api/admin/all-ads', async (req, res) => {
 });
 
 app.post('/api/admin/update/:id', async (req, res) => {
-    if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) return res.status(403).send();
-    const ad = await Ad.findOneAndUpdate({ id: req.params.id }, { $set: req.body }, { new: true });
-    res.json({ success: !!ad });
+    try {
+        // 1. Перевірка пароля адміна
+        if (req.headers['x-admin-key'] !== process.env.ADMIN_PASS) {
+            return res.status(403).json({ error: "Доступ запрещен" });
+        }
+
+        const adId = req.params.id; // наприклад, "v74914" або "74914"
+
+        // 2. Готуємо дані з req.body, явно приводячи типи (про всяк випадок)
+        const updateData = { ...req.body };
+        
+        if (updateData.repostsRemaining !== undefined) {
+            updateData.repostsRemaining = parseInt(updateData.repostsRemaining, 10) || 0;
+        }
+        if (updateData.repostIntervalHrs !== undefined) {
+            updateData.repostIntervalHrs = parseInt(updateData.repostIntervalHrs, 10) || 24;
+        }
+        if (updateData.isVip !== undefined) {
+            updateData.isVip = updateData.isVip === true || updateData.isVip === 'true';
+        }
+
+        // 3. Оновлюємо оголошення за вашим кастомним полем id
+        // Опція runValidators: true змусить Mongoose перевірити типи перед записом
+        const ad = await Ad.findOneAndUpdate(
+            { id: adId }, 
+            { $set: updateData }, 
+            { new: true, runValidators: true }
+        );
+
+        if (ad) {
+            console.log(`Объявление с ID ${adId} успешно обновлено`);
+            res.json({ success: true, ad });
+        } else {
+            console.log(`Объявление ${adId} не найдено для обновления`);
+            res.status(404).json({ success: false, error: "Объявление не найдено" });
+        }
+
+    } catch (error) {
+        console.error("ОШИБКА ОБНОВЛЕНИЯ СЕРВЕРА:", error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
+
 
 async function sendToTelegram(ad) {
     try {
